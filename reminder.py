@@ -53,6 +53,22 @@ def sort_reminders(reminders):
     save_reminders(reminders)
     print("Reminders sorted by date!")
 
+def search_reminders(reminders):
+    if len(reminders) == 0:
+        print("No reminders yet!")
+        return
+    keyword = input("Enter search keyword: ")
+    results = []
+    for i, item in enumerate(reminders):
+        if keyword.lower() in item.lower():
+            results.append(str(i + 1) + ". " + item)
+    if len(results) == 0:
+        print("No reminders found!")
+    else:
+        print("\n--- Search Results ---")
+        for result in results:
+            print(result)
+
 print("Welcome to Reminder App!")
 reminders = load_reminders()
 
@@ -61,11 +77,12 @@ while True:
     print("2. Show Reminders")
     print("3. Delete Reminder")
     print("4. Sort by Date")
-    print("5. Exit")
+    print("5. Search Reminders")
+    print("6. Exit")
 
-    choice = input("Choose (1-5): ")
+    choice = input("Choose (1-6): ")
 
-    if choice == "5":
+    if choice == "6":
         print("Goodbye!")
         break
     elif choice == "1":
@@ -77,5 +94,7 @@ while True:
     elif choice == "4":
         sort_reminders(reminders)
         show_reminders(reminders)
+    elif choice == "5":
+        search_reminders(reminders)
     else:
         print("Invalid choice!")
