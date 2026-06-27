@@ -22,3 +22,7 @@ py calculator.py
 - Day 1-5: Learned Git
 - Day 6-9: Built basic calculator
 - Day 10-13: Added history and file saving
+
+## Projects
+- [Calculator](calculator.py) - A command-line calculator
+- [Notes App](notes.py) - A command-line notes application
