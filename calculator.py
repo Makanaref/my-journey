@@ -1,4 +1,17 @@
-history = []
+import os
+
+HISTORY_FILE = "history.txt"
+
+def load_history():
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, "r") as f:
+            return f.read().splitlines()
+    return []
+
+def save_history(history):
+    with open(HISTORY_FILE, "w") as f:
+        for item in history:
+            f.write(item + "\n")
 
 def add(a, b):
     return a + b
@@ -14,7 +27,7 @@ def divide(a, b):
         return "Error: Cannot divide by zero!"
     return a / b
 
-def show_history():
+def show_history(history):
     if len(history) == 0:
         print("No history yet!")
     else:
@@ -22,7 +35,7 @@ def show_history():
         for item in history:
             print(item)
 
-def calculate(choice, num1, num2):
+def calculate(choice, num1, num2, history):
     if choice == "1":
         result = add(num1, num2)
         history.append(str(num1) + " + " + str(num2) + " = " + str(result))
@@ -39,8 +52,10 @@ def calculate(choice, num1, num2):
         print("Invalid choice!")
         return
     print("Result:", result)
+    save_history(history)
 
 print("Welcome to Calculator!")
+history = load_history()
 
 while True:
     print("\n1. Add")
@@ -56,11 +71,11 @@ while True:
         print("Goodbye!")
         break
     elif choice == "5":
-        show_history()
+        show_history(history)
     else:
         try:
             num1 = float(input("Enter first number: "))
             num2 = float(input("Enter second number: "))
-            calculate(choice, num1, num2)
+            calculate(choice, num1, num2, history)
         except ValueError:
             print("Error: Please enter a valid number!")
