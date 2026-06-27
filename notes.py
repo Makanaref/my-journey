@@ -59,6 +59,22 @@ def edit_note(notes):
     except ValueError:
         print("Error: Please enter a valid number!")
 
+def search_notes(notes):
+    if len(notes) == 0:
+        print("No notes yet!")
+        return
+    keyword = input("Enter search keyword: ")
+    results = []
+    for i, note in enumerate(notes):
+        if keyword.lower() in note.lower():
+            results.append(str(i + 1) + ". " + note)
+    if len(results) == 0:
+        print("No notes found!")
+    else:
+        print("\n--- Search Results ---")
+        for result in results:
+            print(result)
+
 print("Welcome to Notes App!")
 notes = load_notes()
 
@@ -67,11 +83,12 @@ while True:
     print("2. Show Notes")
     print("3. Delete Note")
     print("4. Edit Note")
-    print("5. Exit")
+    print("5. Search Notes")
+    print("6. Exit")
 
-    choice = input("Choose (1-5): ")
+    choice = input("Choose (1-6): ")
 
-    if choice == "5":
+    if choice == "6":
         print("Goodbye!")
         break
     elif choice == "1":
@@ -82,5 +99,7 @@ while True:
         delete_note(notes)
     elif choice == "4":
         edit_note(notes)
+    elif choice == "5":
+        search_notes(notes)
     else:
         print("Invalid choice!")
