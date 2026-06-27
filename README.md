@@ -26,3 +26,5 @@ py calculator.py
 ## Projects
 - [Calculator](calculator.py) - A command-line calculator
 - [Notes App](notes.py) - A command-line notes application
+- [Unit Converter](converter.py) - A command-line unit converter
+- [Reminder App](reminder.py) - A command-line reminder application
