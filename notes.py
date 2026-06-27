@@ -42,6 +42,23 @@ def delete_note(notes):
     except ValueError:
         print("Error: Please enter a valid number!")
 
+def edit_note(notes):
+    show_notes(notes)
+    if len(notes) == 0:
+        return
+    try:
+        num = int(input("Enter note number to edit: "))
+        if num < 1 or num > len(notes):
+            print("Invalid number!")
+            return
+        print("Old note: " + notes[num - 1])
+        new_note = input("Enter new note: ")
+        notes[num - 1] = new_note
+        save_notes(notes)
+        print("Note updated!")
+    except ValueError:
+        print("Error: Please enter a valid number!")
+
 print("Welcome to Notes App!")
 notes = load_notes()
 
@@ -49,11 +66,12 @@ while True:
     print("\n1. Add Note")
     print("2. Show Notes")
     print("3. Delete Note")
-    print("4. Exit")
+    print("4. Edit Note")
+    print("5. Exit")
 
-    choice = input("Choose (1-4): ")
+    choice = input("Choose (1-5): ")
 
-    if choice == "4":
+    if choice == "5":
         print("Goodbye!")
         break
     elif choice == "1":
@@ -62,5 +80,7 @@ while True:
         show_notes(notes)
     elif choice == "3":
         delete_note(notes)
+    elif choice == "4":
+        edit_note(notes)
     else:
         print("Invalid choice!")
