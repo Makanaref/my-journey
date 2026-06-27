@@ -1,6 +1,46 @@
-print("Welcome to Calculator!")
-
 history = []
+
+def add(a, b):
+    return a + b
+
+def subtract(a, b):
+    return a - b
+
+def multiply(a, b):
+    return a * b
+
+def divide(a, b):
+    if b == 0:
+        return "Error: Cannot divide by zero!"
+    return a / b
+
+def show_history():
+    if len(history) == 0:
+        print("No history yet!")
+    else:
+        print("\n--- History ---")
+        for item in history:
+            print(item)
+
+def calculate(choice, num1, num2):
+    if choice == "1":
+        result = add(num1, num2)
+        history.append(str(num1) + " + " + str(num2) + " = " + str(result))
+    elif choice == "2":
+        result = subtract(num1, num2)
+        history.append(str(num1) + " - " + str(num2) + " = " + str(result))
+    elif choice == "3":
+        result = multiply(num1, num2)
+        history.append(str(num1) + " * " + str(num2) + " = " + str(result))
+    elif choice == "4":
+        result = divide(num1, num2)
+        history.append(str(num1) + " / " + str(num2) + " = " + str(result))
+    else:
+        print("Invalid choice!")
+        return
+    print("Result:", result)
+
+print("Welcome to Calculator!")
 
 while True:
     print("\n1. Add")
@@ -16,34 +56,8 @@ while True:
         print("Goodbye!")
         break
     elif choice == "5":
-        if len(history) == 0:
-            print("No history yet!")
-        else:
-            print("\n--- History ---")
-            for item in history:
-                print(item)
-        continue
-
-    num1 = float(input("Enter first number: "))
-    num2 = float(input("Enter second number: "))
-
-    if choice == "1":
-        result = num1 + num2
-        history.append(str(num1) + " + " + str(num2) + " = " + str(result))
-    elif choice == "2":
-        result = num1 - num2
-        history.append(str(num1) + " - " + str(num2) + " = " + str(result))
-    elif choice == "3":
-        result = num1 * num2
-        history.append(str(num1) + " * " + str(num2) + " = " + str(result))
-    elif choice == "4":
-        if num2 == 0:
-            print("Error: Cannot divide by zero!")
-            continue
-        result = num1 / num2
-        history.append(str(num1) + " / " + str(num2) + " = " + str(result))
+        show_history()
     else:
-        print("Invalid choice!")
-        continue
-
-    print("Result:", result)
+        num1 = float(input("Enter first number: "))
+        num2 = float(input("Enter second number: "))
+        calculate(choice, num1, num2)
