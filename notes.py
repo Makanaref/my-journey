@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 NOTES_FILE = "notes.txt"
 
@@ -15,7 +16,9 @@ def save_notes(notes):
 
 def add_note(notes):
     note = input("Enter your note: ")
-    notes.append(note)
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+    note_with_time = "[" + timestamp + "] " + note
+    notes.append(note_with_time)
     save_notes(notes)
     print("Note saved!")
 
