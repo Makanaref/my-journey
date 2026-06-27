@@ -1,3 +1,20 @@
+from datetime import datetime
+
+history = []
+
+def add_to_history(value, result, unit_from, unit_to):
+    timestamp = datetime.now().strftime("%H:%M")
+    record = "[" + timestamp + "] " + str(value) + " " + unit_from + " = " + str(result) + " " + unit_to
+    history.append(record)
+
+def show_history():
+    if len(history) == 0:
+        print("No history yet!")
+    else:
+        print("\n--- History ---")
+        for item in history:
+            print(item)
+
 def km_to_mile(km):
     return km * 0.621371
 
@@ -33,33 +50,53 @@ while True:
     print("6. Pound to Kilogram")
     print("7. Meter to Foot")
     print("8. Foot to Meter")
-    print("9. Exit")
+    print("9. Show History")
+    print("0. Exit")
 
-    choice = input("Choose (1-9): ")
+    choice = input("Choose (0-9): ")
 
-    if choice == "9":
+    if choice == "0":
         print("Goodbye!")
         break
+    elif choice == "9":
+        show_history()
+        continue
 
     try:
         num = float(input("Enter value: "))
 
         if choice == "1":
-            print("Result:", round(km_to_mile(num), 2), "miles")
+            result = round(km_to_mile(num), 2)
+            print("Result:", result, "miles")
+            add_to_history(num, result, "km", "miles")
         elif choice == "2":
-            print("Result:", round(mile_to_km(num), 2), "km")
+            result = round(mile_to_km(num), 2)
+            print("Result:", result, "km")
+            add_to_history(num, result, "miles", "km")
         elif choice == "3":
-            print("Result:", round(celsius_to_fahrenheit(num), 2), "°F")
+            result = round(celsius_to_fahrenheit(num), 2)
+            print("Result:", result, "°F")
+            add_to_history(num, result, "°C", "°F")
         elif choice == "4":
-            print("Result:", round(fahrenheit_to_celsius(num), 2), "°C")
+            result = round(fahrenheit_to_celsius(num), 2)
+            print("Result:", result, "°C")
+            add_to_history(num, result, "°F", "°C")
         elif choice == "5":
-            print("Result:", round(kg_to_pound(num), 2), "pounds")
+            result = round(kg_to_pound(num), 2)
+            print("Result:", result, "pounds")
+            add_to_history(num, result, "kg", "pounds")
         elif choice == "6":
-            print("Result:", round(pound_to_kg(num), 2), "kg")
+            result = round(pound_to_kg(num), 2)
+            print("Result:", result, "kg")
+            add_to_history(num, result, "pounds", "kg")
         elif choice == "7":
-            print("Result:", round(meter_to_foot(num), 2), "feet")
+            result = round(meter_to_foot(num), 2)
+            print("Result:", result, "feet")
+            add_to_history(num, result, "m", "feet")
         elif choice == "8":
-            print("Result:", round(foot_to_meter(num), 2), "meters")
+            result = round(foot_to_meter(num), 2)
+            print("Result:", result, "meters")
+            add_to_history(num, result, "feet", "m")
         else:
             print("Invalid choice!")
     except ValueError:
