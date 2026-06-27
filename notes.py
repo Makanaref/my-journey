@@ -30,6 +30,27 @@ def show_notes(notes):
         for i, note in enumerate(notes):
             print(str(i + 1) + ". " + note)
 
+def load_notes():
+    """Loads notes from file and returns them as a list."""
+
+def save_notes(notes):
+    """Saves notes list to file."""
+
+def add_note(notes):
+    """Adds a new note with timestamp to the list."""
+
+def show_notes(notes):
+    """Displays all notes with their index numbers."""
+
+def delete_note(notes):
+    """Deletes a note by its index number."""
+
+def edit_note(notes):
+    """Edits an existing note by its index number."""
+
+def search_notes(notes):
+    """Searches notes by keyword and displays matching results."""
+
 def delete_note(notes):
     show_notes(notes)
     if len(notes) == 0:
