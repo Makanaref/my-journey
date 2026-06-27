@@ -58,6 +58,9 @@ while True:
     elif choice == "5":
         show_history()
     else:
-        num1 = float(input("Enter first number: "))
-        num2 = float(input("Enter second number: "))
-        calculate(choice, num1, num2)
+        try:
+            num1 = float(input("Enter first number: "))
+            num2 = float(input("Enter second number: "))
+            calculate(choice, num1, num2)
+        except ValueError:
+            print("Error: Please enter a valid number!")
