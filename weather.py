@@ -14,18 +14,28 @@ def get_weather(city):
 
     if data["cod"] == 200:
         name = data["name"]
+        country = data["sys"]["country"]
         temp = data["main"]["temp"]
         feels = data["main"]["feels_like"]
+        temp_min = data["main"]["temp_min"]
+        temp_max = data["main"]["temp_max"]
         desc = data["weather"][0]["description"]
         humidity = data["main"]["humidity"]
+        wind = data["wind"]["speed"]
 
-        print("\n--- Weather in " + name + " ---")
-        print("Temperature: " + str(temp) + "°C")
-        print("Feels like: " + str(feels) + "°C")
-        print("Description: " + desc)
-        print("Humidity: " + str(humidity) + "%")
+        print("\n🌍 Weather in " + name + ", " + country)
+        print("🌡️  Temperature: " + str(temp) + "°C")
+        print("🤔 Feels like: " + str(feels) + "°C")
+        print("⬇️  Min: " + str(temp_min) + "°C  |  ⬆️  Max: " + str(temp_max) + "°C")
+        print("☁️  Description: " + desc)
+        print("💧 Humidity: " + str(humidity) + "%")
+        print("💨 Wind: " + str(wind) + " m/s")
     else:
         print("City not found!")
 
-city = input("Enter city name: ")
-get_weather(city)
+while True:
+    city = input("\nEnter city name (or 'exit'): ")
+    if city.lower() == "exit":
+        print("Goodbye!")
+        break
+    get_weather(city)
