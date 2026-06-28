@@ -3,10 +3,13 @@
 30 days of learning Git and Python from scratch.
 
 ## Projects
-- [Calculator](calculator.py) - A command-line calculator with history
+- [Calculator](calculator.py) - A command-line calculator
 - [Notes App](notes.py) - A command-line notes application
 - [Unit Converter](converter.py) - A command-line unit converter
 - [Reminder App](reminder.py) - A command-line reminder application
+- [Weather App](weather.py) - Real-time weather using API
+- [Currency Converter](currency.py) - Real-time exchange rates
+- [Dashboard](dashboard.py) - Weather and currency dashboard
 
 ## What I Learned
 ### Git
