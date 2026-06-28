@@ -1,8 +1,9 @@
 # My Coding Progress 🚀
 
 ## Stats
-- 40 days of commits
-- 7 projects built
+- 50 days of commits
+- 7 Python projects built
+- 1 live website
 - 2 APIs integrated
 
 ## Skills Learned
@@ -13,29 +14,30 @@
 - revert, log, diff
 - tags and releases
 
-### Python Basics
+### Python
 - variables, functions, loops
-- if/elif/else
-- error handling (try/except)
+- error handling
 - file handling
-
-### Python Advanced
-- JSON handling
-- CSV handling
+- JSON and CSV
 - API requests
 - datetime module
-- lists and dictionaries
 
-## Projects Built
-1. Calculator - math operations with history
-2. Notes App - full CRUD with search
-3. Unit Converter - 8 unit types
-4. Reminder App - with date sorting
-5. Weather App - real-time API data
-6. Currency Converter - live exchange rates
-7. Dashboard - combined API app
+### Web Development
+- Flask framework
+- HTML and CSS
+- Jinja2 templates
+- REST APIs
+- Deploy to Railway
 
-## Next Goals
-- Learn web development
-- Build a website with Python (Flask)
-- Deploy a project online
+## Projects
+1. Calculator
+2. Notes App
+3. Unit Converter
+4. Reminder App
+5. Weather App
+6. Currency Converter
+7. Dashboard
+8. Flask Website
+
+## Live Website
+my-journey-production.up.railway.app

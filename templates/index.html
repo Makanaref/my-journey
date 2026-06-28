@@ -1,10 +1,32 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block content %}
-    <h1>Welcome to My Web App! 👋</h1>
-    <p style="color:#aaa; font-size:1.2em;">Built with Python and Flask in 46 days.</p>
-    <br>
+    <h1>Hi, I'm Makan 👋</h1>
+    <p style="color:#aaa;font-size:1.2em;max-width:600px;margin:0 auto;">
+        I started from zero and built this website in 50 days using Python and Flask!
+    </p>
+    <br><br>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:15px;margin-bottom:30px;">
+        <div class="card" style="width:150px;padding:20px;">
+            <h2 style="color:#e94560;">50+</h2>
+            <p>Days of Commits</p>
+        </div>
+        <div class="card" style="width:150px;padding:20px;">
+            <h2 style="color:#e94560;">7+</h2>
+            <p>Projects Built</p>
+        </div>
+        <div class="card" style="width:150px;padding:20px;">
+            <h2 style="color:#e94560;">2</h2>
+            <p>APIs Integrated</p>
+        </div>
+        <div class="card" style="width:150px;padding:20px;">
+            <h2 style="color:#e94560;">1</h2>
+            <p>Live Website</p>
+        </div>
+    </div>
     <a href="/about" class="btn">About Me</a>
     <a href="/projects" class="btn">My Projects</a>
-    <a href="/contact" class="btn">Contact Me</a>
+    <a href="/weather" class="btn">Weather</a>
+    <a href="/currency" class="btn">Currency</a>
+    <a href="/contact" class="btn">Contact</a>
 {% endblock %}
