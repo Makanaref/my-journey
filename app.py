@@ -26,6 +26,10 @@ def contact():
 def weather():
     return render_template("weather.html")
 
+@app.route("/currency")
+def currency():
+    return render_template("currency.html")
+
 @app.route("/get-weather")
 def get_weather():
     city = request.args.get("city")
@@ -49,6 +53,22 @@ def get_weather():
         })
     else:
         return jsonify({"error": "City not found"})
+
+@app.route("/get-currency")
+def get_currency():
+    base = request.args.get("base")
+    target = request.args.get("target")
+    amount = float(request.args.get("amount", 1))
+    url = "https://api.exchangerate-api.com/v4/latest/" + base
+    response = requests.get(url)
+    data = response.json()
+
+    if target in data["rates"]:
+        rate = data["rates"][target]
+        result = round(amount * rate, 2)
+        return jsonify({"rate": rate, "result": result})
+    else:
+        return jsonify({"error": "Currency not found"})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
