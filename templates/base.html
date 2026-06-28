@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}My Web App{% endblock %}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a2e;
+            color: #eee;
+        }
+        nav {
+            background-color: #16213e;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        nav .logo {
+            color: #e94560;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        nav .links a {
+            color: #eee;
+            text-decoration: none;
+            margin-left: 20px;
+            font-size: 1em;
+        }
+        nav .links a:hover {
+            color: #e94560;
+        }
+        .content {
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #e94560;
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            margin: 10px;
+            padding: 12px 24px;
+            background-color: #e94560;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            border: none;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #c73652;
+        }
+        .card {
+            background-color: #16213e;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            margin: 30px auto;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="logo">Makan 🚀</a>
+        <div class="links">
+            <a href="/">Home</a>
+            <a href="/about">About</a>
+            <a href="/projects">Projects</a>
+            <a href="/contact">Contact</a>
+        </div>
+    </nav>
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
