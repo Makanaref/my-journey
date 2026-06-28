@@ -9,22 +9,11 @@ def home():
 
 @app.route("/about")
 def about():
-    return "<h1>About Me</h1><p>I learned Python and Git in 43 days!</p>"
+    return render_template("about.html")
 
 @app.route("/projects")
 def projects():
-    return """
-    <h1>My Projects</h1>
-    <ul>
-        <li>Calculator</li>
-        <li>Notes App</li>
-        <li>Unit Converter</li>
-        <li>Reminder App</li>
-        <li>Weather App</li>
-        <li>Currency Converter</li>
-        <li>Dashboard</li>
-    </ul>
-    """
+    return render_template("projects.html")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
