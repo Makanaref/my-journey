@@ -1,7 +1,10 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
+import requests
 import os
 
 app = Flask(__name__)
+
+WEATHER_API_KEY = "d3dff36f2d219ec36f5c48b6c6bb4819"
 
 @app.route("/")
 def home():
@@ -18,6 +21,34 @@ def projects():
 @app.route("/contact")
 def contact():
     return render_template("contact.html")
+
+@app.route("/weather")
+def weather():
+    return render_template("weather.html")
+
+@app.route("/get-weather")
+def get_weather():
+    city = request.args.get("city")
+    url = "https://api.openweathermap.org/data/2.5/weather"
+    params = {
+        "q": city,
+        "appid": WEATHER_API_KEY,
+        "units": "metric"
+    }
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    if data["cod"] == 200:
+        return jsonify({
+            "name": data["name"],
+            "country": data["sys"]["country"],
+            "temp": data["main"]["temp"],
+            "desc": data["weather"][0]["description"],
+            "humidity": data["main"]["humidity"],
+            "wind": data["wind"]["speed"]
+        })
+    else:
+        return jsonify({"error": "City not found"})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
