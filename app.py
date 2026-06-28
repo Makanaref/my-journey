@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+import os
 
 app = Flask(__name__)
 
@@ -8,7 +9,7 @@ def home():
 
 @app.route("/about")
 def about():
-    return "<h1>About Me</h1><p>I learned Python and Git in 42 days!</p>"
+    return "<h1>About Me</h1><p>I learned Python and Git in 43 days!</p>"
 
 @app.route("/projects")
 def projects():
@@ -26,4 +27,5 @@ def projects():
     """
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
