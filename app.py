@@ -1,14 +1,14 @@
-from flask import Flask
+from flask import Flask, render_template
 
 app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "<h1>Welcome to My Web App!</h1><p>Built with Python and Flask.</p>"
+    return render_template("index.html")
 
 @app.route("/about")
 def about():
-    return "<h1>About Me</h1><p>I learned Python and Git in 41 days!</p>"
+    return "<h1>About Me</h1><p>I learned Python and Git in 42 days!</p>"
 
 @app.route("/projects")
 def projects():
