@@ -131,3 +131,7 @@ def bmi():
 @app.route("/age")
 def age():
     return render_template("age.html")
+
+@app.route("/color")
+def color():
+    return render_template("color.html")
