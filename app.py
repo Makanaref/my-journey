@@ -155,3 +155,7 @@ def speedtest():
 @app.route("/stopwatch")
 def stopwatch():
     return render_template("stopwatch.html")
+
+@app.route("/dice")
+def dice():
+    return render_template("dice.html")

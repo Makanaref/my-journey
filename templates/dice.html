@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Dice Roller{% endblock %}
+{% block content %}
+    <h1>Dice Roller 🎲</h1>
+    <div class="card">
+        <h2 id="result" style="font-size:6em;">🎲</h2>
+        <p id="number" style="color:#e94560;font-size:2em;"></p>
+        <br>
+        <select id="sides" style="padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
+            <option value="4">D4</option>
+            <option value="6" selected>D6</option>
+            <option value="8">D8</option>
+            <option value="10">D10</option>
+            <option value="12">D12</option>
+            <option value="20">D20</option>
+            <option value="100">D100</option>
+        </select>
+        <br><br>
+        <button class="btn" onclick="roll()">Roll! 🎲</button>
+    </div>
+    <script>
+        function roll() {
+            const sides = parseInt(document.getElementById("sides").value);
+            const num = Math.floor(Math.random() * sides) + 1;
+            document.getElementById("number").innerText = num;
+            document.getElementById("result").style.transform = "rotate(360deg)";
+            setTimeout(() => document.getElementById("result").style.transform = "", 500);
+        }
+    </script>
+{% endblock %}
