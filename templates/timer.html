@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Timer{% endblock %}
+{% block content %}
+    <h1>Timer ⏱️</h1>
+    <div class="card">
+        <h2 id="display" style="font-size:4em;color:#e94560;">00:00:00</h2>
+        <br>
+        <input type="number" id="minutes" placeholder="Minutes" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
+        <br><br>
+        <button class="btn" onclick="startTimer()">Start</button>
+        <button class="btn" onclick="stopTimer()">Stop</button>
+        <button class="btn" onclick="resetTimer()">Reset</button>
+    </div>
+    <script>
+        let interval = null;
+        let seconds = 0;
+
+        function startTimer() {
+            if (interval) return;
+            const mins = parseInt(document.getElementById("minutes").value) || 0;
+            if (seconds === 0) seconds = mins * 60;
+            interval = setInterval(() => {
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    interval = null;
+                    alert("Time is up!");
+                    return;
+                }
+                seconds--;
+                updateDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(interval);
+            interval = null;
+        }
+
+        function resetTimer() {
+            clearInterval(interval);
+            interval = null;
+            seconds = 0;
+            document.getElementById("display").innerText = "00:00:00";
+        }
+
+        function updateDisplay() {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            document.getElementById("display").innerText =
+                String(h).padStart(2,"0") + ":" +
+                String(m).padStart(2,"0") + ":" +
+                String(s).padStart(2,"0");
+        }
+    </script>
+{% endblock %}

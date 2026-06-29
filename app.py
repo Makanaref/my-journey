@@ -111,3 +111,7 @@ def quote():
 @app.route("/counter")
 def counter():
     return render_template("counter.html")
+
+@app.route("/timer")
+def timer():
+    return render_template("timer.html")
