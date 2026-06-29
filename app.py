@@ -103,3 +103,7 @@ def timeline():
 @app.route("/faq")
 def faq():
     return render_template("faq.html")
+
+@app.route("/quote")
+def quote():
+    return render_template("quote.html")

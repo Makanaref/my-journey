@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Quote{% endblock %}
+{% block content %}
+    <h1>Quote of the Day 💬</h1>
+    <div class="card" id="quote-card">
+        <h2 id="quote-text" style="color:#eee;font-style:italic;">Loading...</h2>
+        <p id="quote-author" style="color:#e94560;margin-top:15px;"></p>
+    </div>
+    <button class="btn" onclick="newQuote()">New Quote 🔄</button>
+
+    <script>
+        const quotes = [
+            {text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb"},
+            {text: "Code is like humor. When you have to explain it, it's bad.", author: "Cory House"},
+            {text: "First, solve the problem. Then, write the code.", author: "John Johnson"},
+            {text: "Experience is the name everyone gives to their mistakes.", author: "Oscar Wilde"},
+            {text: "The only way to learn a new programming language is by writing programs in it.", author: "Dennis Ritchie"},
+            {text: "Sometimes it pays to stay in bed on Monday, rather than spending the rest of the week debugging.", author: "Dan Salomon"},
+            {text: "It's not a bug, it's an undocumented feature.", author: "Anonymous"},
+            {text: "Every expert was once a beginner.", author: "Helen Hayes"},
+            {text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson"},
+            {text: "The secret of getting ahead is getting started.", author: "Mark Twain"}
+        ]
+
+        function newQuote() {
+            const q = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById("quote-text").innerText = q.text;
+            document.getElementById("quote-author").innerText = "— " + q.author;
+        }
+
+        newQuote();
+    </script>
+{% endblock %}
