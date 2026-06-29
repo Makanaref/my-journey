@@ -151,3 +151,7 @@ def wordcount():
 @app.route("/speedtest")
 def speedtest():
     return render_template("speedtest.html")
+
+@app.route("/stopwatch")
+def stopwatch():
+    return render_template("stopwatch.html")

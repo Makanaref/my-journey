@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Stopwatch{% endblock %}
+{% block content %}
+    <h1>Stopwatch ⏱️</h1>
+    <div class="card">
+        <h2 id="display" style="font-size:4em;color:#e94560;">00:00:00</h2>
+        <br>
+        <button class="btn" onclick="start()">Start</button>
+        <button class="btn" onclick="stop()">Stop</button>
+        <button class="btn" onclick="reset()">Reset</button>
+        <button class="btn" onclick="lap()">Lap</button>
+    </div>
+    <div id="laps"></div>
+    <script>
+        let interval = null;
+        let ms = 0;
+        let laps = [];
+
+        function start() {
+            if (interval) return;
+            interval = setInterval(() => {
+                ms += 10;
+                updateDisplay();
+            }, 10);
+        }
+        function stop() {
+            clearInterval(interval);
+            interval = null;
+        }
+        function reset() {
+            clearInterval(interval);
+            interval = null;
+            ms = 0;
+            laps = [];
+            document.getElementById("display").innerText = "00:00:00";
+            document.getElementById("laps").innerHTML = "";
+        }
+        function lap() {
+            if (!interval) return;
+            laps.push(document.getElementById("display").innerText);
+            const lapsDiv = document.getElementById("laps");
+            lapsDiv.innerHTML = laps.map((l, i) => `<div class="card">Lap ${i+1}: ${l}</div>`).join("");
+        }
+        function updateDisplay() {
+            const s = Math.floor(ms / 1000);
+            const m = Math.floor(s / 60);
+            const h = Math.floor(m / 60);
+            document.getElementById("display").innerText =
+                String(h).padStart(2,"0") + ":" +
+                String(m%60).padStart(2,"0") + ":" +
+                String(s%60).padStart(2,"0");
+        }
+    </script>
+{% endblock %}
