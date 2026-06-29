@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Guessing Game{% endblock %}
+{% block content %}
+    <h1>Number Guessing Game 🎮</h1>
+    <div class="card">
+        <p style="color:#aaa;">I'm thinking of a number between 1 and 100!</p>
+        <br>
+        <input type="number" id="guess" placeholder="Your guess..." style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
+        <br><br>
+        <button class="btn" onclick="check()">Guess!</button>
+        <button class="btn" onclick="newGame()">New Game</button>
+        <br><br>
+        <p id="message" style="font-size:1.5em;color:#e94560;"></p>
+        <p id="attempts" style="color:#aaa;"></p>
+    </div>
+    <script>
+        let secret = Math.floor(Math.random() * 100) + 1;
+        let attempts = 0;
+
+        function check() {
+            const guess = parseInt(document.getElementById("guess").value);
+            if (!guess) return;
+            attempts++;
+            if (guess < secret) {
+                document.getElementById("message").innerText = "Too low! ⬆️";
+            } else if (guess > secret) {
+                document.getElementById("message").innerText = "Too high! ⬇️";
+            } else {
+                document.getElementById("message").innerText = "Correct! 🎉";
+            }
+            document.getElementById("attempts").innerText = "Attempts: " + attempts;
+            document.getElementById("guess").value = "";
+        }
+
+        function newGame() {
+            secret = Math.floor(Math.random() * 100) + 1;
+            attempts = 0;
+            document.getElementById("message").innerText = "";
+            document.getElementById("attempts").innerText = "";
+            document.getElementById("guess").value = "";
+        }
+    </script>
+{% endblock %}

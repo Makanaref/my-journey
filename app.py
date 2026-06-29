@@ -163,3 +163,7 @@ def dice():
 @app.route("/coin")
 def coin():
     return render_template("coin.html")
+
+@app.route("/guess")
+def guess():
+    return render_template("guess.html")
