@@ -147,3 +147,7 @@ def tip():
 @app.route("/wordcount")
 def wordcount():
     return render_template("wordcount.html")
+
+@app.route("/speedtest")
+def speedtest():
+    return render_template("speedtest.html")
