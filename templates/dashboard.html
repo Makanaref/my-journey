@@ -1,0 +1,59 @@
+cat > templates/dashboard.html << 'EOF'
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+    <h1>Dashboard 📊</h1>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="card">
+            <h3>🌤️ Quick Weather</h3>
+            <input type="text" id="dcity" placeholder="City..." style="width:90%;padding:8px;border-radius:8px;border:none;background:#0f3460;color:white;">
+            <button class="btn" style="margin-top:8px;width:100%;" onclick="dashWeather()">Check</button>
+            <div id="dw-result" style="margin-top:10px;font-size:0.95em;"></div>
+        </div>
+        <div class="card">
+            <h3>💱 Quick Currency</h3>
+            <input type="number" id="damount" placeholder="Amount..." style="width:90%;padding:8px;border-radius:8px;border:none;background:#0f3460;color:white;margin-bottom:5px;">
+            <select id="dfrom" style="width:48%;padding:8px;border-radius:8px;border:none;background:#0f3460;color:white;"></select>
+            <select id="dto" style="width:48%;padding:8px;border-radius:8px;border:none;background:#0f3460;color:white;float:right;"></select>
+            <button class="btn" style="margin-top:8px;width:100%;clear:both;display:block;" onclick="dashCurrency()">Convert</button>
+            <div id="dc-result" style="margin-top:10px;font-size:0.95em;color:#e94560;"></div>
+        </div>
+        <div class="card">
+            <h3>📝 Recent Notes</h3>
+            <div id="d-notes"></div>
+        </div>
+        <div class="card">
+            <h3>🔔 Upcoming Reminders</h3>
+            <div id="d-reminders"></div>
+        </div>
+    </div>
+    <script>
+        const currencies = ['USD','EUR','GBP','JPY','CAD','AUD','CHF','IRR','TRY'];
+        ['dfrom','dto'].forEach(id => {
+            document.getElementById(id).innerHTML = currencies.map(c=>`<option>${c}</option>`).join('');
+        });
+        document.getElementById('dto').value = 'EUR';
+        async function dashWeather() {
+            let city = document.getElementById('dcity').value;
+            let r = await fetch('/get-weather?city='+city);
+            let d = await r.json();
+            if (d.error) { document.getElementById('dw-result').innerText = '❌ Not found'; return; }
+            document.getElementById('dw-result').innerHTML = `<b>${d.name}</b><br>🌡️ ${d.temp}°C - ${d.desc}`;
+        }
+        async function dashCurrency() {
+            let a = document.getElementById('damount').value||1;
+            let f = document.getElementById('dfrom').value;
+            let t = document.getElementById('dto').value;
+            let r = await fetch(`/get-currency?base=${f}&target=${t}&amount=${a}`);
+            let d = await r.json();
+            if (d.error) { document.getElementById('dc-result').innerText = '❌ Error'; return; }
+            document.getElementById('dc-result').innerText = `${a} ${f} = ${d.result} ${t}`;
+        }
+        let notes = JSON.parse(localStorage.getItem('notes')||'[]').slice(0,3);
+        document.getElementById('d-notes').innerHTML = notes.length ? notes.map(n=>`<p>📌 ${n.title||n.body.slice(0,30)}</p>`).join('') : '<p style="color:#888;">No notes yet</p>';
+        let now = new Date();
+        let reminders = JSON.parse(localStorage.getItem('reminders')||'[]').filter(r=>new Date(r.date)>now).slice(0,3);
+        document.getElementById('d-reminders').innerHTML = reminders.length ? reminders.map(r=>`<p>🔔 ${r.title}<br><small>${new Date(r.date).toLocaleString()}</small></p>`).join('') : '<p style="color:#888;">No upcoming reminders</p>';
+    </script>
+{% endblock %}
+EOF
