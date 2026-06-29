@@ -107,3 +107,7 @@ def faq():
 @app.route("/quote")
 def quote():
     return render_template("quote.html")
+
+@app.route("/counter")
+def counter():
+    return render_template("counter.html")

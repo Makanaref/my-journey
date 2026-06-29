@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Counter{% endblock %}
+{% block content %}
+    <h1>Counter 🔢</h1>
+    <div class="card">
+        <h2 id="count" style="font-size:5em;color:#e94560;">0</h2>
+        <br>
+        <button class="btn" onclick="change(-1)">➖</button>
+        <button class="btn" onclick="reset()">Reset</button>
+        <button class="btn" onclick="change(1)">➕</button>
+    </div>
+    <div class="card">
+        <h3 style="color:#e94560;">Custom Step</h3>
+        <input type="number" id="step" value="1" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
+        <br><br>
+        <button class="btn" onclick="changeStep(-1)">➖ Step</button>
+        <button class="btn" onclick="changeStep(1)">➕ Step</button>
+    </div>
+
+    <script>
+        let count = 0;
+
+        function change(dir) {
+            const step = parseInt(document.getElementById("step").value);
+            count += dir * step;
+            document.getElementById("count").innerText = count;
+        }
+
+        function reset() {
+            count = 0;
+            document.getElementById("count").innerText = count;
+        }
+
+        function changeStep(dir) {
+            const stepEl = document.getElementById("step");
+            stepEl.value = Math.max(1, parseInt(stepEl.value) + dir);
+        }
+    </script>
+{% endblock %}
