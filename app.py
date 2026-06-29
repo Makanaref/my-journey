@@ -127,3 +127,7 @@ def password():
 @app.route("/bmi")
 def bmi():
     return render_template("bmi.html")
+
+@app.route("/age")
+def age():
+    return render_template("age.html")
