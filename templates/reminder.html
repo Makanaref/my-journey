@@ -1,0 +1,43 @@
+cat > templates/reminder.html << 'EOF'
+{% extends "base.html" %}
+{% block title %}Reminder{% endblock %}
+{% block content %}
+    <h1>Reminder 🔔</h1>
+    <div class="card" style="max-width:500px;margin:auto;">
+        <input type="text" id="rtitle" placeholder="Reminder title..." style="width:90%;padding:10px;margin-bottom:8px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
+        <input type="datetime-local" id="rdate" style="width:90%;padding:10px;margin-bottom:8px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
+        <button class="btn" style="width:100%;" onclick="addReminder()">Add Reminder ➕</button>
+    </div>
+    <div id="reminders-container" style="max-width:500px;margin:20px auto;"></div>
+    <script>
+        let reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+        function save() { localStorage.setItem('reminders', JSON.stringify(reminders)); }
+        function addReminder() {
+            let t = document.getElementById('rtitle').value.trim();
+            let d = document.getElementById('rdate').value;
+            if (!t || !d) return alert('Please fill all fields!');
+            reminders.push({id: Date.now(), title: t, date: d});
+            reminders.sort((a,b) => new Date(a.date) - new Date(b.date));
+            save(); render();
+            document.getElementById('rtitle').value = '';
+            document.getElementById('rdate').value = '';
+        }
+        function deleteReminder(id) { reminders = reminders.filter(r => r.id !== id); save(); render(); }
+        function render() {
+            let now = new Date();
+            document.getElementById('reminders-container').innerHTML = reminders.map(r => {
+                let d = new Date(r.date);
+                let passed = d < now;
+                return `<div class="card" style="margin-bottom:10px;border-left:4px solid ${passed?'#e94560':'#4ecca3'};">
+                    <h3 style="color:${passed?'#e94560':'#4ecca3'};">${r.title}</h3>
+                    <p>📅 ${d.toLocaleString()}</p>
+                    <p style="font-size:0.9em;">${passed?'⚠️ Passed':'✅ Upcoming'}</p>
+                    <button class="btn" style="background:#e94560;" onclick="deleteReminder(${r.id})">Delete 🗑️</button>
+                </div>`;
+            }).join('');
+        }
+        render();
+        setInterval(render, 60000);
+    </script>
+{% endblock %}
+EOF
