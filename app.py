@@ -119,3 +119,7 @@ def timer():
 @app.route("/random")
 def random_number():
     return render_template("random.html")
+
+@app.route("/password")
+def password():
+    return render_template("password.html")
