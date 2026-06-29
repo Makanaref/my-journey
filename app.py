@@ -70,6 +70,47 @@ def get_currency():
     else:
         return jsonify({"error": "Currency not found"})
 
+
+@app.route("/calculator")
+def calculator():
+    return render_template("calculator.html")
+
+@app.route("/notes")
+def notes():
+    return render_template("notes.html")
+
+@app.route("/converter")
+def converter():
+    return render_template("converter.html")
+
+@app.route("/reminder")
+def reminder():
+    return render_template("reminder.html")
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
+
+@app.route("/calculator")
+def calculator():
+    return render_template("calculator.html")
+
+@app.route("/notes")
+def notes():
+    return render_template("notes.html")
+
+@app.route("/converter")
+def converter():
+    return render_template("converter.html")
+
+@app.route("/reminder")
+def reminder():
+    return render_template("reminder.html")
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
