@@ -115,3 +115,7 @@ def counter():
 @app.route("/timer")
 def timer():
     return render_template("timer.html")
+
+@app.route("/random")
+def random_number():
+    return render_template("random.html")
