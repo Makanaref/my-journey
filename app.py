@@ -95,3 +95,7 @@ if __name__ == "__main__":
 @app.route("/skills")
 def skills():
     return render_template("skills.html")
+
+@app.route("/timeline")
+def timeline():
+    return render_template("timeline.html")
