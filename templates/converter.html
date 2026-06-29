@@ -1,0 +1,61 @@
+cat > templates/converter.html << 'EOF'
+{% extends "base.html" %}
+{% block title %}Converter{% endblock %}
+{% block content %}
+    <h1>Unit Converter 🔄</h1>
+    <div class="card" style="max-width:500px;margin:auto;">
+        <select id="type" onchange="updateUnits()" style="width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
+            <option value="length">Length</option>
+            <option value="weight">Weight</option>
+            <option value="temp">Temperature</option>
+            <option value="area">Area</option>
+            <option value="volume">Volume</option>
+            <option value="speed">Speed</option>
+            <option value="time">Time</option>
+            <option value="data">Data</option>
+        </select>
+        <input type="number" id="val" placeholder="Enter value..." style="width:90%;padding:10px;margin-bottom:10px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
+        <select id="from" style="width:48%;padding:10px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;"></select>
+        <select id="to" style="width:48%;padding:10px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;float:right;"></select>
+        <br><br>
+        <button class="btn" style="width:100%;" onclick="convert()">Convert ⚡</button>
+        <div id="result" style="margin-top:15px;font-size:1.3em;text-align:center;color:#e94560;"></div>
+    </div>
+    <script>
+        const units = {
+            length: {m:1,km:0.001,cm:100,mm:1000,mile:0.000621371,yard:1.09361,foot:3.28084,inch:39.3701},
+            weight: {kg:1,g:1000,mg:1e6,lb:2.20462,oz:35.274,ton:0.001},
+            area: {'m²':1,'km²':1e-6,'cm²':1e4,'mm²':1e6,'acre':0.000247105,'hectare':1e-4},
+            volume: {liter:1,ml:1000,'m³':0.001,gallon:0.264172,cup:4.22675,fl_oz:33.814},
+            speed: {'m/s':1,'km/h':3.6,'mph':2.23694,'ft/s':3.28084,knot:1.94384},
+            time: {second:1,minute:1/60,hour:1/3600,day:1/86400,week:1/604800},
+            data: {byte:1,KB:1/1024,MB:1/1048576,GB:1/1073741824,bit:8}
+        };
+        function updateUnits() {
+            let t = document.getElementById('type').value;
+            let opts = t === 'temp' ? ['Celsius','Fahrenheit','Kelvin'] : Object.keys(units[t]);
+            ['from','to'].forEach(id => {
+                let sel = document.getElementById(id);
+                sel.innerHTML = opts.map(u => `<option>${u}</option>`).join('');
+            });
+            document.getElementById('to').selectedIndex = 1;
+        }
+        function convert() {
+            let val = parseFloat(document.getElementById('val').value);
+            let from = document.getElementById('from').value;
+            let to = document.getElementById('to').value;
+            let t = document.getElementById('type').value;
+            let res;
+            if (t === 'temp') {
+                let c = from==='Fahrenheit'?(val-32)*5/9:from==='Kelvin'?val-273.15:val;
+                res = to==='Fahrenheit'?c*9/5+32:to==='Kelvin'?c+273.15:c;
+            } else {
+                let u = units[t];
+                res = val / u[from] * u[to];
+            }
+            document.getElementById('result').innerText = val + ' ' + from + ' = ' + res.toFixed(4) + ' ' + to;
+        }
+        updateUnits();
+    </script>
+{% endblock %}
+EOF
