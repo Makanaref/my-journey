@@ -1,0 +1,43 @@
+cat > templates/calculator.html << 'EOF'
+{% extends "base.html" %}
+{% block title %}Calculator{% endblock %}
+{% block content %}
+    <h1>Calculator 🧮</h1>
+    <div class="card" style="max-width:400px;margin:auto;">
+        <input type="text" id="display" readonly style="width:90%;padding:12px;margin:10px 0;border-radius:8px;border:none;background-color:#0f3460;color:white;font-size:1.5em;text-align:right;">
+        <br>
+        {% for row in [['7','8','9','/'],[' 4','5','6','*'],['1','2','3','-'],['0','.','=','+']] %}
+        <div style="display:flex;gap:8px;margin:5px 0;">
+            {% for btn in row %}
+            <button class="btn" style="flex:1;font-size:1.2em;" onclick="pressBtn('{{btn.strip()}}')">{{btn.strip()}}</button>
+            {% endfor %}
+        </div>
+        {% endfor %}
+        <button class="btn" style="width:100%;margin-top:5px;background:#e94560;" onclick="clearDisplay()">Clear</button>
+    </div>
+    <div class="card" style="max-width:400px;margin:auto;">
+        <h3>History 📋</h3>
+        <ul id="history" style="list-style:none;padding:0;"></ul>
+    </div>
+    <script>
+        let expr = '';
+        function pressBtn(val) {
+            if (val === '=') {
+                try {
+                    let result = eval(expr);
+                    let li = document.createElement('li');
+                    li.innerText = expr + ' = ' + result;
+                    li.style.padding = '5px 0';
+                    li.style.borderBottom = '1px solid #0f3460';
+                    document.getElementById('history').prepend(li);
+                    expr = String(result);
+                } catch { expr = 'Error'; }
+            } else {
+                expr += val;
+            }
+            document.getElementById('display').value = expr;
+        }
+        function clearDisplay() { expr = ''; document.getElementById('display').value = ''; }
+    </script>
+{% endblock %}
+EOF
