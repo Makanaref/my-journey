@@ -143,3 +143,7 @@ def todo():
 @app.route("/tip")
 def tip():
     return render_template("tip.html")
+
+@app.route("/wordcount")
+def wordcount():
+    return render_template("wordcount.html")

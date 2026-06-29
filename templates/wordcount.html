@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Word Counter{% endblock %}
+{% block content %}
+    <h1>Word Counter 📝</h1>
+    <div class="card">
+        <textarea id="text" rows="8" placeholder="Type or paste your text here..." oninput="count()" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;"></textarea>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:20px;">
+        <div class="card" style="width:150px;padding:20px;">
+            <h2 id="words" style="color:#e94560;">0</h2>
+            <p>Words</p>
+        </div>
+        <div class="card" style="width:150px;padding:20px;">
+            <h2 id="chars" style="color:#e94560;">0</h2>
+            <p>Characters</p>
+        </div>
+        <div class="card" style="width:150px;padding:20px;">
+            <h2 id="sentences" style="color:#e94560;">0</h2>
+            <p>Sentences</p>
+        </div>
+        <div class="card" style="width:150px;padding:20px;">
+            <h2 id="readtime" style="color:#e94560;">0</h2>
+            <p>Min Read</p>
+        </div>
+    </div>
+    <script>
+        function count() {
+            const text = document.getElementById("text").value;
+            const words = text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
+            const chars = text.length;
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim()).length;
+            const readtime = Math.ceil(words / 200);
+            document.getElementById("words").innerText = words;
+            document.getElementById("chars").innerText = chars;
+            document.getElementById("sentences").innerText = sentences;
+            document.getElementById("readtime").innerText = readtime;
+        }
+    </script>
+{% endblock %}
