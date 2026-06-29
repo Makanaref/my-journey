@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{% block title %}My Web App{% endblock %}</title>
+    <title>{% block title %}Makan 🚀{% endblock %}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: Arial, sans-serif;
             background-color: #1a1a2e;
             color: #eee;
+            transition: background-color 0.3s, color 0.3s;
         }
         nav {
             background-color: #16213e;
@@ -19,6 +20,7 @@
             top: 0;
             z-index: 100;
             box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            border-bottom: 1px solid rgba(233,69,96,0.15);
         }
         nav .logo {
             color: #e94560;
@@ -26,89 +28,132 @@
             font-weight: bold;
             text-decoration: none;
         }
+        nav .links { display: flex; align-items: center; gap: 4px; }
         nav .links a {
-            color: #eee;
+            color: #ccc;
             text-decoration: none;
-            margin-left: 20px;
-            font-size: 1em;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.95em;
+            transition: color 0.2s, background 0.2s;
         }
-        nav .links a:hover { color: #e94560; }
+        nav .links a:hover { color: #e94560; background: rgba(233,69,96,0.08); }
+        nav .links a.active { color: #e94560; }
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            color: #eee;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
         .content {
-            text-align: center;
-            padding: 50px;
-            animation: fadeIn 0.5s ease-in;
+            animation: fadeIn 0.4s ease-in;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(16px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        h1 { color: #e94560; font-size: 3em; margin-bottom: 20px; }
+        h1 { color: #e94560; font-size: 2.8em; margin-bottom: 16px; }
+        h2 { color: #e94560; }
         .btn {
             display: inline-block;
-            margin: 10px;
-            padding: 12px 24px;
+            margin: 8px;
+            padding: 11px 24px;
             background-color: #e94560;
             color: white;
             text-decoration: none;
             border-radius: 8px;
             border: none;
-            font-size: 1em;
+            font-size: 0.95em;
+            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
+            transition: background-color 0.2s, transform 0.2s;
         }
-        .btn:hover { background-color: #c73652; transform: scale(1.05); }
+        .btn:hover { background-color: #c73652; transform: scale(1.04); }
+        .btn-outline {
+            display: inline-block;
+            margin: 8px;
+            padding: 11px 24px;
+            background: none;
+            color: #e94560;
+            text-decoration: none;
+            border-radius: 8px;
+            border: 1.5px solid #e94560;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .btn-outline:hover { background: rgba(233,69,96,0.1); transform: scale(1.04); }
         .card {
             background-color: #16213e;
             border-radius: 12px;
-            padding: 30px;
-            max-width: 600px;
-            margin: 30px auto;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: transform 0.3s;
+            padding: 28px;
+            margin: 20px auto;
+            border: 1px solid rgba(233,69,96,0.12);
+            transition: transform 0.3s, border-color 0.3s;
         }
-        .card:hover { transform: translateY(-5px); }
-        input, textarea {
+        .card:hover { transform: translateY(-4px); border-color: rgba(233,69,96,0.35); }
+        input, textarea, select {
             width: 90%;
             padding: 12px;
             margin: 10px 0;
             border-radius: 8px;
-            border: none;
+            border: 1px solid rgba(233,69,96,0.2);
             background-color: #0f3460;
             color: white;
             font-size: 1em;
         }
-        input:focus, textarea:focus {
+        input:focus, textarea:focus, select:focus {
             outline: none;
-            box-shadow: 0 0 8px #e94560;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233,69,96,0.15);
         }
         .toggle-btn {
             background: none;
-            border: 2px solid #e94560;
+            border: 1.5px solid #e94560;
             color: #e94560;
-            padding: 6px 14px;
+            padding: 5px 13px;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 0.9em;
-            margin-left: 20px;
+            font-size: 0.85em;
+            margin-left: 10px;
+            transition: background 0.2s;
         }
+        .toggle-btn:hover { background: rgba(233,69,96,0.1); }
         footer {
             text-align: center;
-            padding: 20px;
-            color: #aaa;
+            padding: 24px;
+            color: #666;
             background-color: #16213e;
-            margin-top: 50px;
+            margin-top: 60px;
+            border-top: 1px solid rgba(233,69,96,0.12);
+            font-size: 0.9em;
         }
-        body.light { background-color: #f0f0f0; color: #222; }
-        body.light nav { background-color: #ddd; }
-        body.light nav .links a { color: #222; }
-        body.light .card { background-color: #fff; }
-        body.light footer { background-color: #ddd; color: #555; }
+        footer a { color: #e94560; text-decoration: none; }
+        /* Light mode */
+        body.light { background-color: #f5f5f7; color: #222; }
+        body.light nav { background-color: #fff; border-bottom-color: #e94560; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        body.light nav .links a { color: #444; }
+        body.light nav .links a:hover { color: #e94560; background: rgba(233,69,96,0.06); }
+        body.light .card { background-color: #fff; border-color: rgba(233,69,96,0.15); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        body.light footer { background-color: #fff; color: #999; }
+        body.light input, body.light textarea, body.light select { background: #f0f0f0; color: #222; border-color: #ddd; }
+        /* Responsive */
+        @media (max-width: 650px) {
+            nav .links { display: none; flex-direction: column; position: absolute; top: 60px; right: 0; background: #16213e; width: 100%; padding: 10px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+            nav .links.open { display: flex; }
+            nav .links a { padding: 12px 24px; }
+            .hamburger { display: block; }
+            h1 { font-size: 2em; }
+        }
     </style>
 </head>
 <body id="body">
     <nav id="navbar">
         <a href="/" class="logo">Makan 🚀</a>
-        <div class="links">
+        <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">☰</button>
+        <div class="links" id="navlinks">
             <a href="/">Home</a>
             <a href="/about">About</a>
             <a href="/projects">Projects</a>
@@ -122,22 +167,24 @@
         {% block content %}{% endblock %}
     </div>
     <footer>
-        <p>Built with Python and Flask by Makan 💪</p>
+        <p>Built with Python and Flask by Makan 💪 &nbsp;·&nbsp; <a href="https://github.com/" target="_blank">GitHub</a></p>
     </footer>
     <script>
         let isDark = true;
         function toggleMode() {
             isDark = !isDark;
-            const body = document.getElementById("body");
-            const btn = document.querySelector(".toggle-btn");
-            if (isDark) {
-                body.className = "";
-                btn.innerText = "🌙";
-            } else {
-                body.className = "light";
-                btn.innerText = "☀️";
-            }
+            document.getElementById("body").className = isDark ? "" : "light";
+            document.querySelector(".toggle-btn").innerText = isDark ? "🌙" : "☀️";
+            localStorage.setItem("theme", isDark ? "dark" : "light");
         }
+        function toggleMenu() {
+            document.getElementById("navlinks").classList.toggle("open");
+        }
+        // Active nav link
+        const links = document.querySelectorAll(".links a");
+        links.forEach(l => { if (l.href === location.href) l.classList.add("active"); });
+        // Remember theme
+        if (localStorage.getItem("theme") === "light") toggleMode();
     </script>
 </body>
 </html>
