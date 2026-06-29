@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Todo List{% endblock %}
+{% block content %}
+    <h1>Todo List ✅</h1>
+    <div class="card">
+        <input type="text" id="task" placeholder="Add a task..." style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
+        <br><br>
+        <button class="btn" onclick="addTask()">Add Task</button>
+    </div>
+    <div id="tasks"></div>
+    <script>
+        let tasks = [];
+        function addTask() {
+            const task = document.getElementById("task").value;
+            if (!task) return;
+            tasks.push({text: task, done: false});
+            document.getElementById("task").value = "";
+            render();
+        }
+        function toggle(i) {
+            tasks[i].done = !tasks[i].done;
+            render();
+        }
+        function remove(i) {
+            tasks.splice(i, 1);
+            render();
+        }
+        function render() {
+            const container = document.getElementById("tasks");
+            container.innerHTML = "";
+            tasks.forEach((t, i) => {
+                container.innerHTML += `
+                <div class="card" style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="text-decoration:${t.done ? 'line-through' : 'none'};color:${t.done ? '#aaa' : '#eee'};">${t.text}</span>
+                    <div>
+                        <button class="btn" onclick="toggle(${i})">${t.done ? '↩️' : '✅'}</button>
+                        <button class="btn" onclick="remove(${i})">🗑️</button>
+                    </div>
+                </div>`;
+            });
+        }
+    </script>
+{% endblock %}

@@ -135,3 +135,7 @@ def age():
 @app.route("/color")
 def color():
     return render_template("color.html")
+
+@app.route("/todo")
+def todo():
+    return render_template("todo.html")
