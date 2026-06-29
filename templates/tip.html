@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Tip Calculator{% endblock %}
+{% block content %}
+    <h1>Tip Calculator 💰</h1>
+    <div class="card">
+        <input type="number" id="bill" placeholder="Bill Amount ($)" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
+        <input type="number" id="tip" placeholder="Tip %" value="15" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
+        <input type="number" id="people" placeholder="Number of People" value="1" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
+        <br><br>
+        <button class="btn" onclick="calculate()">Calculate!</button>
+    </div>
+    <div class="card" id="result" style="display:none;">
+        <p>Tip Amount: <span id="tip-amount" style="color:#e94560;"></span></p>
+        <p>Total: <span id="total" style="color:#e94560;"></span></p>
+        <p>Per Person: <span id="per-person" style="color:#e94560;font-size:2em;"></span></p>
+    </div>
+    <script>
+        function calculate() {
+            const bill = parseFloat(document.getElementById("bill").value);
+            const tip = parseFloat(document.getElementById("tip").value);
+            const people = parseInt(document.getElementById("people").value);
+            if (!bill) { alert("Please enter bill amount!"); return; }
+            const tipAmount = (bill * tip / 100).toFixed(2);
+            const total = (bill + parseFloat(tipAmount)).toFixed(2);
+            const perPerson = (total / people).toFixed(2);
+            document.getElementById("tip-amount").innerText = "$" + tipAmount;
+            document.getElementById("total").innerText = "$" + total;
+            document.getElementById("per-person").innerText = "$" + perPerson;
+            document.getElementById("result").style.display = "block";
+        }
+    </script>
+{% endblock %}

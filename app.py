@@ -139,3 +139,7 @@ def color():
 @app.route("/todo")
 def todo():
     return render_template("todo.html")
+
+@app.route("/tip")
+def tip():
+    return render_template("tip.html")
