@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}BMI Calculator{% endblock %}
+{% block content %}
+    <h1>BMI Calculator ⚖️</h1>
+    <div class="card">
+        <input type="number" id="weight" placeholder="Weight (kg)" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
+        <input type="number" id="height" placeholder="Height (cm)" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
+        <br><br>
+        <button class="btn" onclick="calculate()">Calculate!</button>
+    </div>
+    <div class="card" id="result" style="display:none;">
+        <h2 id="bmi" style="color:#e94560;font-size:3em;"></h2>
+        <p id="category" style="font-size:1.5em;"></p>
+    </div>
+    <script>
+        function calculate() {
+            const w = parseFloat(document.getElementById("weight").value);
+            const h = parseFloat(document.getElementById("height").value) / 100;
+            if (!w || !h) { alert("Please enter valid values!"); return; }
+            const bmi = (w / (h * h)).toFixed(1);
+            let cat = "";
+            if (bmi < 18.5) cat = "Underweight 😟";
+            else if (bmi < 25) cat = "Normal ✅";
+            else if (bmi < 30) cat = "Overweight ⚠️";
+            else cat = "Obese ❌";
+            document.getElementById("bmi").innerText = "BMI: " + bmi;
+            document.getElementById("category").innerText = cat;
+            document.getElementById("result").style.display = "block";
+        }
+    </script>
+{% endblock %}

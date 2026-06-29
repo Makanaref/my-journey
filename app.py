@@ -123,3 +123,7 @@ def random_number():
 @app.route("/password")
 def password():
     return render_template("password.html")
+
+@app.route("/bmi")
+def bmi():
+    return render_template("bmi.html")
