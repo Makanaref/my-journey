@@ -1,25 +1,15 @@
 <!DOCTYPE html>
-<html id="html-root">
+<html>
 <head>
     <title>{% block title %}My Web App{% endblock %}</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        body.dark {
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
             font-family: Arial, sans-serif;
             background-color: #1a1a2e;
             color: #eee;
         }
-        body.light {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            color: #222;
-        }
-        nav.dark {
+        nav {
             background-color: #16213e;
             padding: 15px 30px;
             display: flex;
@@ -30,17 +20,6 @@
             z-index: 100;
             box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
-        nav.light {
-            background-color: #ddd;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
         nav .logo {
             color: #e94560;
             font-size: 1.5em;
@@ -48,13 +27,11 @@
             text-decoration: none;
         }
         nav .links a {
+            color: #eee;
             text-decoration: none;
             margin-left: 20px;
             font-size: 1em;
-            transition: color 0.3s;
         }
-        nav.dark .links a { color: #eee; }
-        nav.light .links a { color: #222; }
         nav .links a:hover { color: #e94560; }
         .content {
             text-align: center;
@@ -65,11 +42,7 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        h1 {
-            color: #e94560;
-            font-size: 3em;
-            margin-bottom: 20px;
-        }
+        h1 { color: #e94560; font-size: 3em; margin-bottom: 20px; }
         .btn {
             display: inline-block;
             margin: 10px;
@@ -83,26 +56,14 @@
             cursor: pointer;
             transition: background-color 0.3s, transform 0.2s;
         }
-        .btn:hover {
-            background-color: #c73652;
-            transform: scale(1.05);
-        }
-        .card.dark {
+        .btn:hover { background-color: #c73652; transform: scale(1.05); }
+        .card {
             background-color: #16213e;
             border-radius: 12px;
             padding: 30px;
             max-width: 600px;
             margin: 30px auto;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: transform 0.3s;
-        }
-        .card.light {
-            background-color: #fff;
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 600px;
-            margin: 30px auto;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: transform 0.3s;
         }
         .card:hover { transform: translateY(-5px); }
@@ -120,20 +81,6 @@
             outline: none;
             box-shadow: 0 0 8px #e94560;
         }
-        footer.dark {
-            text-align: center;
-            padding: 20px;
-            color: #aaa;
-            background-color: #16213e;
-            margin-top: 50px;
-        }
-        footer.light {
-            text-align: center;
-            padding: 20px;
-            color: #555;
-            background-color: #ddd;
-            margin-top: 50px;
-        }
         .toggle-btn {
             background: none;
             border: 2px solid #e94560;
@@ -144,10 +91,22 @@
             font-size: 0.9em;
             margin-left: 20px;
         }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #aaa;
+            background-color: #16213e;
+            margin-top: 50px;
+        }
+        body.light { background-color: #f0f0f0; color: #222; }
+        body.light nav { background-color: #ddd; }
+        body.light nav .links a { color: #222; }
+        body.light .card { background-color: #fff; }
+        body.light footer { background-color: #ddd; color: #555; }
     </style>
 </head>
-<body class="dark" id="body">
-    <nav class="dark" id="navbar">
+<body id="body">
+    <nav id="navbar">
         <a href="/" class="logo">Makan 🚀</a>
         <div class="links">
             <a href="/">Home</a>
@@ -156,8 +115,29 @@
             <a href="/weather">Weather</a>
             <a href="/currency">Currency</a>
             <a href="/contact">Contact</a>
-            <button class="toggle-btn" onclick="toggleMode()">🌙 Dark</button>
+            <button class="toggle-btn" onclick="toggleMode()">🌙</button>
         </div>
     </nav>
     <div class="content">
-        {% block
+        {% block content %}{% endblock %}
+    </div>
+    <footer>
+        <p>Built with Python and Flask by Makan 💪</p>
+    </footer>
+    <script>
+        let isDark = true;
+        function toggleMode() {
+            isDark = !isDark;
+            const body = document.getElementById("body");
+            const btn = document.querySelector(".toggle-btn");
+            if (isDark) {
+                body.className = "";
+                btn.innerText = "🌙";
+            } else {
+                body.className = "light";
+                btn.innerText = "☀️";
+            }
+        }
+    </script>
+</body>
+</html>
