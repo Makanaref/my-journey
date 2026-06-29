@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Coin Flip{% endblock %}
+{% block content %}
+    <h1>Coin Flip 🪙</h1>
+    <div class="card">
+        <h2 id="result" style="font-size:6em;">🪙</h2>
+        <p id="text" style="color:#e94560;font-size:2em;"></p>
+        <br>
+        <button class="btn" onclick="flip()">Flip!</button>
+    </div>
+    <div class="card">
+        <h3 style="color:#e94560;">Stats</h3>
+        <p>Heads: <span id="heads" style="color:#e94560;">0</span></p>
+        <p>Tails: <span id="tails" style="color:#e94560;">0</span></p>
+        <p>Total: <span id="total" style="color:#e94560;">0</span></p>
+        <br>
+        <button class="btn" onclick="resetStats()">Reset Stats</button>
+    </div>
+    <script>
+        let heads = 0, tails = 0;
+        function flip() {
+            const isHeads = Math.random() < 0.5;
+            if (isHeads) {
+                heads++;
+                document.getElementById("result").innerText = "🌕";
+                document.getElementById("text").innerText = "Heads!";
+            } else {
+                tails++;
+                document.getElementById("result").innerText = "🌑";
+                document.getElementById("text").innerText = "Tails!";
+            }
+            document.getElementById("heads").innerText = heads;
+            document.getElementById("tails").innerText = tails;
+            document.getElementById("total").innerText = heads + tails;
+        }
+        function resetStats() {
+            heads = 0; tails = 0;
+            document.getElementById("heads").innerText = 0;
+            document.getElementById("tails").innerText = 0;
+            document.getElementById("total").innerText = 0;
+            document.getElementById("result").innerText = "🪙";
+            document.getElementById("text").innerText = "";
+        }
+    </script>
+{% endblock %}

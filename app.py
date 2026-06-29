@@ -159,3 +159,7 @@ def stopwatch():
 @app.route("/dice")
 def dice():
     return render_template("dice.html")
+
+@app.route("/coin")
+def coin():
+    return render_template("coin.html")
