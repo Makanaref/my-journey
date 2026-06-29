@@ -99,3 +99,7 @@ def skills():
 @app.route("/timeline")
 def timeline():
     return render_template("timeline.html")
+
+@app.route("/faq")
+def faq():
+    return render_template("faq.html")
