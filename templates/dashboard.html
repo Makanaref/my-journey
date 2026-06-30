@@ -1,59 +1,78 @@
-
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-    <h1>Dashboard 📊</h1>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-        <div class="card">
-            <h3>🌤️ Quick Weather</h3>
-            <input type="text" id="dcity" placeholder="City..." style="width:90%;padding:8px;border-radius:8px;border:none;background:#0f3460;color:white;">
-            <button class="btn" style="margin-top:8px;width:100%;" onclick="dashWeather()">Check</button>
-            <div id="dw-result" style="margin-top:10px;font-size:0.95em;"></div>
+<div style="max-width:700px; margin:60px auto; padding:0 20px;">
+
+    <p style="font-size:13px; color:#666; margin-bottom:4px;">Dashboard</p>
+    <h1 style="font-size:22px; font-weight:500; margin-bottom:32px; color:#fff;">📊 Overview</h1>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+
+        <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:24px;">
+            <p style="font-size:12px; color:#666; margin:0 0 16px;">🌤️ Quick Weather</p>
+            <input type="text" id="dcity" placeholder="City..." style="width:100%; padding:8px 10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:13px; margin-bottom:10px;">
+            <button onclick="dashWeather()" style="width:100%; padding:9px; background:#e94560; color:#fff; border:none; border-radius:8px; font-size:13px; cursor:pointer;">Check</button>
+            <div id="dw-result" style="margin-top:12px; font-size:13px; color:#ccc; line-height:1.6;"></div>
         </div>
-        <div class="card">
-            <h3>💱 Quick Currency</h3>
-            <input type="number" id="damount" placeholder="Amount..." style="width:90%;padding:8px;border-radius:8px;border:none;background:#0f3460;color:white;margin-bottom:5px;">
-            <select id="dfrom" style="width:48%;padding:8px;border-radius:8px;border:none;background:#0f3460;color:white;"></select>
-            <select id="dto" style="width:48%;padding:8px;border-radius:8px;border:none;background:#0f3460;color:white;float:right;"></select>
-            <button class="btn" style="margin-top:8px;width:100%;clear:both;display:block;" onclick="dashCurrency()">Convert</button>
-            <div id="dc-result" style="margin-top:10px;font-size:0.95em;color:#e94560;"></div>
+
+        <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:24px;">
+            <p style="font-size:12px; color:#666; margin:0 0 16px;">💱 Quick Currency</p>
+            <input type="number" id="damount" placeholder="Amount..." style="width:100%; padding:8px 10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:13px; margin-bottom:8px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+                <select id="dfrom" style="padding:8px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:13px;"></select>
+                <select id="dto" style="padding:8px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:13px;"></select>
+            </div>
+            <button onclick="dashCurrency()" style="width:100%; padding:9px; background:#e94560; color:#fff; border:none; border-radius:8px; font-size:13px; cursor:pointer;">Convert</button>
+            <div id="dc-result" style="margin-top:12px; font-size:14px; font-weight:500; color:#e94560;"></div>
         </div>
-        <div class="card">
-            <h3>📝 Recent Notes</h3>
+
+        <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:24px;">
+            <p style="font-size:12px; color:#666; margin:0 0 16px;">📝 Recent Notes</p>
             <div id="d-notes"></div>
         </div>
-        <div class="card">
-            <h3>🔔 Upcoming Reminders</h3>
+
+        <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:24px;">
+            <p style="font-size:12px; color:#666; margin:0 0 16px;">🔔 Upcoming Reminders</p>
             <div id="d-reminders"></div>
         </div>
+
     </div>
-    <script>
-        const currencies = ['USD','EUR','GBP','JPY','CAD','AUD','CHF','IRR','TRY'];
-        ['dfrom','dto'].forEach(id => {
-            document.getElementById(id).innerHTML = currencies.map(c=>`<option>${c}</option>`).join('');
-        });
-        document.getElementById('dto').value = 'EUR';
-        async function dashWeather() {
-            let city = document.getElementById('dcity').value;
-            let r = await fetch('/get-weather?city='+city);
-            let d = await r.json();
-            if (d.error) { document.getElementById('dw-result').innerText = '❌ Not found'; return; }
-            document.getElementById('dw-result').innerHTML = `<b>${d.name}</b><br>🌡️ ${d.temp}°C - ${d.desc}`;
-        }
-        async function dashCurrency() {
-            let a = document.getElementById('damount').value||1;
-            let f = document.getElementById('dfrom').value;
-            let t = document.getElementById('dto').value;
-            let r = await fetch(`/get-currency?base=${f}&target=${t}&amount=${a}`);
-            let d = await r.json();
-            if (d.error) { document.getElementById('dc-result').innerText = '❌ Error'; return; }
-            document.getElementById('dc-result').innerText = `${a} ${f} = ${d.result} ${t}`;
-        }
-        let notes = JSON.parse(localStorage.getItem('notes')||'[]').slice(0,3);
-        document.getElementById('d-notes').innerHTML = notes.length ? notes.map(n=>`<p>📌 ${n.title||n.body.slice(0,30)}</p>`).join('') : '<p style="color:#888;">No notes yet</p>';
-        let now = new Date();
-        let reminders = JSON.parse(localStorage.getItem('reminders')||'[]').filter(r=>new Date(r.date)>now).slice(0,3);
-        document.getElementById('d-reminders').innerHTML = reminders.length ? reminders.map(r=>`<p>🔔 ${r.title}<br><small>${new Date(r.date).toLocaleString()}</small></p>`).join('') : '<p style="color:#888;">No upcoming reminders</p>';
-    </script>
+</div>
+
+<script>
+const currencies = ['USD','EUR','GBP','JPY','CAD','AUD','CHF','IRR','TRY'];
+['dfrom','dto'].forEach(id => {
+    document.getElementById(id).innerHTML = currencies.map(c=>`<option>${c}</option>`).join('');
+});
+document.getElementById('dto').value = 'EUR';
+
+async function dashWeather() {
+    let city = document.getElementById('dcity').value.trim();
+    if (!city) return;
+    let r = await fetch('/get-weather?city=' + encodeURIComponent(city));
+    let d = await r.json();
+    document.getElementById('dw-result').innerHTML = d.error ? '<span style="color:#e94560;">City not found</span>' :
+        `<b style="color:#fff;">${d.name}, ${d.country}</b><br>${d.temp}°C — ${d.desc}<br>💧 ${d.humidity}% · 💨 ${d.wind} m/s`;
+}
+
+async function dashCurrency() {
+    let a = document.getElementById('damount').value || 1;
+    let f = document.getElementById('dfrom').value;
+    let t = document.getElementById('dto').value;
+    let r = await fetch(`/get-currency?base=${f}&target=${t}&amount=${a}`);
+    let d = await r.json();
+    document.getElementById('dc-result').innerText = d.error ? 'Error' : `${a} ${f} = ${d.result} ${t}`;
+}
+
+let notes = JSON.parse(localStorage.getItem('notes')||'[]').slice(0,3);
+document.getElementById('d-notes').innerHTML = notes.length ?
+    notes.map(n=>`<p style="font-size:13px; color:#ccc; margin:0 0 8px; padding-bottom:8px; border-bottom:0.5px solid rgba(255,255,255,0.05);">📌 ${n.title || n.body.slice(0,30)}</p>`).join('') :
+    '<p style="color:#666; font-size:13px;">No notes yet</p>';
+
+let now = new Date();
+let reminders = JSON.parse(localStorage.getItem('reminders')||'[]').filter(r=>new Date(r.date)>now).slice(0,3);
+document.getElementById('d-reminders').innerHTML = reminders.length ?
+    reminders.map(r=>`<p style="font-size:13px; color:#ccc; margin:0 0 8px; padding-bottom:8px; border-bottom:0.5px solid rgba(255,255,255,0.05);">🔔 ${r.title}<br><span style="font-size:11px; color:#666;">${new Date(r.date).toLocaleString()}</span></p>`).join('') :
+    '<p style="color:#666; font-size:13px;">No upcoming reminders</p>';
+</script>
 {% endblock %}
-EOF

@@ -1,35 +1,66 @@
 {% extends "base.html" %}
-{% block title %}Currency{% endblock %}
+{% block title %}Currency Converter{% endblock %}
 {% block content %}
-    <h1>Currency Converter 💱</h1>
-    <div class="card">
-        <input type="text" id="base" placeholder="From (e.g. USD)" style="width:90%;padding:12px;margin:10px 0;border-radius:8px;border:none;background-color:#0f3460;color:white;font-size:1em;">
-        <input type="text" id="target" placeholder="To (e.g. EUR)" style="width:90%;padding:12px;margin:10px 0;border-radius:8px;border:none;background-color:#0f3460;color:white;font-size:1em;">
-        <input type="number" id="amount" placeholder="Amount" style="width:90%;padding:12px;margin:10px 0;border-radius:8px;border:none;background-color:#0f3460;color:white;font-size:1em;">
-        <br>
-        <button class="btn" onclick="convert()">Convert</button>
+<div style="max-width:480px; margin:60px auto; padding:0 20px;">
+
+    <p style="font-size:13px; color:#666; margin-bottom:4px;">Currency Converter</p>
+    <h1 style="font-size:22px; font-weight:500; margin-bottom:32px; color:#fff;">💱 Convert</h1>
+
+    <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:28px;">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+            <div>
+                <label style="font-size:12px; color:#666; display:block; margin-bottom:6px;">From</label>
+                <select id="base" style="width:100%; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px;">
+                    <option>USD</option><option>EUR</option><option>GBP</option>
+                    <option>JPY</option><option>CAD</option><option>AUD</option>
+                    <option>CHF</option><option>TRY</option><option>IRR</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size:12px; color:#666; display:block; margin-bottom:6px;">To</label>
+                <select id="target" style="width:100%; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px;">
+                    <option>EUR</option><option>USD</option><option>GBP</option>
+                    <option>JPY</option><option>CAD</option><option>AUD</option>
+                    <option>CHF</option><option>TRY</option><option>IRR</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="margin-bottom:20px;">
+            <label style="font-size:12px; color:#666; display:block; margin-bottom:6px;">Amount</label>
+            <input type="number" id="amount" placeholder="100" style="width:100%; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px;">
+        </div>
+
+        <button onclick="convert()" style="width:100%; padding:12px; background:#e94560; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer;">Convert</button>
+
+        <div id="result" style="display:none; margin-top:20px; padding:20px; background:#0f3460; border-radius:8px; text-align:center;">
+            <p id="result-text" style="font-size:26px; font-weight:500; color:#e94560; margin:0;"></p>
+            <p id="rate-text" style="font-size:12px; color:#666; margin-top:6px;"></p>
+        </div>
+
+        <div id="error" style="display:none; margin-top:16px; padding:12px; background:rgba(233,69,96,0.1); border:0.5px solid rgba(233,69,96,0.3); border-radius:8px; text-align:center; color:#e94560; font-size:13px;"></div>
+
     </div>
-    <div class="card" id="result" style="display:none;">
-        <h2 id="result-text" style="color:#e94560;"></h2>
-        <p id="rate-text"></p>
-    </div>
+</div>
 
-    <script>
-        async function convert() {
-            const base = document.getElementById("base").value.toUpperCase();
-            const target = document.getElementById("target").value.toUpperCase();
-            const amount = document.getElementById("amount").value;
-            const response = await fetch("/get-currency?base=" + base + "&target=" + target + "&amount=" + amount);
-            const data = await response.json();
-
-            if (data.error) {
-                alert("Currency not found!");
-                return;
-            }
-
-            document.getElementById("result-text").innerText = amount + " " + base + " = " + data.result + " " + target;
-            document.getElementById("rate-text").innerText = "Rate: 1 " + base + " = " + data.rate + " " + target;
-            document.getElementById("result").style.display = "block";
-        }
-    </script>
+<script>
+async function convert() {
+    const base = document.getElementById("base").value;
+    const target = document.getElementById("target").value;
+    const amount = document.getElementById("amount").value || 1;
+    document.getElementById("result").style.display = "none";
+    document.getElementById("error").style.display = "none";
+    const response = await fetch("/get-currency?base=" + base + "&target=" + target + "&amount=" + amount);
+    const data = await response.json();
+    if (data.error) {
+        document.getElementById("error").innerText = data.error;
+        document.getElementById("error").style.display = "block";
+        return;
+    }
+    document.getElementById("result-text").innerText = amount + " " + base + " = " + data.result + " " + target;
+    document.getElementById("rate-text").innerText = "1 " + base + " = " + data.rate + " " + target;
+    document.getElementById("result").style.display = "block";
+}
+</script>
 {% endblock %}

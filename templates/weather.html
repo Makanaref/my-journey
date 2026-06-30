@@ -1,37 +1,59 @@
 {% extends "base.html" %}
 {% block title %}Weather{% endblock %}
 {% block content %}
-    <h1>Weather App 🌤️</h1>
-    <div class="card">
-        <input type="text" id="city" placeholder="Enter city name..." style="width:90%;padding:12px;margin:10px 0;border-radius:8px;border:none;background-color:#0f3460;color:white;font-size:1em;">
-        <br>
-        <button class="btn" onclick="getWeather()">Get Weather</button>
+<div style="max-width:480px; margin:60px auto; padding:0 20px;">
+
+    <p style="font-size:13px; color:#666; margin-bottom:4px;">Weather</p>
+    <h1 style="font-size:22px; font-weight:500; margin-bottom:32px; color:#fff;">🌤️ Check Weather</h1>
+
+    <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:28px;">
+        <div style="margin-bottom:20px;">
+            <label style="font-size:12px; color:#666; display:block; margin-bottom:6px;">City name</label>
+            <input type="text" id="city" placeholder="Tehran, London, New York..." style="width:100%; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px;">
+        </div>
+        <button onclick="getWeather()" style="width:100%; padding:12px; background:#e94560; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer;">Get Weather</button>
+
+        <div id="result" style="display:none; margin-top:20px;">
+            <div style="padding:20px; background:#0f3460; border-radius:8px; text-align:center; margin-bottom:12px;">
+                <p id="city-name" style="font-size:18px; font-weight:500; color:#e94560; margin:0 0 4px;"></p>
+                <p id="temp" style="font-size:36px; font-weight:500; color:#fff; margin:0;"></p>
+                <p id="desc" style="font-size:13px; color:#666; margin:4px 0 0; text-transform:capitalize;"></p>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div style="padding:14px; background:#0f3460; border-radius:8px; text-align:center;">
+                    <p style="font-size:11px; color:#666; margin:0 0 4px;">Humidity</p>
+                    <p id="humidity" style="font-size:18px; font-weight:500; color:#fff; margin:0;"></p>
+                </div>
+                <div style="padding:14px; background:#0f3460; border-radius:8px; text-align:center;">
+                    <p style="font-size:11px; color:#666; margin:0 0 4px;">Wind</p>
+                    <p id="wind" style="font-size:18px; font-weight:500; color:#fff; margin:0;"></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="error" style="display:none; margin-top:16px; padding:12px; background:rgba(233,69,96,0.1); border:0.5px solid rgba(233,69,96,0.3); border-radius:8px; text-align:center; color:#e94560; font-size:13px;"></div>
     </div>
-    <div class="card" id="result" style="display:none;">
-        <h2 id="city-name" style="color:#e94560;"></h2>
-        <p id="temp"></p>
-        <p id="desc"></p>
-        <p id="humidity"></p>
-        <p id="wind"></p>
-    </div>
+</div>
 
-    <script>
-        async function getWeather() {
-            const city = document.getElementById("city").value;
-            const response = await fetch("/get-weather?city=" + city);
-            const data = await response.json();
-
-            if (data.error) {
-                alert("City not found!");
-                return;
-            }
-
-            document.getElementById("city-name").innerText = data.name + ", " + data.country;
-            document.getElementById("temp").innerText = "Temperature: " + data.temp + "C";
-            document.getElementById("desc").innerText = "Description: " + data.desc;
-            document.getElementById("humidity").innerText = "Humidity: " + data.humidity + "%";
-            document.getElementById("wind").innerText = "Wind: " + data.wind + " m/s";
-            document.getElementById("result").style.display = "block";
-        }
-    </script>
+<script>
+async function getWeather() {
+    const city = document.getElementById("city").value.trim();
+    if (!city) return;
+    document.getElementById("result").style.display = "none";
+    document.getElementById("error").style.display = "none";
+    const response = await fetch("/get-weather?city=" + encodeURIComponent(city));
+    const data = await response.json();
+    if (data.error) {
+        document.getElementById("error").innerText = data.error;
+        document.getElementById("error").style.display = "block";
+        return;
+    }
+    document.getElementById("city-name").innerText = data.name + ", " + data.country;
+    document.getElementById("temp").innerText = data.temp + "°C";
+    document.getElementById("desc").innerText = data.desc;
+    document.getElementById("humidity").innerText = data.humidity + "%";
+    document.getElementById("wind").innerText = data.wind + " m/s";
+    document.getElementById("result").style.display = "block";
+}
+</script>
 {% endblock %}
