@@ -18,6 +18,10 @@ def about():
 def projects():
     return render_template("projects.html")
 
+@app.route("/tools")
+def tools():
+    return render_template("tools.html")
+
 @app.route("/contact")
 def contact():
     return render_template("contact.html")
