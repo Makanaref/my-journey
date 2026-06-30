@@ -191,9 +191,20 @@
             document.getElementById("net-lamina1").classList.remove("active");
             document.getElementById("net-nexus").classList.remove("active");
             document.getElementById("net-" + net).classList.add("active");
+
+            provider = new ethers.BrowserProvider(window.ethereum);
+            signer = await provider.getSigner();
+            account = await signer.getAddress();
+
+            const network = await provider.getNetwork();
+            if (network.chainId.toString() !== parseInt(config.chainIdHex, 16).toString()) {
+                document.getElementById("tx-status").innerText = "Wallet still switching, please wait and click GM again.";
+            }
+
             contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
             document.getElementById("gm-card").style.display = "block";
             document.getElementById("leaderboard-card").style.display = "block";
+            document.getElementById("tx-status").innerText = "";
             await loadStats();
             await loadLeaderboard();
         } catch (err) { alert("Network switch failed: " + err.message); }
@@ -211,7 +222,12 @@
             await loadStats();
             await loadLeaderboard();
         } catch (err) {
-            document.getElementById("tx-status").innerText = "Failed: " + (err.reason || err.message);
+            const reason = err.reason || err.message || "";
+            if (reason.includes("Already said GM today")) {
+                document.getElementById("tx-status").innerText = "Oops, once a day. Come back tomorrow.";
+            } else {
+                document.getElementById("tx-status").innerText = "Failed: " + reason;
+            }
         }
         btn.disabled = false;
     }
