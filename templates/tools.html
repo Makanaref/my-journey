@@ -1,47 +1,95 @@
 {% extends "base.html" %}
 {% block title %}Tools{% endblock %}
 {% block content %}
-<div style="text-align:center; padding: 50px 30px 20px;">
-    <h1>Tools & Mini Apps 🧰</h1>
-    <p style="color:#999; margin-top:10px; margin-bottom:40px;">همه‌ی پروژه‌های دیگه، دسته‌بندی شده</p>
+<div style="padding: 50px 30px 20px; max-width:1000px; margin:0 auto;">
 
-    <h2 style="text-align:left; max-width:900px; margin:0 auto 16px;">⚙️ Utilities</h2>
-    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; max-width:900px; margin:0 auto 40px;">
-        <a href="/calculator" class="btn-outline">🧮 Calculator</a>
-        <a href="/notes" class="btn-outline">📝 Notes</a>
-        <a href="/converter" class="btn-outline">🔄 Converter</a>
-        <a href="/reminder" class="btn-outline">🔔 Reminder</a>
-        <a href="/dashboard" class="btn-outline">📊 Dashboard</a>
-        <a href="/todo" class="btn-outline">✅ Todo</a>
-        <a href="/timer" class="btn-outline">⏱️ Timer</a>
-        <a href="/stopwatch" class="btn-outline">⏲️ Stopwatch</a>
-        <a href="/wordcount" class="btn-outline">🔤 Word Count</a>
-        <a href="/speedtest" class="btn-outline">🚀 Speed Test</a>
-        <a href="/password" class="btn-outline">🔑 Password</a>
-        <a href="/color" class="btn-outline">🎨 Color</a>
-        <a href="/tip" class="btn-outline">💵 Tip Calculator</a>
-        <a href="/bmi" class="btn-outline">⚖️ BMI</a>
-        <a href="/age" class="btn-outline">🎂 Age Calculator</a>
+    <h1 style="text-align:center; font-size:2.5em; margin-bottom:50px;">🧰 Tools & Mini Apps</h1>
+
+    <!-- Utilities -->
+    <div style="margin-bottom:50px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid rgba(233,69,96,0.2);">
+            <span style="font-size:1.4em;">⚙️</span>
+            <h2 style="color:#e94560; font-size:1.2em; letter-spacing:0.08em; text-transform:uppercase;">Utilities</h2>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:12px;">
+            <a href="/calculator" class="tool-card">🧮<span>Calculator</span></a>
+            <a href="/notes" class="tool-card">📝<span>Notes</span></a>
+            <a href="/converter" class="tool-card">🔄<span>Converter</span></a>
+            <a href="/reminder" class="tool-card">🔔<span>Reminder</span></a>
+            <a href="/dashboard" class="tool-card">📊<span>Dashboard</span></a>
+            <a href="/todo" class="tool-card">✅<span>Todo</span></a>
+            <a href="/timer" class="tool-card">⏱️<span>Timer</span></a>
+            <a href="/stopwatch" class="tool-card">⏲️<span>Stopwatch</span></a>
+            <a href="/wordcount" class="tool-card">🔤<span>Word Count</span></a>
+            <a href="/speedtest" class="tool-card">🚀<span>Speed Test</span></a>
+            <a href="/password" class="tool-card">🔑<span>Password</span></a>
+            <a href="/color" class="tool-card">🎨<span>Color</span></a>
+            <a href="/tip" class="tool-card">💵<span>Tip Calc</span></a>
+            <a href="/bmi" class="tool-card">⚖️<span>BMI</span></a>
+            <a href="/age" class="tool-card">🎂<span>Age Calc</span></a>
+        </div>
     </div>
 
-    <h2 style="text-align:left; max-width:900px; margin:0 auto 16px;">🎮 Games & Fun</h2>
-    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; max-width:900px; margin:0 auto 40px;">
-        <a href="/dice" class="btn-outline">🎲 Dice</a>
-        <a href="/coin" class="btn-outline">🪙 Coin Flip</a>
-        <a href="/guess" class="btn-outline">🤔 Guess Number</a>
-        <a href="/random" class="btn-outline">🎰 Random</a>
-        <a href="/quote" class="btn-outline">💬 Quote</a>
-        <a href="/counter" class="btn-outline">🔢 Counter</a>
+    <!-- Games -->
+    <div style="margin-bottom:50px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid rgba(233,69,96,0.2);">
+            <span style="font-size:1.4em;">🎮</span>
+            <h2 style="color:#e94560; font-size:1.2em; letter-spacing:0.08em; text-transform:uppercase;">Games & Fun</h2>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:12px;">
+            <a href="/dice" class="tool-card">🎲<span>Dice</span></a>
+            <a href="/coin" class="tool-card">🪙<span>Coin Flip</span></a>
+            <a href="/guess" class="tool-card">🤔<span>Guess</span></a>
+            <a href="/random" class="tool-card">🎰<span>Random</span></a>
+            <a href="/quote" class="tool-card">💬<span>Quote</span></a>
+            <a href="/counter" class="tool-card">🔢<span>Counter</span></a>
+        </div>
     </div>
 
-    <h2 style="text-align:left; max-width:900px; margin:0 auto 16px;">ℹ️ About & Info</h2>
-    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; max-width:900px; margin:0 auto 40px;">
-        <a href="/about" class="btn-outline">👤 About</a>
-        <a href="/projects" class="btn-outline">🚀 Projects</a>
-        <a href="/blog" class="btn-outline">✍️ Blog</a>
-        <a href="/skills" class="btn-outline">🛠️ Skills</a>
-        <a href="/timeline" class="btn-outline">📅 Timeline</a>
-        <a href="/faq" class="btn-outline">❓ FAQ</a>
+    <!-- Info -->
+    <div style="margin-bottom:50px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid rgba(233,69,96,0.2);">
+            <span style="font-size:1.4em;">ℹ️</span>
+            <h2 style="color:#e94560; font-size:1.2em; letter-spacing:0.08em; text-transform:uppercase;">About & Info</h2>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:12px;">
+            <a href="/about" class="tool-card">👤<span>About</span></a>
+            <a href="/projects" class="tool-card">🚀<span>Projects</span></a>
+            <a href="/blog" class="tool-card">✍️<span>Blog</span></a>
+            <a href="/skills" class="tool-card">🛠️<span>Skills</span></a>
+            <a href="/timeline" class="tool-card">📅<span>Timeline</span></a>
+            <a href="/faq" class="tool-card">❓<span>FAQ</span></a>
+        </div>
     </div>
+
 </div>
+
+<style>
+.tool-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px 10px;
+    background: #16213e;
+    border: 1px solid rgba(233,69,96,0.12);
+    border-radius: 12px;
+    text-decoration: none;
+    color: #ccc;
+    font-size: 0.9em;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.tool-card:hover {
+    border-color: #e94560;
+    color: #e94560;
+    transform: translateY(-3px);
+    background: rgba(233,69,96,0.06);
+}
+.tool-card span {
+    font-size: 0.85em;
+    font-weight: 500;
+}
+</style>
 {% endblock %}
