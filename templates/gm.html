@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}GM{% endblock %}
+{% block content %}
+    <h1>GM 👋</h1>
+    <div class="card">
+        <p id="status" style="color:#aaa;">Wallet not connected</p>
+        <br>
+        <button class="btn" id="connect-btn" onclick="connectWallet()">Connect Wallet</button>
+    </div>
+    <div class="card" id="network-card" style="display:none;">
+        <h3 style="color:#e94560;">Select Network</h3>
+        <button class="btn" onclick="switchNetwork('lamina1')">Lamina1</button>
+        <button class="btn" onclick="switchNetwork('nexus')">Nexus</button>
+        <p id="current-network" style="margin-top:15px;color:#aaa;"></p>
+    </div>
+    <div class="card" id="gm-card" style="display:none;">
+        <button class="btn" style="font-size:1.5em;padding:20px 50px;" onclick="sayGM()">GM! 👋</button>
+        <p id="tx-status" style="margin-top:15px;color:#aaa;"></p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+    <script>
+        let provider, signer, account;
+
+        const networks = {
+            lamina1: {
+                chainIdHex: "0x" + (10849).toString(16),
+                chainName: "Lamina1",
+                rpcUrls: ["https://subnets.avax.network/lamina1/mainnet/rpc"],
+                nativeCurrency: { name: "L1", symbol: "L1", decimals: 18 },
+                blockExplorerUrls: ["https://subnets.avax.network/lamina1"]
+            },
+            nexus: {
+                chainIdHex: "0x" + (3946).toString(16),
+                chainName: "Nexus",
+                rpcUrls: ["https://mainnet.rpc.nexus.xyz"],
+                nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 },
+                blockExplorerUrls: ["https://explorer.nexus.xyz"]
+            }
+        };
+
+        async function connectWallet() {
+            if (!window.ethereum) {
+                alert("Please install MetaMask!");
+                return;
+            }
+            try {
+                provider = new ethers.BrowserProvider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = await provider.getSigner();
+                account = await signer.getAddress();
+                document.getElementById("status").innerText = "Connected: " + account.slice(0,6) + "..." + account.slice(-4);
+                document.getElementById("connect-btn").innerText = "Connected ✅";
+                document.getElementById("network-card").style.display = "block";
+            } catch (err) {
+                alert("Connection failed: " + err.message);
+            }
+        }
+
+        async function switchNetwork(net) {
+            const config = networks[net];
+            try {
+                await window.ethereum.request({
+                    method: "wallet_addEthereumChain",
+                    params: [{
+                        chainId: config.chainIdHex,
+                        chainName: config.chainName,
+                        rpcUrls: config.rpcUrls,
+                        nativeCurrency: config.nativeCurrency,
+                        blockExplorerUrls: config.blockExplorerUrls
+                    }]
+                });
+                document.getElementById("current-network").innerText = "Connected to: " + config.chainName;
+                document.getElementById("gm-card").style.display = "block";
+            } catch (err) {
+                alert("Network switch failed: " + err.message);
+            }
+        }
+
+        async function sayGM() {
+            document.getElementById("tx-status").innerText = "Sending transaction...";
+            try {
+                const tx = await signer.sendTransaction({
+                    to: account,
+                    value: 0,
+                    data: ethers.hexlify(ethers.toUtf8Bytes("gm"))
+                });
+                document.getElementById("tx-status").innerText = "Transaction sent! Hash: " + tx.hash.slice(0,10) + "...";
+                await tx.wait();
+                document.getElementById("tx-status").innerText = "GM confirmed! ✅ " + tx.hash.slice(0,10) + "...";
+            } catch (err) {
+                document.getElementById("tx-status").innerText = "Failed: " + err.message;
+            }
+        }
+    </script>
+{% endblock %}

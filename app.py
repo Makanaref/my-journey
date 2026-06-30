@@ -167,3 +167,7 @@ def coin():
 @app.route("/guess")
 def guess():
     return render_template("guess.html")
+
+@app.route("/gm")
+def gm():
+    return render_template("gm.html")
