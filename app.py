@@ -133,6 +133,21 @@ def get_currency():
     else:
         return jsonify({"error": "Currency not found"}), 404
 
+@app.route("/<page>")
+def generic_page(page):
+    allowed = [
+        "todo", "timer", "stopwatch", "wordcount", "speedtest",
+        "password", "color", "tip", "bmi", "age",
+        "dice", "coin", "guess", "random", "quote", "counter",
+        "blog", "skills", "timeline", "faq"
+    ]
+    if page in allowed:
+        try:
+            return render_template(f"{page}.html")
+        except:
+            abort(404)
+    abort(404)
+
 @app.errorhandler(404)
 def not_found(e):
     return render_template("404.html"), 404
