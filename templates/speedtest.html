@@ -1,56 +1,71 @@
 {% extends "base.html" %}
-{% block title %}Typing Speed Test{% endblock %}
+{% block title %}Speed Test{% endblock %}
 {% block content %}
-    <h1>Typing Speed Test ⌨️</h1>
-    <div class="card">
-        <p id="sample" style="color:#aaa;font-size:1.2em;line-height:2;">The quick brown fox jumps over the lazy dog. Python is an amazing programming language that is easy to learn and powerful to use.</p>
-    </div>
-    <div class="card">
-        <textarea id="input" rows="4" placeholder="Start typing here..." oninput="check()" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;"></textarea>
-        <br><br>
-        <button class="btn" onclick="reset()">Reset</button>
-    </div>
-    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:20px;">
-        <div class="card" style="width:150px;padding:20px;">
-            <h2 id="wpm" style="color:#e94560;">0</h2>
-            <p>WPM</p>
-        </div>
-        <div class="card" style="width:150px;padding:20px;">
-            <h2 id="accuracy" style="color:#e94560;">0%</h2>
-            <p>Accuracy</p>
-        </div>
-        <div class="card" style="width:150px;padding:20px;">
-            <h2 id="time" style="color:#e94560;">0s</h2>
-            <p>Time</p>
-        </div>
-    </div>
-    <script>
-        let startTime = null;
-        const sample = document.getElementById("sample").innerText;
+<div style="max-width:440px; margin:60px auto; padding:0 20px; text-align:center;">
 
-        function check() {
-            const input = document.getElementById("input").value;
-            if (!startTime && input.length > 0) startTime = new Date();
-            const elapsed = (new Date() - startTime) / 1000 / 60;
-            const words = input.trim().split(/\s+/).length;
-            const wpm = Math.round(words / elapsed) || 0;
-            let correct = 0;
-            for (let i = 0; i < input.length; i++) {
-                if (input[i] === sample[i]) correct++;
-            }
-            const accuracy = input.length > 0 ? Math.round((correct / input.length) * 100) : 0;
-            const secs = Math.round((new Date() - startTime) / 1000) || 0;
-            document.getElementById("wpm").innerText = wpm;
-            document.getElementById("accuracy").innerText = accuracy + "%";
-            document.getElementById("time").innerText = secs + "s";
-        }
+    <p style="font-size:13px; color:#666; margin-bottom:4px;">Speed Test</p>
+    <h1 style="font-size:22px; font-weight:500; margin-bottom:32px; color:#fff;">🚀 Typing Speed</h1>
 
-        function reset() {
-            startTime = null;
-            document.getElementById("input").value = "";
-            document.getElementById("wpm").innerText = "0";
-            document.getElementById("accuracy").innerText = "0%";
-            document.getElementById("time").innerText = "0s";
-        }
-    </script>
+    <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:28px;">
+        <div id="sample" style="font-size:15px; color:#ccc; line-height:1.8; padding:16px; background:#0f3460; border-radius:8px; margin-bottom:16px; text-align:left;"></div>
+        <textarea id="input" placeholder="Start typing here..." rows="4" oninput="check()" style="width:100%; padding:12px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px; resize:none; line-height:1.6;" disabled></textarea>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:16px 0;">
+            <div style="background:#0f3460; border-radius:8px; padding:12px;">
+                <p style="font-size:11px; color:#666; margin:0 0 4px;">WPM</p>
+                <p id="wpm" style="font-size:22px; font-weight:500; color:#e94560; margin:0;">0</p>
+            </div>
+            <div style="background:#0f3460; border-radius:8px; padding:12px;">
+                <p style="font-size:11px; color:#666; margin:0 0 4px;">Accuracy</p>
+                <p id="accuracy" style="font-size:22px; font-weight:500; color:#fff; margin:0;">0%</p>
+            </div>
+            <div style="background:#0f3460; border-radius:8px; padding:12px;">
+                <p style="font-size:11px; color:#666; margin:0 0 4px;">Time</p>
+                <p id="time" style="font-size:22px; font-weight:500; color:#fff; margin:0;">0s</p>
+            </div>
+        </div>
+        <button onclick="startTest()" id="startBtn" style="width:100%; padding:12px; background:#e94560; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer;">Start Test</button>
+    </div>
+</div>
+
+<script>
+const sentences = [
+    "The quick brown fox jumps over the lazy dog near the river bank.",
+    "Practice makes perfect when you are learning how to type fast and accurately.",
+    "A journey of a thousand miles begins with a single step forward.",
+    "Technology is best when it brings people together across the world.",
+    "Success is not final and failure is not fatal it is the courage to continue that counts."
+];
+let startTime, timerInterval, running = false;
+let sample = sentences[Math.floor(Math.random() * sentences.length)];
+document.getElementById('sample').innerText = sample;
+
+function startTest() {
+    document.getElementById('input').disabled = false;
+    document.getElementById('input').value = '';
+    document.getElementById('input').focus();
+    document.getElementById('startBtn').disabled = true;
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+        document.getElementById('time').innerText = Math.floor((Date.now() - startTime) / 1000) + 's';
+    }, 1000);
+    running = true;
+}
+function check() {
+    if (!running) return;
+    let typed = document.getElementById('input').value;
+    let elapsed = (Date.now() - startTime) / 60000;
+    let words = typed.trim().split(/\s+/).length;
+    let wpm = Math.round(words / elapsed) || 0;
+    let correct = typed.split('').filter((c, i) => c === sample[i]).length;
+    let accuracy = typed.length ? Math.round(correct / typed.length * 100) : 0;
+    document.getElementById('wpm').innerText = wpm;
+    document.getElementById('accuracy').innerText = accuracy + '%';
+    if (typed === sample) {
+        clearInterval(timerInterval);
+        running = false;
+        document.getElementById('input').disabled = true;
+        alert('Done! WPM: ' + wpm + ' | Accuracy: ' + accuracy + '%');
+    }
+}
+</script>
 {% endblock %}

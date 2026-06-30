@@ -1,39 +1,24 @@
 {% extends "base.html" %}
 {% block title %}Counter{% endblock %}
 {% block content %}
-    <h1>Counter 🔢</h1>
-    <div class="card">
-        <h2 id="count" style="font-size:5em;color:#e94560;">0</h2>
-        <br>
-        <button class="btn" onclick="change(-1)">➖</button>
-        <button class="btn" onclick="reset()">Reset</button>
-        <button class="btn" onclick="change(1)">➕</button>
+<div style="max-width:380px; margin:60px auto; padding:0 20px; text-align:center;">
+
+    <p style="font-size:13px; color:#666; margin-bottom:4px;">Counter</p>
+    <h1 style="font-size:22px; font-weight:500; margin-bottom:32px; color:#fff;">🔢 Counter</h1>
+
+    <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:40px 28px;">
+        <p id="count" style="font-size:80px; font-weight:500; color:#e94560; margin:0 0 32px;">0</p>
+        <div style="display:flex; gap:12px; justify-content:center; margin-bottom:16px;">
+            <button onclick="change(-1)" style="width:60px; height:60px; background:#0f3460; color:#fff; border:none; border-radius:50%; font-size:28px; cursor:pointer;">−</button>
+            <button onclick="change(1)" style="width:60px; height:60px; background:#e94560; color:#fff; border:none; border-radius:50%; font-size:28px; cursor:pointer;">+</button>
+        </div>
+        <button onclick="reset()" style="padding:10px 28px; background:none; border:0.5px solid rgba(255,255,255,0.1); border-radius:8px; color:#666; font-size:13px; cursor:pointer;">Reset</button>
     </div>
-    <div class="card">
-        <h3 style="color:#e94560;">Custom Step</h3>
-        <input type="number" id="step" value="1" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
-        <br><br>
-        <button class="btn" onclick="changeStep(-1)">➖ Step</button>
-        <button class="btn" onclick="changeStep(1)">➕ Step</button>
-    </div>
+</div>
 
-    <script>
-        let count = 0;
-
-        function change(dir) {
-            const step = parseInt(document.getElementById("step").value);
-            count += dir * step;
-            document.getElementById("count").innerText = count;
-        }
-
-        function reset() {
-            count = 0;
-            document.getElementById("count").innerText = count;
-        }
-
-        function changeStep(dir) {
-            const stepEl = document.getElementById("step");
-            stepEl.value = Math.max(1, parseInt(stepEl.value) + dir);
-        }
-    </script>
+<script>
+let n = 0;
+function change(v) { n += v; document.getElementById('count').innerText = n; }
+function reset() { n = 0; document.getElementById('count').innerText = 0; }
+</script>
 {% endblock %}

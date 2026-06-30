@@ -1,43 +1,65 @@
-
 {% extends "base.html" %}
 {% block title %}Calculator{% endblock %}
 {% block content %}
-    <h1>Calculator 🧮</h1>
-    <div class="card" style="max-width:400px;margin:auto;">
-        <input type="text" id="display" readonly style="width:90%;padding:12px;margin:10px 0;border-radius:8px;border:none;background-color:#0f3460;color:white;font-size:1.5em;text-align:right;">
-        <br>
-        {% for row in [['7','8','9','/'],[' 4','5','6','*'],['1','2','3','-'],['0','.','=','+']] %}
-        <div style="display:flex;gap:8px;margin:5px 0;">
-            {% for btn in row %}
-            <button class="btn" style="flex:1;font-size:1.2em;" onclick="pressBtn('{{btn.strip()}}')">{{btn.strip()}}</button>
-            {% endfor %}
+<div style="max-width:360px; margin:60px auto; padding:0 20px;">
+
+    <p style="font-size:13px; color:#666; margin-bottom:4px;">Calculator</p>
+    <h1 style="font-size:22px; font-weight:500; margin-bottom:32px; color:#fff;">🧮 Calculate</h1>
+
+    <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:24px;">
+        <div style="background:#0f3460; border-radius:8px; padding:16px; text-align:right; margin-bottom:16px;">
+            <p id="expr" style="font-size:13px; color:#666; margin:0 0 4px; min-height:18px;"></p>
+            <p id="display" style="font-size:32px; font-weight:500; color:#fff; margin:0; word-break:break-all;">0</p>
         </div>
-        {% endfor %}
-        <button class="btn" style="width:100%;margin-top:5px;background:#e94560;" onclick="clearDisplay()">Clear</button>
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">
+            <button onclick="clearAll()" style="grid-column:span 2; padding:14px; background:#e94560; color:#fff; border:none; border-radius:8px; font-size:14px; cursor:pointer;">Clear</button>
+            <button onclick="pressBtn('(')" style="padding:14px; background:#0f3460; color:#ccc; border:none; border-radius:8px; font-size:14px; cursor:pointer;">(</button>
+            <button onclick="pressBtn(')')" style="padding:14px; background:#0f3460; color:#ccc; border:none; border-radius:8px; font-size:14px; cursor:pointer;">)</button>
+            <button onclick="pressBtn('7')" style="padding:14px; background:#0f3460; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer;">7</button>
+            <button onclick="pressBtn('8')" style="padding:14px; background:#0f3460; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer;">8</button>
+            <button onclick="pressBtn('9')" style="padding:14px; background:#0f3460; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer;">9</button>
+            <button onclick="pressBtn('/')" style="padding:14px; background:#1a1a2e; color:#e94560; border:none; border-radius:8px; font-size:16px; cursor:pointer;">÷</button>
+            <button onclick="pressBtn('4')" style="padding:14px; background:#0f3460; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer;">4</button>
+            <button onclick="pressBtn('5')" style="padding:14px; background:#0f3460; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer;">5</button>
+            <button onclick="pressBtn('6')" style="padding:14px; background:#0f3460; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer;">6</button>
+            <button onclick="pressBtn('*')" style="padding:14px; background:#1a1a2e; color:#e94560; border:none; border-radius:8px; font-size:16px; cursor:pointer;">×</button>
+            <button onclick="pressBtn('1')" style="padding:14px; background:#0f3460; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer;">1</button>
+            <button onclick="pressBtn('2')" style="padding:14px; background:#0f3460; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer;">2</button>
+            <button onclick="pressBtn('3')" style="padding:14px; background:#0f3460; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer;">3</button>
+            <button onclick="pressBtn('-')" style="padding:14px; background:#1a1a2e; color:#e94560; border:none; border-radius:8px; font-size:16px; cursor:pointer;">−</button>
+            <button onclick="pressBtn('0')" style="padding:14px; background:#0f3460; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer;">0</button>
+            <button onclick="pressBtn('.')" style="padding:14px; background:#0f3460; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer;">.</button>
+            <button onclick="calculate()" style="padding:14px; background:#e94560; color:#fff; border:none; border-radius:8px; font-size:16px; cursor:pointer;">=</button>
+            <button onclick="pressBtn('+')" style="padding:14px; background:#1a1a2e; color:#e94560; border:none; border-radius:8px; font-size:16px; cursor:pointer;">+</button>
+        </div>
     </div>
-    <div class="card" style="max-width:400px;margin:auto;">
-        <h3>History 📋</h3>
-        <ul id="history" style="list-style:none;padding:0;"></ul>
+
+    <div style="margin-top:16px; background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:20px;">
+        <p style="font-size:12px; color:#666; margin:0 0 12px;">History</p>
+        <div id="history"></div>
     </div>
-    <script>
-        let expr = '';
-        function pressBtn(val) {
-            if (val === '=') {
-                try {
-                    let result = eval(expr);
-                    let li = document.createElement('li');
-                    li.innerText = expr + ' = ' + result;
-                    li.style.padding = '5px 0';
-                    li.style.borderBottom = '1px solid #0f3460';
-                    document.getElementById('history').prepend(li);
-                    expr = String(result);
-                } catch { expr = 'Error'; }
-            } else {
-                expr += val;
-            }
-            document.getElementById('display').value = expr;
-        }
-        function clearDisplay() { expr = ''; document.getElementById('display').value = ''; }
-    </script>
+</div>
+
+<script>
+let expr = '';
+function pressBtn(v) {
+    expr += v;
+    document.getElementById('display').innerText = expr || '0';
+    document.getElementById('expr').innerText = '';
+}
+function calculate() {
+    try {
+        let result = eval(expr);
+        document.getElementById('expr').innerText = expr + ' =';
+        document.getElementById('display').innerText = result;
+        let h = document.getElementById('history');
+        let p = document.createElement('p');
+        p.style.cssText = 'font-size:13px; color:#666; margin:0 0 6px; padding-bottom:6px; border-bottom:0.5px solid rgba(255,255,255,0.05);';
+        p.innerText = expr + ' = ' + result;
+        h.prepend(p);
+        expr = String(result);
+    } catch { document.getElementById('display').innerText = 'Error'; expr = ''; }
+}
+function clearAll() { expr = ''; document.getElementById('display').innerText = '0'; document.getElementById('expr').innerText = ''; }
+</script>
 {% endblock %}
-EOF

@@ -1,29 +1,50 @@
 {% extends "base.html" %}
 {% block title %}Age Calculator{% endblock %}
 {% block content %}
-    <h1>Age Calculator 🎂</h1>
-    <div class="card">
-        <input type="date" id="dob" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
-        <br><br>
-        <button class="btn" onclick="calculate()">Calculate!</button>
+<div style="max-width:440px; margin:60px auto; padding:0 20px;">
+
+    <p style="font-size:13px; color:#666; margin-bottom:4px;">Age Calculator</p>
+    <h1 style="font-size:22px; font-weight:500; margin-bottom:32px; color:#fff;">🎂 Age Calculator</h1>
+
+    <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:28px;">
+        <div style="margin-bottom:20px;">
+            <label style="font-size:12px; color:#666; display:block; margin-bottom:6px;">Date of Birth</label>
+            <input type="date" id="dob" style="width:100%; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px;">
+        </div>
+        <button onclick="calcAge()" style="width:100%; padding:12px; background:#e94560; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer;">Calculate</button>
+        <div id="result" style="display:none; margin-top:20px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+                <div style="background:#0f3460; border-radius:8px; padding:16px; text-align:center;">
+                    <p style="font-size:11px; color:#666; margin:0 0 4px;">Years</p>
+                    <p id="years" style="font-size:28px; font-weight:500; color:#e94560; margin:0;"></p>
+                </div>
+                <div style="background:#0f3460; border-radius:8px; padding:16px; text-align:center;">
+                    <p style="font-size:11px; color:#666; margin:0 0 4px;">Months</p>
+                    <p id="months" style="font-size:28px; font-weight:500; color:#fff; margin:0;"></p>
+                </div>
+                <div style="background:#0f3460; border-radius:8px; padding:16px; text-align:center;">
+                    <p style="font-size:11px; color:#666; margin:0 0 4px;">Days</p>
+                    <p id="days" style="font-size:28px; font-weight:500; color:#fff; margin:0;"></p>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card" id="result" style="display:none;">
-        <h2 id="years" style="color:#e94560;font-size:3em;"></h2>
-        <p id="details" style="color:#aaa;"></p>
-    </div>
-    <script>
-        function calculate() {
-            const dob = new Date(document.getElementById("dob").value);
-            if (!dob) { alert("Please enter a date!"); return; }
-            const today = new Date();
-            let years = today.getFullYear() - dob.getFullYear();
-            let months = today.getMonth() - dob.getMonth();
-            let days = today.getDate() - dob.getDate();
-            if (days < 0) { months--; days += 30; }
-            if (months < 0) { years--; months += 12; }
-            document.getElementById("years").innerText = years + " Years Old";
-            document.getElementById("details").innerText = months + " months and " + days + " days";
-            document.getElementById("result").style.display = "block";
-        }
-    </script>
+</div>
+
+<script>
+function calcAge() {
+    let dob = new Date(document.getElementById('dob').value);
+    if (!dob) return;
+    let now = new Date();
+    let y = now.getFullYear() - dob.getFullYear();
+    let m = now.getMonth() - dob.getMonth();
+    let d = now.getDate() - dob.getDate();
+    if (d < 0) { m--; d += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+    if (m < 0) { y--; m += 12; }
+    document.getElementById('years').innerText = y;
+    document.getElementById('months').innerText = m;
+    document.getElementById('days').innerText = d;
+    document.getElementById('result').style.display = 'block';
+}
+</script>
 {% endblock %}

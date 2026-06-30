@@ -1,39 +1,45 @@
 {% extends "base.html" %}
-{% block title %}Word Counter{% endblock %}
+{% block title %}Word Count{% endblock %}
 {% block content %}
-    <h1>Word Counter 📝</h1>
-    <div class="card">
-        <textarea id="text" rows="8" placeholder="Type or paste your text here..." oninput="count()" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;"></textarea>
+<div style="max-width:560px; margin:60px auto; padding:0 20px;">
+
+    <p style="font-size:13px; color:#666; margin-bottom:4px;">Word Count</p>
+    <h1 style="font-size:22px; font-weight:500; margin-bottom:32px; color:#fff;">🔤 Word Counter</h1>
+
+    <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:28px;">
+        <textarea id="text" placeholder="Type or paste your text here..." rows="8" oninput="count()" style="width:100%; padding:12px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px; resize:vertical; line-height:1.6;"></textarea>
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:16px;">
+            <div style="background:#0f3460; border-radius:8px; padding:14px; text-align:center;">
+                <p style="font-size:11px; color:#666; margin:0 0 4px;">Words</p>
+                <p id="words" style="font-size:22px; font-weight:500; color:#e94560; margin:0;">0</p>
+            </div>
+            <div style="background:#0f3460; border-radius:8px; padding:14px; text-align:center;">
+                <p style="font-size:11px; color:#666; margin:0 0 4px;">Characters</p>
+                <p id="chars" style="font-size:22px; font-weight:500; color:#fff; margin:0;">0</p>
+            </div>
+            <div style="background:#0f3460; border-radius:8px; padding:14px; text-align:center;">
+                <p style="font-size:11px; color:#666; margin:0 0 4px;">Sentences</p>
+                <p id="sentences" style="font-size:22px; font-weight:500; color:#fff; margin:0;">0</p>
+            </div>
+            <div style="background:#0f3460; border-radius:8px; padding:14px; text-align:center;">
+                <p style="font-size:11px; color:#666; margin:0 0 4px;">Read time</p>
+                <p id="readtime" style="font-size:22px; font-weight:500; color:#fff; margin:0;">0m</p>
+            </div>
+        </div>
     </div>
-    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:20px;">
-        <div class="card" style="width:150px;padding:20px;">
-            <h2 id="words" style="color:#e94560;">0</h2>
-            <p>Words</p>
-        </div>
-        <div class="card" style="width:150px;padding:20px;">
-            <h2 id="chars" style="color:#e94560;">0</h2>
-            <p>Characters</p>
-        </div>
-        <div class="card" style="width:150px;padding:20px;">
-            <h2 id="sentences" style="color:#e94560;">0</h2>
-            <p>Sentences</p>
-        </div>
-        <div class="card" style="width:150px;padding:20px;">
-            <h2 id="readtime" style="color:#e94560;">0</h2>
-            <p>Min Read</p>
-        </div>
-    </div>
-    <script>
-        function count() {
-            const text = document.getElementById("text").value;
-            const words = text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
-            const chars = text.length;
-            const sentences = text.split(/[.!?]+/).filter(s => s.trim()).length;
-            const readtime = Math.ceil(words / 200);
-            document.getElementById("words").innerText = words;
-            document.getElementById("chars").innerText = chars;
-            document.getElementById("sentences").innerText = sentences;
-            document.getElementById("readtime").innerText = readtime;
-        }
-    </script>
+</div>
+
+<script>
+function count() {
+    let t = document.getElementById('text').value;
+    let words = t.trim() ? t.trim().split(/\s+/).length : 0;
+    let chars = t.length;
+    let sentences = t.trim() ? (t.match(/[.!?]+/g) || []).length : 0;
+    let readtime = Math.ceil(words / 200);
+    document.getElementById('words').innerText = words;
+    document.getElementById('chars').innerText = chars;
+    document.getElementById('sentences').innerText = sentences;
+    document.getElementById('readtime').innerText = readtime + 'm';
+}
+</script>
 {% endblock %}

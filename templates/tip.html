@@ -1,32 +1,54 @@
 {% extends "base.html" %}
 {% block title %}Tip Calculator{% endblock %}
 {% block content %}
-    <h1>Tip Calculator 💰</h1>
-    <div class="card">
-        <input type="number" id="bill" placeholder="Bill Amount ($)" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
-        <input type="number" id="tip" placeholder="Tip %" value="15" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
-        <input type="number" id="people" placeholder="Number of People" value="1" style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
-        <br><br>
-        <button class="btn" onclick="calculate()">Calculate!</button>
+<div style="max-width:440px; margin:60px auto; padding:0 20px;">
+
+    <p style="font-size:13px; color:#666; margin-bottom:4px;">Tip Calculator</p>
+    <h1 style="font-size:22px; font-weight:500; margin-bottom:32px; color:#fff;">💵 Tip Calculator</h1>
+
+    <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:28px;">
+        <div style="margin-bottom:16px;">
+            <label style="font-size:12px; color:#666; display:block; margin-bottom:6px;">Bill Amount</label>
+            <input type="number" id="bill" placeholder="0.00" oninput="calc()" style="width:100%; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px;">
+        </div>
+        <div style="margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <label style="font-size:12px; color:#666;">Tip %</label>
+                <span id="tip-val" style="font-size:12px; color:#e94560;">15%</span>
+            </div>
+            <input type="range" id="tip" min="0" max="50" value="15" oninput="document.getElementById('tip-val').innerText=this.value+'%'; calc()" style="width:100%; accent-color:#e94560;">
+        </div>
+        <div style="margin-bottom:20px;">
+            <label style="font-size:12px; color:#666; display:block; margin-bottom:6px;">Split between</label>
+            <input type="number" id="split" value="1" min="1" oninput="calc()" style="width:100%; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px;">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+            <div style="background:#0f3460; border-radius:8px; padding:14px; text-align:center;">
+                <p style="font-size:11px; color:#666; margin:0 0 4px;">Tip</p>
+                <p id="tip-amt" style="font-size:20px; font-weight:500; color:#e94560; margin:0;">$0</p>
+            </div>
+            <div style="background:#0f3460; border-radius:8px; padding:14px; text-align:center;">
+                <p style="font-size:11px; color:#666; margin:0 0 4px;">Total</p>
+                <p id="total" style="font-size:20px; font-weight:500; color:#fff; margin:0;">$0</p>
+            </div>
+            <div style="background:#0f3460; border-radius:8px; padding:14px; text-align:center;">
+                <p style="font-size:11px; color:#666; margin:0 0 4px;">Per person</p>
+                <p id="per" style="font-size:20px; font-weight:500; color:#fff; margin:0;">$0</p>
+            </div>
+        </div>
     </div>
-    <div class="card" id="result" style="display:none;">
-        <p>Tip Amount: <span id="tip-amount" style="color:#e94560;"></span></p>
-        <p>Total: <span id="total" style="color:#e94560;"></span></p>
-        <p>Per Person: <span id="per-person" style="color:#e94560;font-size:2em;"></span></p>
-    </div>
-    <script>
-        function calculate() {
-            const bill = parseFloat(document.getElementById("bill").value);
-            const tip = parseFloat(document.getElementById("tip").value);
-            const people = parseInt(document.getElementById("people").value);
-            if (!bill) { alert("Please enter bill amount!"); return; }
-            const tipAmount = (bill * tip / 100).toFixed(2);
-            const total = (bill + parseFloat(tipAmount)).toFixed(2);
-            const perPerson = (total / people).toFixed(2);
-            document.getElementById("tip-amount").innerText = "$" + tipAmount;
-            document.getElementById("total").innerText = "$" + total;
-            document.getElementById("per-person").innerText = "$" + perPerson;
-            document.getElementById("result").style.display = "block";
-        }
-    </script>
+</div>
+
+<script>
+function calc() {
+    let bill = parseFloat(document.getElementById('bill').value) || 0;
+    let tip = parseInt(document.getElementById('tip').value);
+    let split = parseInt(document.getElementById('split').value) || 1;
+    let tipAmt = bill * tip / 100;
+    let total = bill + tipAmt;
+    document.getElementById('tip-amt').innerText = '$' + tipAmt.toFixed(2);
+    document.getElementById('total').innerText = '$' + total.toFixed(2);
+    document.getElementById('per').innerText = '$' + (total / split).toFixed(2);
+}
+</script>
 {% endblock %}

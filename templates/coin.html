@@ -1,45 +1,37 @@
 {% extends "base.html" %}
 {% block title %}Coin Flip{% endblock %}
 {% block content %}
-    <h1>Coin Flip 🪙</h1>
-    <div class="card">
-        <h2 id="result" style="font-size:6em;">🪙</h2>
-        <p id="text" style="color:#e94560;font-size:2em;"></p>
-        <br>
-        <button class="btn" onclick="flip()">Flip!</button>
+<div style="max-width:380px; margin:60px auto; padding:0 20px; text-align:center;">
+
+    <p style="font-size:13px; color:#666; margin-bottom:4px;">Coin Flip</p>
+    <h1 style="font-size:22px; font-weight:500; margin-bottom:32px; color:#fff;">🪙 Coin Flip</h1>
+
+    <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:40px 28px;">
+        <p id="coin" style="font-size:100px; margin:0 0 8px; transition:transform 0.3s;">🪙</p>
+        <p id="result" style="font-size:32px; font-weight:500; color:#e94560; margin:0 0 32px;">?</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; font-size:13px; color:#666;">
+            <div style="background:#0f3460; border-radius:8px; padding:12px;">
+                <p style="margin:0 0 4px;">Heads</p>
+                <p id="heads" style="font-size:20px; font-weight:500; color:#fff; margin:0;">0</p>
+            </div>
+            <div style="background:#0f3460; border-radius:8px; padding:12px;">
+                <p style="margin:0 0 4px;">Tails</p>
+                <p id="tails" style="font-size:20px; font-weight:500; color:#fff; margin:0;">0</p>
+            </div>
+        </div>
+        <button onclick="flip()" style="width:100%; padding:14px; background:#e94560; color:#fff; border:none; border-radius:8px; font-size:15px; font-weight:500; cursor:pointer;">Flip!</button>
     </div>
-    <div class="card">
-        <h3 style="color:#e94560;">Stats</h3>
-        <p>Heads: <span id="heads" style="color:#e94560;">0</span></p>
-        <p>Tails: <span id="tails" style="color:#e94560;">0</span></p>
-        <p>Total: <span id="total" style="color:#e94560;">0</span></p>
-        <br>
-        <button class="btn" onclick="resetStats()">Reset Stats</button>
-    </div>
-    <script>
-        let heads = 0, tails = 0;
-        function flip() {
-            const isHeads = Math.random() < 0.5;
-            if (isHeads) {
-                heads++;
-                document.getElementById("result").innerText = "🌕";
-                document.getElementById("text").innerText = "Heads!";
-            } else {
-                tails++;
-                document.getElementById("result").innerText = "🌑";
-                document.getElementById("text").innerText = "Tails!";
-            }
-            document.getElementById("heads").innerText = heads;
-            document.getElementById("tails").innerText = tails;
-            document.getElementById("total").innerText = heads + tails;
-        }
-        function resetStats() {
-            heads = 0; tails = 0;
-            document.getElementById("heads").innerText = 0;
-            document.getElementById("tails").innerText = 0;
-            document.getElementById("total").innerText = 0;
-            document.getElementById("result").innerText = "🪙";
-            document.getElementById("text").innerText = "";
-        }
-    </script>
+</div>
+
+<script>
+let heads = 0, tails = 0;
+function flip() {
+    let r = Math.random() < 0.5;
+    document.getElementById('result').innerText = r ? 'Heads' : 'Tails';
+    document.getElementById('coin').style.transform = 'rotateY(720deg)';
+    setTimeout(() => document.getElementById('coin').style.transform = '', 400);
+    if (r) { heads++; document.getElementById('heads').innerText = heads; }
+    else { tails++; document.getElementById('tails').innerText = tails; }
+}
+</script>
 {% endblock %}

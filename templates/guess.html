@@ -1,43 +1,47 @@
 {% extends "base.html" %}
-{% block title %}Guessing Game{% endblock %}
+{% block title %}Guess Number{% endblock %}
 {% block content %}
-    <h1>Number Guessing Game 🎮</h1>
-    <div class="card">
-        <p style="color:#aaa;">I'm thinking of a number between 1 and 100!</p>
-        <br>
-        <input type="number" id="guess" placeholder="Your guess..." style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
-        <br><br>
-        <button class="btn" onclick="check()">Guess!</button>
-        <button class="btn" onclick="newGame()">New Game</button>
-        <br><br>
-        <p id="message" style="font-size:1.5em;color:#e94560;"></p>
-        <p id="attempts" style="color:#aaa;"></p>
+<div style="max-width:400px; margin:60px auto; padding:0 20px; text-align:center;">
+
+    <p style="font-size:13px; color:#666; margin-bottom:4px;">Guess Number</p>
+    <h1 style="font-size:22px; font-weight:500; margin-bottom:32px; color:#fff;">🤔 Guess the Number</h1>
+
+    <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:32px;">
+        <p style="font-size:13px; color:#666; margin:0 0 24px;">I'm thinking of a number between 1 and 100</p>
+        <div style="display:flex; gap:10px; margin-bottom:20px;">
+            <input type="number" id="guess" placeholder="Your guess..." min="1" max="100" style="flex:1; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:16px; text-align:center;">
+            <button onclick="check()" style="padding:10px 20px; background:#e94560; color:#fff; border:none; border-radius:8px; font-size:14px; cursor:pointer;">Guess</button>
+        </div>
+        <div id="hint" style="font-size:15px; color:#666; margin-bottom:16px; min-height:24px;"></div>
+        <div style="display:flex; justify-content:center; gap:20px; font-size:13px; color:#666;">
+            <span>Attempts: <b id="attempts" style="color:#fff;">0</b></span>
+        </div>
+        <button onclick="newGame()" style="margin-top:20px; padding:10px 24px; background:none; border:0.5px solid rgba(255,255,255,0.1); border-radius:8px; color:#666; font-size:13px; cursor:pointer;">New Game</button>
     </div>
-    <script>
-        let secret = Math.floor(Math.random() * 100) + 1;
-        let attempts = 0;
+</div>
 
-        function check() {
-            const guess = parseInt(document.getElementById("guess").value);
-            if (!guess) return;
-            attempts++;
-            if (guess < secret) {
-                document.getElementById("message").innerText = "Too low! ⬆️";
-            } else if (guess > secret) {
-                document.getElementById("message").innerText = "Too high! ⬇️";
-            } else {
-                document.getElementById("message").innerText = "Correct! 🎉";
-            }
-            document.getElementById("attempts").innerText = "Attempts: " + attempts;
-            document.getElementById("guess").value = "";
-        }
-
-        function newGame() {
-            secret = Math.floor(Math.random() * 100) + 1;
-            attempts = 0;
-            document.getElementById("message").innerText = "";
-            document.getElementById("attempts").innerText = "";
-            document.getElementById("guess").value = "";
-        }
-    </script>
+<script>
+let secret = Math.floor(Math.random() * 100) + 1;
+let attempts = 0;
+function check() {
+    let g = parseInt(document.getElementById('guess').value);
+    if (!g || g < 1 || g > 100) return;
+    attempts++;
+    document.getElementById('attempts').innerText = attempts;
+    if (g === secret) {
+        document.getElementById('hint').innerHTML = `<span style="color:#4ecca3;">🎉 Correct! You got it in ${attempts} attempts!</span>`;
+    } else {
+        document.getElementById('hint').innerHTML = `<span style="color:#e94560;">${g < secret ? '📈 Too low!' : '📉 Too high!'}</span>`;
+    }
+    document.getElementById('guess').value = '';
+}
+function newGame() {
+    secret = Math.floor(Math.random() * 100) + 1;
+    attempts = 0;
+    document.getElementById('attempts').innerText = 0;
+    document.getElementById('hint').innerText = '';
+    document.getElementById('guess').value = '';
+}
+document.getElementById('guess').addEventListener('keypress', e => { if(e.key==='Enter') check(); });
+</script>
 {% endblock %}

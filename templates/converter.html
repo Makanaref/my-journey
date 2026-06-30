@@ -1,61 +1,81 @@
-
 {% extends "base.html" %}
 {% block title %}Converter{% endblock %}
 {% block content %}
-    <h1>Unit Converter 🔄</h1>
-    <div class="card" style="max-width:500px;margin:auto;">
-        <select id="type" onchange="updateUnits()" style="width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
-            <option value="length">Length</option>
-            <option value="weight">Weight</option>
-            <option value="temp">Temperature</option>
-            <option value="area">Area</option>
-            <option value="volume">Volume</option>
-            <option value="speed">Speed</option>
-            <option value="time">Time</option>
-            <option value="data">Data</option>
-        </select>
-        <input type="number" id="val" placeholder="Enter value..." style="width:90%;padding:10px;margin-bottom:10px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
-        <select id="from" style="width:48%;padding:10px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;"></select>
-        <select id="to" style="width:48%;padding:10px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;float:right;"></select>
-        <br><br>
-        <button class="btn" style="width:100%;" onclick="convert()">Convert ⚡</button>
-        <div id="result" style="margin-top:15px;font-size:1.3em;text-align:center;color:#e94560;"></div>
+<div style="max-width:480px; margin:60px auto; padding:0 20px;">
+
+    <p style="font-size:13px; color:#666; margin-bottom:4px;">Converter</p>
+    <h1 style="font-size:22px; font-weight:500; margin-bottom:32px; color:#fff;">🔄 Unit Converter</h1>
+
+    <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:28px;">
+        <div style="margin-bottom:16px;">
+            <label style="font-size:12px; color:#666; display:block; margin-bottom:6px;">Category</label>
+            <select id="type" onchange="updateUnits()" style="width:100%; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px;">
+                <option value="length">Length</option>
+                <option value="weight">Weight</option>
+                <option value="temp">Temperature</option>
+                <option value="area">Area</option>
+                <option value="volume">Volume</option>
+                <option value="speed">Speed</option>
+                <option value="time">Time</option>
+                <option value="data">Data</option>
+            </select>
+        </div>
+        <div style="margin-bottom:16px;">
+            <label style="font-size:12px; color:#666; display:block; margin-bottom:6px;">Value</label>
+            <input type="number" id="val" placeholder="Enter value..." style="width:100%; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px;">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+            <div>
+                <label style="font-size:12px; color:#666; display:block; margin-bottom:6px;">From</label>
+                <select id="from" style="width:100%; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px;"></select>
+            </div>
+            <div>
+                <label style="font-size:12px; color:#666; display:block; margin-bottom:6px;">To</label>
+                <select id="to" style="width:100%; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px;"></select>
+            </div>
+        </div>
+        <button onclick="convert()" style="width:100%; padding:12px; background:#e94560; color:#fff; border:none; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer;">Convert</button>
+        <div id="result" style="display:none; margin-top:20px; padding:20px; background:#0f3460; border-radius:8px; text-align:center;">
+            <p id="result-text" style="font-size:22px; font-weight:500; color:#e94560; margin:0;"></p>
+        </div>
     </div>
-    <script>
-        const units = {
-            length: {m:1,km:0.001,cm:100,mm:1000,mile:0.000621371,yard:1.09361,foot:3.28084,inch:39.3701},
-            weight: {kg:1,g:1000,mg:1e6,lb:2.20462,oz:35.274,ton:0.001},
-            area: {'m²':1,'km²':1e-6,'cm²':1e4,'mm²':1e6,'acre':0.000247105,'hectare':1e-4},
-            volume: {liter:1,ml:1000,'m³':0.001,gallon:0.264172,cup:4.22675,fl_oz:33.814},
-            speed: {'m/s':1,'km/h':3.6,'mph':2.23694,'ft/s':3.28084,knot:1.94384},
-            time: {second:1,minute:1/60,hour:1/3600,day:1/86400,week:1/604800},
-            data: {byte:1,KB:1/1024,MB:1/1048576,GB:1/1073741824,bit:8}
-        };
-        function updateUnits() {
-            let t = document.getElementById('type').value;
-            let opts = t === 'temp' ? ['Celsius','Fahrenheit','Kelvin'] : Object.keys(units[t]);
-            ['from','to'].forEach(id => {
-                let sel = document.getElementById(id);
-                sel.innerHTML = opts.map(u => `<option>${u}</option>`).join('');
-            });
-            document.getElementById('to').selectedIndex = 1;
-        }
-        function convert() {
-            let val = parseFloat(document.getElementById('val').value);
-            let from = document.getElementById('from').value;
-            let to = document.getElementById('to').value;
-            let t = document.getElementById('type').value;
-            let res;
-            if (t === 'temp') {
-                let c = from==='Fahrenheit'?(val-32)*5/9:from==='Kelvin'?val-273.15:val;
-                res = to==='Fahrenheit'?c*9/5+32:to==='Kelvin'?c+273.15:c;
-            } else {
-                let u = units[t];
-                res = val / u[from] * u[to];
-            }
-            document.getElementById('result').innerText = val + ' ' + from + ' = ' + res.toFixed(4) + ' ' + to;
-        }
-        updateUnits();
-    </script>
+</div>
+
+<script>
+const units = {
+    length: {m:1,km:0.001,cm:100,mm:1000,mile:0.000621371,yard:1.09361,foot:3.28084,inch:39.3701},
+    weight: {kg:1,g:1000,mg:1e6,lb:2.20462,oz:35.274,ton:0.001},
+    area: {'m²':1,'km²':1e-6,'cm²':1e4,'mm²':1e6,'acre':0.000247105,'hectare':1e-4},
+    volume: {liter:1,ml:1000,'m³':0.001,gallon:0.264172,cup:4.22675},
+    speed: {'m/s':1,'km/h':3.6,'mph':2.23694,'ft/s':3.28084,knot:1.94384},
+    time: {second:1,minute:1/60,hour:1/3600,day:1/86400,week:1/604800},
+    data: {byte:1,KB:1/1024,MB:1/1048576,GB:1/1073741824,bit:8}
+};
+function updateUnits() {
+    let t = document.getElementById('type').value;
+    let opts = t === 'temp' ? ['Celsius','Fahrenheit','Kelvin'] : Object.keys(units[t]);
+    ['from','to'].forEach(id => {
+        document.getElementById(id).innerHTML = opts.map(u=>`<option>${u}</option>`).join('');
+    });
+    document.getElementById('to').selectedIndex = 1;
+    document.getElementById('result').style.display = 'none';
+}
+function convert() {
+    let val = parseFloat(document.getElementById('val').value);
+    let from = document.getElementById('from').value;
+    let to = document.getElementById('to').value;
+    let t = document.getElementById('type').value;
+    if (isNaN(val)) return;
+    let res;
+    if (t === 'temp') {
+        let c = from==='Fahrenheit'?(val-32)*5/9:from==='Kelvin'?val-273.15:val;
+        res = to==='Fahrenheit'?c*9/5+32:to==='Kelvin'?c+273.15:c;
+    } else {
+        res = val / units[t][from] * units[t][to];
+    }
+    document.getElementById('result-text').innerText = val + ' ' + from + ' = ' + parseFloat(res.toFixed(6)) + ' ' + to;
+    document.getElementById('result').style.display = 'block';
+}
+updateUnits();
+</script>
 {% endblock %}
-EOF

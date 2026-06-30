@@ -1,54 +1,48 @@
 {% extends "base.html" %}
 {% block title %}Stopwatch{% endblock %}
 {% block content %}
-    <h1>Stopwatch ⏱️</h1>
-    <div class="card">
-        <h2 id="display" style="font-size:4em;color:#e94560;">00:00:00</h2>
-        <br>
-        <button class="btn" onclick="start()">Start</button>
-        <button class="btn" onclick="stop()">Stop</button>
-        <button class="btn" onclick="reset()">Reset</button>
-        <button class="btn" onclick="lap()">Lap</button>
-    </div>
-    <div id="laps"></div>
-    <script>
-        let interval = null;
-        let ms = 0;
-        let laps = [];
+<div style="max-width:400px; margin:60px auto; padding:0 20px;">
 
-        function start() {
-            if (interval) return;
-            interval = setInterval(() => {
-                ms += 10;
-                updateDisplay();
-            }, 10);
-        }
-        function stop() {
-            clearInterval(interval);
-            interval = null;
-        }
-        function reset() {
-            clearInterval(interval);
-            interval = null;
-            ms = 0;
-            laps = [];
-            document.getElementById("display").innerText = "00:00:00";
-            document.getElementById("laps").innerHTML = "";
-        }
-        function lap() {
-            if (!interval) return;
-            laps.push(document.getElementById("display").innerText);
-            const lapsDiv = document.getElementById("laps");
-            lapsDiv.innerHTML = laps.map((l, i) => `<div class="card">Lap ${i+1}: ${l}</div>`).join("");
-        }
-        function updateDisplay() {
-            const s = Math.floor(ms / 1000);
-            const m = Math.floor(s / 60);
-            const h = Math.floor(m / 60);
-            document.getElementById("display").innerText =
-                String(h).padStart(2,"0") + ":" +
-                String(m%60).padStart(2,"0") + ":" +
-                String(s%60).padStart(2,"0");
-        }
-    </script>
+    <p style="font-size:13px; color:#666; margin-bottom:4px;">Stopwatch</p>
+    <h1 style="font-size:22px; font-weight:500; margin-bottom:32px; color:#fff;">⏲️ Stopwatch</h1>
+
+    <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:32px; text-align:center;">
+        <p id="display" style="font-size:56px; font-weight:500; color:#fff; margin:0 0 8px; letter-spacing:4px;">00:00:00</p>
+        <p id="ms" style="font-size:20px; color:#666; margin:0 0 28px;">.000</p>
+        <div style="display:flex; gap:10px; justify-content:center; margin-bottom:20px;">
+            <button onclick="toggle()" id="btn" style="padding:12px 32px; background:#e94560; color:#fff; border:none; border-radius:8px; font-size:14px; cursor:pointer;">Start</button>
+            <button onclick="lap()" style="padding:12px 24px; background:#0f3460; color:#ccc; border:none; border-radius:8px; font-size:14px; cursor:pointer;">Lap</button>
+            <button onclick="reset()" style="padding:12px 24px; background:#0f3460; color:#ccc; border:none; border-radius:8px; font-size:14px; cursor:pointer;">Reset</button>
+        </div>
+        <div id="laps" style="max-height:200px; overflow-y:auto;"></div>
+    </div>
+</div>
+
+<script>
+let start = 0, elapsed = 0, interval = null, running = false, lapCount = 0;
+function fmt(ms) {
+    let h = Math.floor(ms/3600000), m = Math.floor((ms%3600000)/60000), s = Math.floor((ms%60000)/1000), ms2 = ms%1000;
+    return [h,m,s].map(v=>String(v).padStart(2,'0')).join(':') + '.' + String(ms2).padStart(3,'0').slice(0,3);
+}
+function update() {
+    let t = elapsed + Date.now() - start;
+    let parts = fmt(t).split('.');
+    document.getElementById('display').innerText = parts[0];
+    document.getElementById('ms').innerText = '.' + parts[1];
+}
+function toggle() {
+    if (!running) { start = Date.now(); interval = setInterval(update, 50); running = true; document.getElementById('btn').innerText = 'Stop'; document.getElementById('btn').style.background = '#666'; }
+    else { elapsed += Date.now() - start; clearInterval(interval); running = false; document.getElementById('btn').innerText = 'Start'; document.getElementById('btn').style.background = '#e94560'; }
+}
+function lap() {
+    if (!running) return;
+    lapCount++;
+    let t = elapsed + Date.now() - start;
+    let p = document.createElement('p');
+    p.style.cssText = 'font-size:13px; color:#666; margin:0 0 6px; padding-bottom:6px; border-bottom:0.5px solid rgba(255,255,255,0.05);';
+    p.innerText = 'Lap ' + lapCount + ' — ' + fmt(t);
+    document.getElementById('laps').prepend(p);
+}
+function reset() { clearInterval(interval); running = false; elapsed = 0; lapCount = 0; document.getElementById('display').innerText = '00:00:00'; document.getElementById('ms').innerText = '.000'; document.getElementById('btn').innerText = 'Start'; document.getElementById('btn').style.background = '#e94560'; document.getElementById('laps').innerHTML = ''; }
+</script>
 {% endblock %}

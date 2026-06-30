@@ -1,43 +1,50 @@
 {% extends "base.html" %}
-{% block title %}Todo List{% endblock %}
+{% block title %}Todo{% endblock %}
 {% block content %}
-    <h1>Todo List ✅</h1>
-    <div class="card">
-        <input type="text" id="task" placeholder="Add a task..." style="width:90%;padding:12px;border-radius:8px;border:none;background:#0f3460;color:white;font-size:1em;">
-        <br><br>
-        <button class="btn" onclick="addTask()">Add Task</button>
+<div style="max-width:480px; margin:60px auto; padding:0 20px;">
+
+    <p style="font-size:13px; color:#666; margin-bottom:4px;">Todo</p>
+    <h1 style="font-size:22px; font-weight:500; margin-bottom:32px; color:#fff;">✅ Todo List</h1>
+
+    <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:24px; margin-bottom:16px;">
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="task" placeholder="Add a new task..." style="flex:1; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px;">
+            <button onclick="addTask()" style="padding:10px 20px; background:#e94560; color:#fff; border:none; border-radius:8px; font-size:14px; cursor:pointer;">Add</button>
+        </div>
     </div>
-    <div id="tasks"></div>
-    <script>
-        let tasks = [];
-        function addTask() {
-            const task = document.getElementById("task").value;
-            if (!task) return;
-            tasks.push({text: task, done: false});
-            document.getElementById("task").value = "";
-            render();
-        }
-        function toggle(i) {
-            tasks[i].done = !tasks[i].done;
-            render();
-        }
-        function remove(i) {
-            tasks.splice(i, 1);
-            render();
-        }
-        function render() {
-            const container = document.getElementById("tasks");
-            container.innerHTML = "";
-            tasks.forEach((t, i) => {
-                container.innerHTML += `
-                <div class="card" style="display:flex;justify-content:space-between;align-items:center;">
-                    <span style="text-decoration:${t.done ? 'line-through' : 'none'};color:${t.done ? '#aaa' : '#eee'};">${t.text}</span>
-                    <div>
-                        <button class="btn" onclick="toggle(${i})">${t.done ? '↩️' : '✅'}</button>
-                        <button class="btn" onclick="remove(${i})">🗑️</button>
-                    </div>
-                </div>`;
-            });
-        }
-    </script>
+
+    <div id="todo-container"></div>
+
+    <div id="empty" style="text-align:center; padding:40px 0;">
+        <p style="color:#666; font-size:13px;">No tasks yet</p>
+    </div>
+</div>
+
+<script>
+let tasks = JSON.parse(localStorage.getItem('todos') || '[]');
+function save() { localStorage.setItem('todos', JSON.stringify(tasks)); }
+function addTask() {
+    let t = document.getElementById('task').value.trim();
+    if (!t) return;
+    tasks.unshift({id: Date.now(), text: t, done: false});
+    save(); render();
+    document.getElementById('task').value = '';
+}
+function toggleTask(id) {
+    tasks = tasks.map(t => t.id === id ? {...t, done: !t.done} : t);
+    save(); render();
+}
+function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); save(); render(); }
+function render() {
+    document.getElementById('empty').style.display = tasks.length ? 'none' : 'block';
+    document.getElementById('todo-container').innerHTML = tasks.map(t => `
+        <div style="background:#16213e; border-radius:12px; border:0.5px solid rgba(233,69,96,0.15); padding:16px 20px; margin-bottom:10px; display:flex; align-items:center; gap:12px;">
+            <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${t.id})" style="width:16px; height:16px; accent-color:#e94560; cursor:pointer;">
+            <p style="flex:1; font-size:14px; color:${t.done ? '#666' : '#fff'}; margin:0; text-decoration:${t.done ? 'line-through' : 'none'};">${t.text}</p>
+            <button onclick="deleteTask(${t.id})" style="background:none; border:none; color:#666; cursor:pointer; font-size:16px;">✕</button>
+        </div>`).join('');
+}
+render();
+document.getElementById('task').addEventListener('keypress', e => { if(e.key==='Enter') addTask(); });
+</script>
 {% endblock %}
