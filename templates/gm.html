@@ -1,148 +1,302 @@
 {% extends "base.html" %}
 {% block title %}GM{% endblock %}
 {% block content %}
-    <h1>GM 👋</h1>
-    <div class="card">
-        <p id="status" style="color:#aaa;">Wallet not connected</p>
-        <br>
-        <button class="btn" id="connect-btn" onclick="connectWallet()">Connect Wallet</button>
-    </div>
-    <div class="card" id="network-card" style="display:none;">
-        <h3 style="color:#e94560;">Select Network</h3>
-        <button class="btn" onclick="switchNetwork('lamina1')">Lamina1</button>
-        <button class="btn" onclick="switchNetwork('nexus')">Nexus</button>
-        <p id="current-network" style="margin-top:15px;color:#aaa;"></p>
-    </div>
-    <div class="card" id="gm-card" style="display:none;">
-        <button class="btn" style="font-size:1.5em;padding:20px 50px;" onclick="sayGM()">GM! 👋</button>
-        <p id="tx-status" style="margin-top:15px;color:#aaa;"></p>
-        <br>
-        <div id="my-stats" style="color:#aaa;"></div>
-    </div>
-    <div class="card" id="leaderboard-card" style="display:none;">
-        <h3 style="color:#e94560;">Leaderboard 🏆</h3>
-        <div id="leaderboard-list" style="text-align:left;"></div>
+<style>
+    .gm-hero {
+        max-width: 480px;
+        margin: 0 auto;
+    }
+    .gm-orb {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #ff8fa3, #e94560 60%, #c73652);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3em;
+        box-shadow: 0 0 60px rgba(233,69,96,0.5);
+        animation: pulse 3s ease-in-out infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    .wallet-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #0f3460;
+        border: 1px solid rgba(233,69,96,0.3);
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-size: 0.95em;
+        color: #ddd;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; }
+    .net-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        max-width: 400px;
+        margin: 20px auto;
+    }
+    .net-card {
+        background: #16213e;
+        border: 2px solid transparent;
+        border-radius: 14px;
+        padding: 18px 10px;
+        cursor: pointer;
+        transition: all 0.25s;
+    }
+    .net-card:hover { transform: translateY(-3px); border-color: rgba(233,69,96,0.5); }
+    .net-card.active { border-color: #e94560; background: #1c2a4d; }
+    .net-card .symbol {
+        font-size: 1.6em;
+        font-weight: bold;
+        color: #e94560;
+    }
+    .net-card .name { color: #aaa; font-size: 0.85em; margin-top: 4px; }
+    .gm-button {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: linear-gradient(145deg, #e94560, #c73652);
+        border: none;
+        color: white;
+        font-size: 1.8em;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 10px 40px rgba(233,69,96,0.4);
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin: 30px 0;
+    }
+    .gm-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 15px 50px rgba(233,69,96,0.6);
+    }
+    .gm-button:active { transform: scale(0.97); }
+    .gm-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .stat-row {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+    .stat-box {
+        background: #16213e;
+        border-radius: 12px;
+        padding: 16px 24px;
+        min-width: 110px;
+    }
+    .stat-box .num { font-size: 1.8em; color: #e94560; font-weight: bold; }
+    .stat-box .lbl { color: #888; font-size: 0.8em; margin-top: 4px; }
+    .lb-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        background: #0f3460;
+    }
+    .lb-row.top1 { background: linear-gradient(90deg, rgba(233,69,96,0.25), #0f3460); }
+    .lb-rank { font-weight: bold; color: #e94560; width: 30px; }
+    .lb-addr { font-family: monospace; color: #ddd; }
+    .lb-score { color: #4ade80; font-weight: bold; }
+    .status-msg {
+        min-height: 24px;
+        color: #aaa;
+        font-size: 0.9em;
+    }
+</style>
+
+<div class="gm-hero">
+    <div class="gm-orb">👋</div>
+    <h1 style="margin-bottom:5px;">GM</h1>
+    <p style="color:#888;margin-bottom:25px;">Say good morning onchain, every day.</p>
+
+    <div id="connect-section">
+        <button class="btn" id="connect-btn" onclick="connectWallet()" style="padding:14px 36px;font-size:1.05em;">Connect Wallet</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
-    <script>
-        let provider, signer, account, contract, currentNet;
+    <div id="wallet-info" style="display:none;margin-top:15px;">
+        <span class="wallet-pill"><span class="dot"></span><span id="wallet-addr"></span></span>
+    </div>
+</div>
 
-        const CONTRACT_ADDRESS = "0x91A68410C13866d1c4262C012680A623B79BeF20";
+<div id="network-card" style="display:none;max-width:480px;margin:30px auto 0;">
+    <h3 style="color:#888;font-size:0.95em;text-transform:uppercase;letter-spacing:1px;">Choose Network</h3>
+    <div class="net-grid">
+        <div class="net-card" id="net-lamina1" onclick="switchNetwork('lamina1')">
+            <div class="symbol">L1</div>
+            <div class="name">Lamina1</div>
+        </div>
+        <div class="net-card" id="net-nexus" onclick="switchNetwork('nexus')">
+            <div class="symbol">NEX</div>
+            <div class="name">Nexus</div>
+        </div>
+    </div>
+</div>
 
-        const CONTRACT_ABI = [
-            "function sayGM() public",
-            "function getStats(address user) public view returns (uint256 streak, uint256 totalScoreX100, uint256 lastGmDay)",
-            "function getLeaderboard() public view returns (address[] memory addrs, uint256[] memory streaks, uint256[] memory scoresX100)"
-        ];
+<div id="gm-card" style="display:none;">
+    <button class="gm-button" id="gm-button" onclick="sayGM()">GM 👋</button>
+    <p class="status-msg" id="tx-status"></p>
 
-        const networks = {
-            lamina1: {
-                chainIdHex: "0x" + (10849).toString(16),
-                chainName: "Lamina1",
-                rpcUrls: ["https://subnets.avax.network/lamina1/mainnet/rpc"],
-                nativeCurrency: { name: "L1", symbol: "L1", decimals: 18 },
-                blockExplorerUrls: ["https://subnets.avax.network/lamina1"]
-            },
-            nexus: {
-                chainIdHex: "0x" + (3946).toString(16),
-                chainName: "Nexus",
-                rpcUrls: ["https://mainnet.rpc.nexus.xyz"],
-                nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 },
-                blockExplorerUrls: ["https://explorer.nexus.xyz"]
+    <div class="stat-row">
+        <div class="stat-box">
+            <div class="num" id="my-streak">—</div>
+            <div class="lbl">🔥 Streak</div>
+        </div>
+        <div class="stat-box">
+            <div class="num" id="my-score">—</div>
+            <div class="lbl">⭐ Score</div>
+        </div>
+    </div>
+</div>
+
+<div class="card" id="leaderboard-card" style="display:none;max-width:480px;text-align:left;">
+    <h3 style="color:#e94560;text-align:center;margin-bottom:15px;">🏆 Leaderboard</h3>
+    <div id="leaderboard-list"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+<script>
+    let provider, signer, account, contract, currentNet;
+
+    const CONTRACT_ADDRESS = "0x91A68410C13866d1c4262C012680A623B79BeF20";
+
+    const CONTRACT_ABI = [
+        "function sayGM() public",
+        "function getStats(address user) public view returns (uint256 streak, uint256 totalScoreX100, uint256 lastGmDay)",
+        "function getLeaderboard() public view returns (address[] memory addrs, uint256[] memory streaks, uint256[] memory scoresX100)"
+    ];
+
+    const networks = {
+        lamina1: {
+            chainIdHex: "0x" + (10849).toString(16),
+            chainName: "Lamina1",
+            rpcUrls: ["https://subnets.avax.network/lamina1/mainnet/rpc"],
+            nativeCurrency: { name: "L1", symbol: "L1", decimals: 18 },
+            blockExplorerUrls: ["https://subnets.avax.network/lamina1"]
+        },
+        nexus: {
+            chainIdHex: "0x" + (3946).toString(16),
+            chainName: "Nexus",
+            rpcUrls: ["https://mainnet.rpc.nexus.xyz"],
+            nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 },
+            blockExplorerUrls: ["https://explorer.nexus.xyz"]
+        }
+    };
+
+    async function connectWallet() {
+        if (!window.ethereum) {
+            alert("Please install MetaMask!");
+            return;
+        }
+        try {
+            provider = new ethers.BrowserProvider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = await provider.getSigner();
+            account = await signer.getAddress();
+
+            document.getElementById("connect-section").style.display = "none";
+            document.getElementById("wallet-info").style.display = "block";
+            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+            document.getElementById("network-card").style.display = "block";
+        } catch (err) {
+            alert("Connection failed: " + err.message);
+        }
+    }
+
+    async function switchNetwork(net) {
+        const config = networks[net];
+        try {
+            await window.ethereum.request({
+                method: "wallet_addEthereumChain",
+                params: [{
+                    chainId: config.chainIdHex,
+                    chainName: config.chainName,
+                    rpcUrls: config.rpcUrls,
+                    nativeCurrency: config.nativeCurrency,
+                    blockExplorerUrls: config.blockExplorerUrls
+                }]
+            });
+            currentNet = net;
+
+            document.getElementById("net-lamina1").classList.remove("active");
+            document.getElementById("net-nexus").classList.remove("active");
+            document.getElementById("net-" + net).classList.add("active");
+
+            contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+            document.getElementById("gm-card").style.display = "block";
+            document.getElementById("leaderboard-card").style.display = "block";
+            await loadStats();
+            await loadLeaderboard();
+        } catch (err) {
+            alert("Network switch failed: " + err.message);
+        }
+    }
+
+    async function sayGM() {
+        const btn = document.getElementById("gm-button");
+        btn.disabled = true;
+        document.getElementById("tx-status").innerText = "Sending transaction...";
+        try {
+            const tx = await contract.sayGM();
+            document.getElementById("tx-status").innerText = "Confirming...";
+            await tx.wait();
+            document.getElementById("tx-status").innerText = "GM confirmed! ✅";
+            await loadStats();
+            await loadLeaderboard();
+        } catch (err) {
+            document.getElementById("tx-status").innerText = "Failed: " + (err.reason || err.message);
+        }
+        btn.disabled = false;
+    }
+
+    async function loadStats() {
+        try {
+            const result = await contract.getStats(account);
+            document.getElementById("my-streak").innerText = result[0].toString();
+            document.getElementById("my-score").innerText = (Number(result[1]) / 100).toFixed(2);
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    async function loadLeaderboard() {
+        try {
+            const result = await contract.getLeaderboard();
+            const addrs = result[0];
+            const streaks = result[1];
+            const scores = result[2];
+            let rows = [];
+            for (let i = 0; i < addrs.length; i++) {
+                rows.push({ addr: addrs[i], streak: Number(streaks[i]), score: Number(scores[i]) / 100 });
             }
-        };
-
-        async function connectWallet() {
-            if (!window.ethereum) {
-                alert("Please install MetaMask!");
+            rows.sort((a, b) => b.score - a.score);
+            const listEl = document.getElementById("leaderboard-list");
+            if (rows.length === 0) {
+                listEl.innerHTML = "<p style='color:#888;text-align:center;'>No GMs yet. Be the first!</p>";
                 return;
             }
-            try {
-                provider = new ethers.BrowserProvider(window.ethereum);
-                await provider.send("eth_requestAccounts", []);
-                signer = await provider.getSigner();
-                account = await signer.getAddress();
-                document.getElementById("status").innerText = "Connected: " + account.slice(0,6) + "..." + account.slice(-4);
-                document.getElementById("connect-btn").innerText = "Connected ✅";
-                document.getElementById("network-card").style.display = "block";
-            } catch (err) {
-                alert("Connection failed: " + err.message);
-            }
+            listEl.innerHTML = rows.slice(0, 10).map((r, i) => `
+                <div class="lb-row ${i === 0 ? 'top1' : ''}">
+                    <span class="lb-rank">#${i+1}</span>
+                    <span class="lb-addr">${r.addr.slice(0,6)}...${r.addr.slice(-4)}</span>
+                    <span class="lb-score">${r.score.toFixed(2)}</span>
+                </div>
+            `).join("");
+        } catch (err) {
+            console.log(err);
         }
-
-        async function switchNetwork(net) {
-            const config = networks[net];
-            try {
-                await window.ethereum.request({
-                    method: "wallet_addEthereumChain",
-                    params: [{
-                        chainId: config.chainIdHex,
-                        chainName: config.chainName,
-                        rpcUrls: config.rpcUrls,
-                        nativeCurrency: config.nativeCurrency,
-                        blockExplorerUrls: config.blockExplorerUrls
-                    }]
-                });
-                currentNet = net;
-                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-                document.getElementById("current-network").innerText = "Connected to: " + config.chainName;
-                document.getElementById("gm-card").style.display = "block";
-                document.getElementById("leaderboard-card").style.display = "block";
-                await loadStats();
-                await loadLeaderboard();
-            } catch (err) {
-                alert("Network switch failed: " + err.message);
-            }
-        }
-
-        async function sayGM() {
-            document.getElementById("tx-status").innerText = "Sending transaction...";
-            try {
-                const tx = await contract.sayGM();
-                document.getElementById("tx-status").innerText = "Transaction sent! Waiting...";
-                await tx.wait();
-                document.getElementById("tx-status").innerText = "GM confirmed! ✅";
-                await loadStats();
-                await loadLeaderboard();
-            } catch (err) {
-                document.getElementById("tx-status").innerText = "Failed: " + (err.reason || err.message);
-            }
-        }
-
-        async function loadStats() {
-            try {
-                const result = await contract.getStats(account);
-                const streak = result[0].toString();
-                const score = (Number(result[1]) / 100).toFixed(2);
-                document.getElementById("my-stats").innerText = "Your Streak: " + streak + " 🔥 | Score: " + score;
-            } catch (err) {
-                console.log(err);
-            }
-        }
-
-        async function loadLeaderboard() {
-            try {
-                const result = await contract.getLeaderboard();
-                const addrs = result[0];
-                const streaks = result[1];
-                const scores = result[2];
-                let rows = [];
-                for (let i = 0; i < addrs.length; i++) {
-                    rows.push({
-                        addr: addrs[i],
-                        streak: Number(streaks[i]),
-                        score: Number(scores[i]) / 100
-                    });
-                }
-                rows.sort((a, b) => b.score - a.score);
-                const listEl = document.getElementById("leaderboard-list");
-                listEl.innerHTML = rows.slice(0, 10).map((r, i) =>
-                    `<p>${i+1}. ${r.addr.slice(0,6)}...${r.addr.slice(-4)} — Streak: ${r.streak} 🔥 — Score: ${r.score.toFixed(2)}</p>`
-                ).join("");
-            } catch (err) {
-                console.log(err);
-            }
-        }
-    </script>
+    }
+</script>
 {% endblock %}
