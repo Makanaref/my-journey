@@ -1,10 +1,32 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, abort
+from flask_talisman import Talisman
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import requests
 import os
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "change-this-in-production")
 
-WEATHER_API_KEY = "d3dff36f2d219ec36f5c48b6c6bb4819"
+# Security Headers
+csp = {
+    'default-src': "'self'",
+    'style-src': ["'self'", "'unsafe-inline'"],
+    'script-src': ["'self'", "'unsafe-inline'"],
+    'img-src': ["'self'", "data:", "https:"],
+    'font-src': ["'self'", "https:"],
+}
+Talisman(app, content_security_policy=csp, force_https=False)
+
+# Rate Limiting
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
+
+WEATHER_API_KEY = os.environ.get("WEATHER_API_KEY", "d3dff36f2d219ec36f5c48b6c6bb4819")
 
 @app.route("/")
 def home():
@@ -17,10 +39,6 @@ def about():
 @app.route("/projects")
 def projects():
     return render_template("projects.html")
-
-@app.route("/tools")
-def tools():
-    return render_template("tools.html")
 
 @app.route("/contact")
 def contact():
@@ -54,14 +72,32 @@ def reminder():
 def dashboard():
     return render_template("dashboard.html")
 
+@app.route("/tools")
+def tools():
+    return render_template("tools.html")
+
+@app.route("/gm")
+def gm():
+    return render_template("gm.html")
+
 @app.route("/get-weather")
+@limiter.limit("30 per minute")
 def get_weather():
-    city = request.args.get("city")
+    city = request.args.get("city", "").strip()
+    if not city or len(city) > 100:
+        return jsonify({"error": "Invalid city name"}), 400
     url = "https://api.openweathermap.org/data/2.5/weather"
-    params = {"q": city, "appid": WEATHER_API_KEY, "units": "metric"}
-    response = requests.get(url, params=params)
-    data = response.json()
-    if data["cod"] == 200:
+    params = {
+        "q": city,
+        "appid": WEATHER_API_KEY,
+        "units": "metric"
+    }
+    try:
+        response = requests.get(url, params=params, timeout=5)
+        data = response.json()
+    except Exception:
+        return jsonify({"error": "Service unavailable"}), 503
+    if data.get("cod") == 200:
         return jsonify({
             "name": data["name"],
             "country": data["sys"]["country"],
@@ -71,107 +107,40 @@ def get_weather():
             "wind": data["wind"]["speed"]
         })
     else:
-        return jsonify({"error": "City not found"})
+        return jsonify({"error": "City not found"}), 404
 
 @app.route("/get-currency")
+@limiter.limit("30 per minute")
 def get_currency():
-    base = request.args.get("base")
-    target = request.args.get("target")
-    amount = float(request.args.get("amount", 1))
+    base = request.args.get("base", "").strip().upper()
+    target = request.args.get("target", "").strip().upper()
+    try:
+        amount = float(request.args.get("amount", 1))
+    except ValueError:
+        return jsonify({"error": "Invalid amount"}), 400
+    if not base or not target or len(base) > 5 or len(target) > 5:
+        return jsonify({"error": "Invalid currency"}), 400
     url = "https://api.exchangerate-api.com/v4/latest/" + base
-    response = requests.get(url)
-    data = response.json()
-    if target in data["rates"]:
+    try:
+        response = requests.get(url, timeout=5)
+        data = response.json()
+    except Exception:
+        return jsonify({"error": "Service unavailable"}), 503
+    if target in data.get("rates", {}):
         rate = data["rates"][target]
         result = round(amount * rate, 2)
         return jsonify({"rate": rate, "result": result})
     else:
-        return jsonify({"error": "Currency not found"})
+        return jsonify({"error": "Currency not found"}), 404
 
-@app.route("/blog")
-def blog():
-    return render_template("blog.html")
+@app.errorhandler(404)
+def not_found(e):
+    return render_template("404.html"), 404
+
+@app.errorhandler(429)
+def rate_limit_exceeded(e):
+    return jsonify({"error": "Too many requests, slow down!"}), 429
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
-
-@app.route("/skills")
-def skills():
-    return render_template("skills.html")
-
-@app.route("/timeline")
-def timeline():
-    return render_template("timeline.html")
-
-@app.route("/faq")
-def faq():
-    return render_template("faq.html")
-
-@app.route("/quote")
-def quote():
-    return render_template("quote.html")
-
-@app.route("/counter")
-def counter():
-    return render_template("counter.html")
-
-@app.route("/timer")
-def timer():
-    return render_template("timer.html")
-
-@app.route("/random")
-def random_number():
-    return render_template("random.html")
-
-@app.route("/password")
-def password():
-    return render_template("password.html")
-
-@app.route("/bmi")
-def bmi():
-    return render_template("bmi.html")
-
-@app.route("/age")
-def age():
-    return render_template("age.html")
-
-@app.route("/color")
-def color():
-    return render_template("color.html")
-
-@app.route("/todo")
-def todo():
-    return render_template("todo.html")
-
-@app.route("/tip")
-def tip():
-    return render_template("tip.html")
-
-@app.route("/wordcount")
-def wordcount():
-    return render_template("wordcount.html")
-
-@app.route("/speedtest")
-def speedtest():
-    return render_template("speedtest.html")
-
-@app.route("/stopwatch")
-def stopwatch():
-    return render_template("stopwatch.html")
-
-@app.route("/dice")
-def dice():
-    return render_template("dice.html")
-
-@app.route("/coin")
-def coin():
-    return render_template("coin.html")
-
-@app.route("/guess")
-def guess():
-    return render_template("guess.html")
-
-@app.route("/gm")
-def gm():
-    return render_template("gm.html")
