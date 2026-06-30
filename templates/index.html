@@ -5,23 +5,50 @@
 <div style="text-align:center; padding: 60px 30px 20px;">
 
 <!-- Hero -->
-    <div style="margin-bottom:20px; opacity:0; animation: fadeUp 0.6s ease forwards;">
-        <span style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:999px; border:1px solid rgba(46,204,113,0.35); background:rgba(46,204,113,0.08); font-size:0.85em; color:#2ecc71;">
-            <span style="width:8px; height:8px; border-radius:50%; background:#2ecc71; box-shadow:0 0 8px #2ecc71; animation: blinkDot 1.8s infinite;"></span>
-            Available for work
-        </span>
-    </div>
+    <div style="position:relative; max-width:640px; margin:0 auto;">
 
-    <div style="margin-bottom:18px; opacity:0; animation: fadeUp 0.6s ease 0.1s forwards;">
-        <a href="/gm" style="display:inline-block; text-decoration:none; font-size:3.2em; animation: wave 1.6s infinite;">👋</a>
-        <div style="margin-top:8px;">
-            <a href="/gm" class="btn" style="font-size:1.1em;">GM</a>
+        <div style="position:absolute; top:-40px; left:50%; transform:translateX(-50%); width:340px; height:340px; background:radial-gradient(circle, rgba(233,69,96,0.18), rgba(0,0,0,0) 70%); filter:blur(10px); pointer-events:none; z-index:0;"></div>
+
+        <div style="position:relative; z-index:1;">
+
+            <div style="opacity:0; animation: fadeUp 0.6s ease forwards;">
+                <div style="position:relative; width:92px; height:92px; margin:0 auto 22px;">
+                    <div style="position:absolute; inset:-6px; border-radius:50%; background:conic-gradient(from 0deg, #e94560, #f7b32b, #e94560); animation: spin 6s linear infinite; opacity:0.75;"></div>
+                    <div style="position:absolute; inset:3px; border-radius:50%; background:#161c2e; display:flex; align-items:center; justify-content:center; font-size:2.1em;">
+                        <a href="/gm" style="text-decoration:none; display:inline-block; animation: wave 1.6s infinite;">👋</a>
+                    </div>
+                </div>
+            </div>
+
+            <h1 style="margin:0 0 6px; font-size:2.6em; font-weight:800; letter-spacing:-0.02em; background:linear-gradient(90deg, #ffffff, #e94560 60%, #f7b32b); -webkit-background-clip:text; background-clip:text; color:transparent; opacity:0; animation: fadeUp 0.6s ease 0.1s forwards;">
+                Makan
+            </h1>
+
+            <p style="margin:0 0 18px; color:rgba(255,255,255,0.45); font-size:0.95em; letter-spacing:0.04em; text-transform:uppercase; opacity:0; animation: fadeUp 0.6s ease 0.15s forwards;">
+                Python &amp; Flask Developer
+            </p>
+
+            <div style="display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:26px; opacity:0; animation: fadeUp 0.6s ease 0.2s forwards;">
+                <span style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:999px; border:1px solid rgba(46,204,113,0.35); background:rgba(46,204,113,0.08); font-size:0.85em; color:#2ecc71;">
+                    <span style="width:8px; height:8px; border-radius:50%; background:#2ecc71; box-shadow:0 0 8px #2ecc71; animation: blinkDot 1.8s infinite;"></span>
+                    Available for work
+                </span>
+                <a href="/gm" class="gm-pill" style="display:inline-flex; align-items:center; gap:6px; padding:6px 16px; border-radius:999px; border:1px solid rgba(233,69,96,0.35); background:rgba(233,69,96,0.08); font-size:0.85em; color:#e94560; text-decoration:none;">
+                    Say GM
+                </a>
+            </div>
+
+            <p style="color:rgba(255,255,255,0.5); font-size:1.05em; max-width:460px; margin:0 auto 36px; line-height:1.7; opacity:0; animation: fadeUp 0.6s ease 0.25s forwards;">
+                Building things with Python, Flask &amp; a bit of curiosity ✨
+            </p>
+
+            <div style="display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; margin-bottom:52px; opacity:0; animation: fadeUp 0.6s ease 0.3s forwards;">
+                <a href="/projects" class="hero-cta-primary">My Projects <span style="display:inline-block; transition:transform 0.25s ease;">→</span></a>
+                <a href="/about" class="hero-cta-outline">About Me</a>
+            </div>
+
         </div>
     </div>
-
-    <p style="color:rgba(255,255,255,0.5); font-size:1.05em; max-width:460px; margin:0 auto 36px; line-height:1.7; opacity:0; animation: fadeUp 0.6s ease 0.2s forwards;">
-        Building things with Python, Flask &amp; a bit of curiosity ✨
-    </p>
 
     <style>
         @keyframes wave {
@@ -40,24 +67,44 @@
             from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .hero-cta {
-            transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
-        .hero-cta:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 24px rgba(233,69,96,0.35);
+        .hero-cta-primary {
+            display:inline-flex; align-items:center; gap:8px;
+            padding:13px 28px; border-radius:12px; font-weight:700; font-size:1em;
+            text-decoration:none; color:#fff;
+            background:linear-gradient(135deg, #e94560, #f7253a);
+            box-shadow:0 8px 20px rgba(233,69,96,0.3);
+            transition:transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .hero-cta-primary:hover {
+            transform:translateY(-3px);
+            box-shadow:0 12px 28px rgba(233,69,96,0.45);
+        }
+        .hero-cta-primary:hover span { transform:translateX(4px); }
+        .hero-cta-outline {
+            display:inline-flex; align-items:center;
+            padding:13px 28px; border-radius:12px; font-weight:600; font-size:1em;
+            text-decoration:none; color:#fff;
+            border:1px solid rgba(255,255,255,0.18);
+            background:rgba(255,255,255,0.03);
+            transition:transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
         }
         .hero-cta-outline:hover {
-            transform: translateY(-3px);
-            background: rgba(233,69,96,0.08);
+            transform:translateY(-3px);
+            background:rgba(255,255,255,0.07);
+            border-color:rgba(255,255,255,0.3);
+        }
+        .gm-pill {
+            transition:transform 0.2s ease, background 0.2s ease;
+        }
+        .gm-pill:hover {
+            transform:translateY(-2px);
+            background:rgba(233,69,96,0.16);
         }
     </style>
-
-    <!-- Buttons -->
-    <div style="margin-bottom:52px; opacity:0; animation: fadeUp 0.6s ease 0.3s forwards;">
-        <a href="/projects" class="btn hero-cta">My Projects →</a>
-        <a href="/about" class="btn-outline hero-cta hero-cta-outline">About Me</a>
-    </div>
 
     
 
