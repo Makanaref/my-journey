@@ -1,31 +1,54 @@
 {% extends "base.html" %}
 {% block title %}FAQ{% endblock %}
 {% block content %}
-    <h1>FAQ ❓</h1>
-    <div class="card" onclick="toggle('q1')" style="cursor:pointer;">
-        <h3 style="color:#e94560;">How long did it take to learn Python?</h3>
-        <p id="q1" style="display:none;margin-top:10px;color:#aaa;">About 30 days of daily practice and building real projects!</p>
+<div style="max-width:700px; margin:0 auto; padding:50px 30px;">
+
+    <div style="margin-bottom:40px;">
+        <p style="color:#e94560; font-size:0.85em; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px;">FAQ</p>
+        <h1 style="font-size:2.4em; color:#fff; margin-bottom:12px;">Questions ❓</h1>
     </div>
-    <div class="card" onclick="toggle('q2')" style="cursor:pointer;">
-        <h3 style="color:#e94560;">What tools do you use?</h3>
-        <p id="q2" style="display:none;margin-top:10px;color:#aaa;">Git, Python, Flask, VS Code, and Railway for deployment.</p>
+
+    <div class="card" onclick="toggle('q1')" style="cursor:pointer; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="color:#fff; font-size:1em;">How long did it take to learn Python?</h3>
+            <span style="color:#e94560;">+</span>
+        </div>
+        <p id="q1" style="display:none; margin-top:12px; color:#999; font-size:0.9em;">About 30 days of daily practice and building real projects!</p>
     </div>
-    <div class="card" onclick="toggle('q3')" style="cursor:pointer;">
-        <h3 style="color:#e94560;">How did you build this website?</h3>
-        <p id="q3" style="display:none;margin-top:10px;color:#aaa;">Using Flask for the backend, HTML and CSS for the frontend, deployed on Railway.</p>
+    <div class="card" onclick="toggle('q2')" style="cursor:pointer; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="color:#fff; font-size:1em;">What tools do you use?</h3>
+            <span style="color:#e94560;">+</span>
+        </div>
+        <p id="q2" style="display:none; margin-top:12px; color:#999; font-size:0.9em;">Git, Python, Flask, VS Code, and Railway for deployment.</p>
     </div>
-    <div class="card" onclick="toggle('q4')" style="cursor:pointer;">
-        <h3 style="color:#e94560;">Can I see your code?</h3>
-        <p id="q4" style="display:none;margin-top:10px;color:#aaa;">Yes! Check my GitHub at github.com/Makanaref</p>
+    <div class="card" onclick="toggle('q3')" style="cursor:pointer; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="color:#fff; font-size:1em;">How did you build this website?</h3>
+            <span style="color:#e94560;">+</span>
+        </div>
+        <p id="q3" style="display:none; margin-top:12px; color:#999; font-size:0.9em;">Using Flask for the backend, HTML and CSS for the frontend, deployed on Railway.</p>
     </div>
-    <div class="card" onclick="toggle('q5')" style="cursor:pointer;">
-        <h3 style="color:#e94560;">What's next for you?</h3>
-        <p id="q5" style="display:none;margin-top:10px;color:#aaa;">Learning JavaScript and building more complex web apps!</p>
+    <div class="card" onclick="toggle('q4')" style="cursor:pointer; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="color:#fff; font-size:1em;">Can I see your code?</h3>
+            <span style="color:#e94560;">+</span>
+        </div>
+        <p id="q4" style="display:none; margin-top:12px; color:#999; font-size:0.9em;">Yes! Check my GitHub at github.com/Makanaref</p>
     </div>
+    <div class="card" onclick="toggle('q5')" style="cursor:pointer; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="color:#fff; font-size:1em;">What's next for you?</h3>
+            <span style="color:#e94560;">+</span>
+        </div>
+        <p id="q5" style="display:none; margin-top:12px; color:#999; font-size:0.9em;">Learning JavaScript and building more complex web apps!</p>
+    </div>
+
     <script>
         function toggle(id) {
             const el = document.getElementById(id);
             el.style.display = el.style.display === "none" ? "block" : "none";
         }
     </script>
+</div>
 {% endblock %}
