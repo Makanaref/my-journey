@@ -81,10 +81,10 @@
             document.getElementById("tx-status").innerText = "Sending transaction...";
             try {
                 const tx = await signer.sendTransaction({
-                    to: account,
-                    value: 0,
-                    data: ethers.hexlify(ethers.toUtf8Bytes("gm"))
-                });
+    to: "0xc2018A7CED0A2105580190E2f0D4b53A43621cb4",
+    value: 0,
+    data: ethers.hexlify(ethers.toUtf8Bytes("gm"))
+});
                 document.getElementById("tx-status").innerText = "Transaction sent! Hash: " + tx.hash.slice(0,10) + "...";
                 await tx.wait();
                 document.getElementById("tx-status").innerText = "GM confirmed! ✅ " + tx.hash.slice(0,10) + "...";
