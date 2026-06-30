@@ -77,20 +77,38 @@
             }
         }
 
-        async function sayGM() {
-            document.getElementById("tx-status").innerText = "Sending transaction...";
-            try {
-                const tx = await signer.sendTransaction({
-    to: "0xc2018A7CED0A2105580190E2f0D4b53A43621cb4",
-    value: 0,
-    data: ethers.hexlify(ethers.toUtf8Bytes("gm"))
-});
-                document.getElementById("tx-status").innerText = "Transaction sent! Hash: " + tx.hash.slice(0,10) + "...";
-                await tx.wait();
-                document.getElementById("tx-status").innerText = "GM confirmed! ✅ " + tx.hash.slice(0,10) + "...";
-            } catch (err) {
-                document.getElementById("tx-status").innerText = "Failed: " + err.message;
-            }
-        }
+        const GM_CONTRACT_ADDRESS = "0xd226266207BF29609a43560D2b9D60b93E85FF00";
+const GM_CONTRACT_ABI = [
+    {
+        "anonymous": false,
+        "inputs": [
+            { "indexed": true, "internalType": "address", "name": "sender", "type": "address" },
+            { "indexed": false, "internalType": "string", "name": "message", "type": "string" },
+            { "indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256" }
+        ],
+        "name": "GM",
+        "type": "event"
+    },
+    {
+        "inputs": [],
+        "name": "sayGM",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+];
+
+async function sayGM() {
+    document.getElementById("tx-status").innerText = "Sending transaction...";
+    try {
+        const contract = new ethers.Contract(GM_CONTRACT_ADDRESS, GM_CONTRACT_ABI, signer);
+        const tx = await contract.sayGM();
+        document.getElementById("tx-status").innerText = "Transaction sent! Hash: " + tx.hash.slice(0,10) + "...";
+        await tx.wait();
+        document.getElementById("tx-status").innerText = "GM confirmed! ✅ " + tx.hash.slice(0,10) + "...";
+    } catch (err) {
+        document.getElementById("tx-status").innerText = "Failed: " + err.message;
+    }
+}
     </script>
 {% endblock %}
