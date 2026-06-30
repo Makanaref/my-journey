@@ -2,193 +2,164 @@
 {% block title %}GM{% endblock %}
 {% block content %}
 <style>
-    .gm-hero {
-        max-width: 480px;
-        margin: 0 auto;
-    }
+    .gm-wrap { max-width: 480px; margin: 0 auto; }
     .gm-orb {
-        width: 120px;
-        height: 120px;
-        margin: 0 auto 20px;
+        width: 96px; height: 96px; margin: 0 auto 24px;
         border-radius: 50%;
-        background: radial-gradient(circle at 30% 30%, #ff8fa3, #e94560 60%, #c73652);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3em;
-        box-shadow: 0 0 60px rgba(233,69,96,0.5);
-        animation: pulse 3s ease-in-out infinite;
+        background: #1a1024;
+        border: 1px solid rgba(233,69,96,0.4);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2.4em;
+        position: relative;
     }
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
+    .gm-orb::after {
+        content: "";
+        position: absolute; inset: -12px;
+        border-radius: 50%;
+        border: 1px solid rgba(233,69,96,0.15);
     }
+    .gm-title { font-size: 2.2em; margin-bottom: 6px; letter-spacing: -0.5px; }
+    .gm-sub { color: #777; font-size: 0.95em; margin-bottom: 28px; }
+
     .wallet-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: #0f3460;
-        border: 1px solid rgba(233,69,96,0.3);
-        padding: 10px 20px;
-        border-radius: 30px;
-        font-size: 0.95em;
-        color: #ddd;
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        padding: 9px 18px; border-radius: 30px;
+        font-size: 0.85em; color: #bbb; font-family: monospace;
     }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; }
-    .net-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        max-width: 400px;
-        margin: 20px auto;
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+
+    .section-label {
+        font-size: 0.72em; color: #666; text-transform: uppercase;
+        letter-spacing: 1.5px; margin: 32px 0 12px; text-align: left;
     }
+
+    .net-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .net-card {
-        background: #16213e;
-        border: 2px solid transparent;
-        border-radius: 14px;
-        padding: 18px 10px;
-        cursor: pointer;
-        transition: all 0.25s;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 12px; padding: 16px;
+        cursor: pointer; transition: all 0.2s; text-align: left;
     }
-    .net-card:hover { transform: translateY(-3px); border-color: rgba(233,69,96,0.5); }
-    .net-card.active { border-color: #e94560; background: #1c2a4d; }
-    .net-card .symbol {
-        font-size: 1.6em;
-        font-weight: bold;
-        color: #e94560;
+    .net-card:hover { border-color: rgba(233,69,96,0.4); background: rgba(255,255,255,0.04); }
+    .net-card.active { border-color: #e94560; background: rgba(233,69,96,0.07); }
+    .net-card .symbol { font-size: 1.1em; font-weight: 600; color: #fff; }
+    .net-card .name { color: #777; font-size: 0.8em; margin-top: 2px; }
+
+    .gm-action {
+        display: flex; flex-direction: column; align-items: center;
+        margin-top: 36px;
     }
-    .net-card .name { color: #aaa; font-size: 0.85em; margin-top: 4px; }
     .gm-button {
-        width: 200px;
-        height: 200px;
-        border-radius: 50%;
-        background: linear-gradient(145deg, #e94560, #c73652);
-        border: none;
-        color: white;
-        font-size: 1.8em;
-        font-weight: bold;
-        cursor: pointer;
-        box-shadow: 0 10px 40px rgba(233,69,96,0.4);
-        transition: transform 0.2s, box-shadow 0.2s;
-        margin: 30px 0;
+        width: 140px; height: 140px; border-radius: 50%;
+        background: #e94560;
+        border: none; color: white; font-size: 1.15em; font-weight: 600;
+        cursor: pointer; transition: transform 0.15s, background 0.15s;
     }
-    .gm-button:hover {
-        transform: scale(1.05);
-        box-shadow: 0 15px 50px rgba(233,69,96,0.6);
-    }
+    .gm-button:hover { background: #d63951; transform: scale(1.03); }
     .gm-button:active { transform: scale(0.97); }
-    .gm-button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-    }
-    .stat-row {
-        display: flex;
-        justify-content: center;
-        gap: 16px;
-        flex-wrap: wrap;
-        margin-top: 10px;
-    }
+    .gm-button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .status-msg { min-height: 20px; color: #777; font-size: 0.85em; margin-top: 14px; }
+
+    .stat-row { display: flex; justify-content: center; gap: 12px; margin-top: 22px; }
     .stat-box {
-        background: #16213e;
-        border-radius: 12px;
-        padding: 16px 24px;
-        min-width: 110px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 12px; padding: 14px 28px; min-width: 100px;
     }
-    .stat-box .num { font-size: 1.8em; color: #e94560; font-weight: bold; }
-    .stat-box .lbl { color: #888; font-size: 0.8em; margin-top: 4px; }
+    .stat-box .num { font-size: 1.6em; color: #fff; font-weight: 600; }
+    .stat-box .lbl { color: #666; font-size: 0.72em; margin-top: 4px; letter-spacing: 0.5px; }
+
+    .lb-wrap {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px; padding: 18px; margin-top: 36px; text-align: left;
+    }
+    .lb-title { font-size: 0.85em; color: #999; margin-bottom: 14px; text-align: center; letter-spacing: 0.5px; }
     .lb-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 16px;
-        border-radius: 10px;
-        margin-bottom: 8px;
-        background: #0f3460;
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 14px; border-radius: 8px; margin-bottom: 6px;
+        background: rgba(255,255,255,0.02);
     }
-    .lb-row.top1 { background: linear-gradient(90deg, rgba(233,69,96,0.25), #0f3460); }
-    .lb-rank { font-weight: bold; color: #e94560; width: 30px; }
-    .lb-addr { font-family: monospace; color: #ddd; }
-    .lb-score { color: #4ade80; font-weight: bold; }
-    .status-msg {
-        min-height: 24px;
-        color: #aaa;
-        font-size: 0.9em;
-    }
+    .lb-row.top1 { background: rgba(233,69,96,0.08); border: 1px solid rgba(233,69,96,0.2); }
+    .lb-rank { font-weight: 600; color: #555; width: 28px; font-size: 0.85em; }
+    .lb-row.top1 .lb-rank { color: #e94560; }
+    .lb-addr { font-family: monospace; color: #ccc; font-size: 0.85em; }
+    .lb-score { color: #4ade80; font-weight: 600; font-size: 0.85em; }
 </style>
 
-<div class="gm-hero">
+<div class="gm-wrap">
     <div class="gm-orb">👋</div>
-    <h1 style="margin-bottom:5px;">GM</h1>
-    <p style="color:#888;margin-bottom:25px;">Say good morning onchain, every day.</p>
+    <h1 class="gm-title">GM</h1>
+    <p class="gm-sub">Say good morning onchain, every day.</p>
 
     <div id="connect-section">
-        <button class="btn" id="connect-btn" onclick="connectWallet()" style="padding:14px 36px;font-size:1.05em;">Connect Wallet</button>
+        <button class="btn" id="connect-btn" onclick="connectWallet()" style="padding:12px 32px;">Connect wallet</button>
     </div>
 
-    <div id="wallet-info" style="display:none;margin-top:15px;">
+    <div id="wallet-info" style="display:none;">
         <span class="wallet-pill"><span class="dot"></span><span id="wallet-addr"></span></span>
     </div>
-</div>
 
-<div id="network-card" style="display:none;max-width:480px;margin:30px auto 0;">
-    <h3 style="color:#888;font-size:0.95em;text-transform:uppercase;letter-spacing:1px;">Choose Network</h3>
-    <div class="net-grid">
-        <div class="net-card" id="net-lamina1" onclick="switchNetwork('lamina1')">
-            <div class="symbol">L1</div>
-            <div class="name">Lamina1</div>
-        </div>
-        <div class="net-card" id="net-nexus" onclick="switchNetwork('nexus')">
-            <div class="symbol">NEX</div>
-            <div class="name">Nexus</div>
-        </div>
-    </div>
-</div>
-
-<div id="gm-card" style="display:none;">
-    <button class="gm-button" id="gm-button" onclick="sayGM()">GM 👋</button>
-    <p class="status-msg" id="tx-status"></p>
-
-    <div class="stat-row">
-        <div class="stat-box">
-            <div class="num" id="my-streak">—</div>
-            <div class="lbl">🔥 Streak</div>
-        </div>
-        <div class="stat-box">
-            <div class="num" id="my-score">—</div>
-            <div class="lbl">⭐ Score</div>
+    <div id="network-card" style="display:none;">
+        <p class="section-label">Choose network</p>
+        <div class="net-grid">
+            <div class="net-card" id="net-lamina1" onclick="switchNetwork('lamina1')">
+                <div class="symbol">L1</div>
+                <div class="name">Lamina1</div>
+            </div>
+            <div class="net-card" id="net-nexus" onclick="switchNetwork('nexus')">
+                <div class="symbol">NEX</div>
+                <div class="name">Nexus</div>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="card" id="leaderboard-card" style="display:none;max-width:480px;text-align:left;">
-    <h3 style="color:#e94560;text-align:center;margin-bottom:15px;">🏆 Leaderboard</h3>
-    <div id="leaderboard-list"></div>
+    <div id="gm-card" style="display:none;">
+        <div class="gm-action">
+            <button class="gm-button" id="gm-button" onclick="sayGM()">GM</button>
+            <p class="status-msg" id="tx-status"></p>
+        </div>
+        <div class="stat-row">
+            <div class="stat-box">
+                <div class="num" id="my-streak">—</div>
+                <div class="lbl">STREAK</div>
+            </div>
+            <div class="stat-box">
+                <div class="num" id="my-score">—</div>
+                <div class="lbl">SCORE</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="leaderboard-card" style="display:none;">
+        <div class="lb-wrap">
+            <p class="lb-title">LEADERBOARD</p>
+            <div id="leaderboard-list"></div>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script>
     let provider, signer, account, contract, currentNet;
-
     const CONTRACT_ADDRESS = "0x91A68410C13866d1c4262C012680A623B79BeF20";
-
     const CONTRACT_ABI = [
         "function sayGM() public",
         "function getStats(address user) public view returns (uint256 streak, uint256 totalScoreX100, uint256 lastGmDay)",
         "function getLeaderboard() public view returns (address[] memory addrs, uint256[] memory streaks, uint256[] memory scoresX100)"
     ];
-
     const networks = {
         lamina1: {
-            chainIdHex: "0x" + (10849).toString(16),
-            chainName: "Lamina1",
+            chainIdHex: "0x" + (10849).toString(16), chainName: "Lamina1",
             rpcUrls: ["https://subnets.avax.network/lamina1/mainnet/rpc"],
             nativeCurrency: { name: "L1", symbol: "L1", decimals: 18 },
             blockExplorerUrls: ["https://subnets.avax.network/lamina1"]
         },
         nexus: {
-            chainIdHex: "0x" + (3946).toString(16),
-            chainName: "Nexus",
+            chainIdHex: "0x" + (3946).toString(16), chainName: "Nexus",
             rpcUrls: ["https://mainnet.rpc.nexus.xyz"],
             nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 },
             blockExplorerUrls: ["https://explorer.nexus.xyz"]
@@ -196,23 +167,17 @@
     };
 
     async function connectWallet() {
-        if (!window.ethereum) {
-            alert("Please install MetaMask!");
-            return;
-        }
+        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
         try {
             provider = new ethers.BrowserProvider(window.ethereum);
             await provider.send("eth_requestAccounts", []);
             signer = await provider.getSigner();
             account = await signer.getAddress();
-
             document.getElementById("connect-section").style.display = "none";
             document.getElementById("wallet-info").style.display = "block";
             document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
             document.getElementById("network-card").style.display = "block";
-        } catch (err) {
-            alert("Connection failed: " + err.message);
-        }
+        } catch (err) { alert("Connection failed: " + err.message); }
     }
 
     async function switchNetwork(net) {
@@ -220,28 +185,18 @@
         try {
             await window.ethereum.request({
                 method: "wallet_addEthereumChain",
-                params: [{
-                    chainId: config.chainIdHex,
-                    chainName: config.chainName,
-                    rpcUrls: config.rpcUrls,
-                    nativeCurrency: config.nativeCurrency,
-                    blockExplorerUrls: config.blockExplorerUrls
-                }]
+                params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }]
             });
             currentNet = net;
-
             document.getElementById("net-lamina1").classList.remove("active");
             document.getElementById("net-nexus").classList.remove("active");
             document.getElementById("net-" + net).classList.add("active");
-
             contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
             document.getElementById("gm-card").style.display = "block";
             document.getElementById("leaderboard-card").style.display = "block";
             await loadStats();
             await loadLeaderboard();
-        } catch (err) {
-            alert("Network switch failed: " + err.message);
-        }
+        } catch (err) { alert("Network switch failed: " + err.message); }
     }
 
     async function sayGM() {
@@ -252,7 +207,7 @@
             const tx = await contract.sayGM();
             document.getElementById("tx-status").innerText = "Confirming...";
             await tx.wait();
-            document.getElementById("tx-status").innerText = "GM confirmed! ✅";
+            document.getElementById("tx-status").innerText = "GM confirmed";
             await loadStats();
             await loadLeaderboard();
         } catch (err) {
@@ -266,17 +221,13 @@
             const result = await contract.getStats(account);
             document.getElementById("my-streak").innerText = result[0].toString();
             document.getElementById("my-score").innerText = (Number(result[1]) / 100).toFixed(2);
-        } catch (err) {
-            console.log(err);
-        }
+        } catch (err) { console.log(err); }
     }
 
     async function loadLeaderboard() {
         try {
             const result = await contract.getLeaderboard();
-            const addrs = result[0];
-            const streaks = result[1];
-            const scores = result[2];
+            const addrs = result[0], streaks = result[1], scores = result[2];
             let rows = [];
             for (let i = 0; i < addrs.length; i++) {
                 rows.push({ addr: addrs[i], streak: Number(streaks[i]), score: Number(scores[i]) / 100 });
@@ -284,7 +235,7 @@
             rows.sort((a, b) => b.score - a.score);
             const listEl = document.getElementById("leaderboard-list");
             if (rows.length === 0) {
-                listEl.innerHTML = "<p style='color:#888;text-align:center;'>No GMs yet. Be the first!</p>";
+                listEl.innerHTML = "<p style='color:#666;text-align:center;font-size:0.85em;'>No GMs yet. Be the first.</p>";
                 return;
             }
             listEl.innerHTML = rows.slice(0, 10).map((r, i) => `
@@ -294,9 +245,7 @@
                     <span class="lb-score">${r.score.toFixed(2)}</span>
                 </div>
             `).join("");
-        } catch (err) {
-            console.log(err);
-        }
+        } catch (err) { console.log(err); }
     }
 </script>
 {% endblock %}
