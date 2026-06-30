@@ -9,6 +9,9 @@
             background-color: #1a1a2e;
             color: #eee;
             transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         nav {
             background-color: #16213e;
@@ -49,6 +52,7 @@
         }
         .content {
             animation: fadeIn 0.4s ease-in;
+            flex: 1;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(16px); }
@@ -151,10 +155,9 @@
 </head>
 <body id="body">
     <nav id="navbar">
-        
+        <a href="/" class="logo">Home</a>
         <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">☰</button>
         <div class="links" id="navlinks">
-            <a href="/gm">GM</a>
             <a href="/weather">Weather</a>
             <a href="/currency">Currency</a>
             <a href="/tools">Tools</a>
