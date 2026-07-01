@@ -132,8 +132,29 @@
         <div class="lb-wrap">
             <p class="lb-title">LEADERBOARD</p>
             <div id="leaderboard-list"></div>
+            <div id="lb-pagination" style="display:none; align-items:center; justify-content:center; gap:16px; margin-top:16px;">
+                <button id="lb-prev" onclick="leaderboardPrevPage()" class="lb-page-btn">← Prev</button>
+                <span id="lb-page-indicator" style="color:#999; font-size:0.85em;"></span>
+                <button id="lb-next" onclick="leaderboardNextPage()" class="lb-page-btn">Next →</button>
+            </div>
         </div>
     </div>
+
+    <style>
+        .lb-page-btn {
+            padding:7px 16px; border-radius:8px; font-size:0.85em; font-weight:600;
+            border:1px solid rgba(233,69,96,0.35); background:rgba(233,69,96,0.08);
+            color:#e94560; cursor:pointer;
+            transition:background 0.2s ease, transform 0.2s ease;
+        }
+        .lb-page-btn:hover:not(:disabled) {
+            background:rgba(233,69,96,0.18);
+            transform:translateY(-1px);
+        }
+        .lb-page-btn:disabled {
+            opacity:0.35; cursor:not-allowed;
+        }
+    </style>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
@@ -268,6 +289,10 @@
         } catch (err) { console.log(err); }
     }
 
+    let leaderboardRows = [];
+    let leaderboardPage = 0;
+    const LB_PAGE_SIZE = 10;
+
     async function loadLeaderboard() {
         try {
             const result = await contract.getLeaderboard();
@@ -277,19 +302,57 @@
                 rows.push({ addr: addrs[i], streak: Number(streaks[i]), score: Number(scores[i]) / 100 });
             }
             rows.sort((a, b) => b.score - a.score);
-            const listEl = document.getElementById("leaderboard-list");
-            if (rows.length === 0) {
-                listEl.innerHTML = "<p style='color:#666;text-align:center;font-size:0.85em;'>No GMs yet. Be the first.</p>";
-                return;
-            }
-            listEl.innerHTML = rows.slice(0, 10).map((r, i) => `
-                <div class="lb-row ${i === 0 ? 'top1' : ''}">
-                    <span class="lb-rank">#${i+1}</span>
-                    <span class="lb-addr">${r.addr.slice(0,6)}...${r.addr.slice(-4)}</span>
-                    <span class="lb-score">${r.score.toFixed(2)}</span>
-                </div>
-            `).join("");
+            leaderboardRows = rows;
+            leaderboardPage = 0;
+            renderLeaderboardPage();
         } catch (err) { console.log(err); }
+    }
+
+    function renderLeaderboardPage() {
+        const listEl = document.getElementById("leaderboard-list");
+        const paginationEl = document.getElementById("lb-pagination");
+
+        if (leaderboardRows.length === 0) {
+            listEl.innerHTML = "<p style='color:#666;text-align:center;font-size:0.85em;'>No GMs yet. Be the first.</p>";
+            paginationEl.style.display = "none";
+            return;
+        }
+
+        const totalPages = Math.ceil(leaderboardRows.length / LB_PAGE_SIZE);
+        const start = leaderboardPage * LB_PAGE_SIZE;
+        const pageRows = leaderboardRows.slice(start, start + LB_PAGE_SIZE);
+
+        listEl.innerHTML = pageRows.map((r, i) => `
+            <div class="lb-row ${start + i === 0 ? 'top1' : ''}">
+                <span class="lb-rank">#${start + i + 1}</span>
+                <span class="lb-addr">${r.addr.slice(0,6)}...${r.addr.slice(-4)}</span>
+                <span class="lb-score">${r.score.toFixed(2)}</span>
+            </div>
+        `).join("");
+
+        if (totalPages > 1) {
+            paginationEl.style.display = "flex";
+            document.getElementById("lb-page-indicator").innerText = `Page ${leaderboardPage + 1} of ${totalPages}`;
+            document.getElementById("lb-prev").disabled = leaderboardPage === 0;
+            document.getElementById("lb-next").disabled = leaderboardPage >= totalPages - 1;
+        } else {
+            paginationEl.style.display = "none";
+        }
+    }
+
+    function leaderboardPrevPage() {
+        if (leaderboardPage > 0) {
+            leaderboardPage -= 1;
+            renderLeaderboardPage();
+        }
+    }
+
+    function leaderboardNextPage() {
+        const totalPages = Math.ceil(leaderboardRows.length / LB_PAGE_SIZE);
+        if (leaderboardPage < totalPages - 1) {
+            leaderboardPage += 1;
+            renderLeaderboardPage();
+        }
     }
 </script>
 {% endblock %}
