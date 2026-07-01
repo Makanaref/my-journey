@@ -233,11 +233,32 @@ const tx = await contract.sayGM({
         btn.disabled = false;
     }
 
+    const TEHRAN_OFFSET = 12600;
+    function todayDayNumber() {
+        return Math.floor((Math.floor(Date.now() / 1000) + TEHRAN_OFFSET) / 86400);
+    }
+
     async function loadStats() {
         try {
             const result = await contract.getStats(account);
             document.getElementById("my-streak").innerText = result[0].toString();
             document.getElementById("my-score").innerText = (Number(result[1]) / 100).toFixed(2);
+
+            const lastGmDay = Number(result[2]);
+            const btn = document.getElementById("gm-button");
+            const statusEl = document.getElementById("tx-status");
+
+            if (lastGmDay === todayDayNumber()) {
+                btn.disabled = true;
+                btn.style.opacity = "0.5";
+                btn.style.cursor = "not-allowed";
+                statusEl.innerText = "Already said GM today. Come back tomorrow 🌅";
+            } else {
+                btn.disabled = false;
+                btn.style.opacity = "1";
+                btn.style.cursor = "pointer";
+                statusEl.innerText = "";
+            }
         } catch (err) { console.log(err); }
     }
 
