@@ -213,10 +213,11 @@
         btn.disabled = true;
         document.getElementById("tx-status").innerText = "Sending transaction...";
         try {
-            const feeData = await provider.getFeeData();
-const tx = await contract.sayGM({
-    gasPrice: feeData.gasPrice * 25n / 100n
-});
+            const gasPriceHex = await provider.send("eth_gasPrice", []);
+            const gasPrice = BigInt(gasPriceHex);
+            const tx = await contract.sayGM({
+                gasPrice: gasPrice
+            });
             document.getElementById("tx-status").innerText = "Confirming...";
             await tx.wait();
             document.getElementById("tx-status").innerText = "GM confirmed ✅";
