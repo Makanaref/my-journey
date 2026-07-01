@@ -173,10 +173,26 @@
     async function switchNetwork(net) {
         const config = networks[net];
         try {
-            await window.ethereum.request({
-                method: "wallet_addEthereumChain",
-                params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }]
-            });
+                await window.ethereum.request({
+                    method: "wallet_switchEthereumChain",
+                    params: [{ chainId: config.chainIdHex }]
+                });
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    await window.ethereum.request({
+                        method: "wallet_addEthereumChain",
+                        params: [{
+                            chainId: config.chainIdHex,
+                            chainName: config.chainName,
+                            rpcUrls: config.rpcUrls,
+                            nativeCurrency: config.nativeCurrency,
+                            blockExplorerUrls: config.blockExplorerUrls
+                        }]
+                    });
+                } else {
+                    throw switchError;
+                }
+            }
             currentNet = net;
             document.getElementById("net-lamina1").classList.remove("active");
             document.getElementById("net-nexus").classList.remove("active");
