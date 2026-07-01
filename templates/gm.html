@@ -213,7 +213,10 @@
         btn.disabled = true;
         document.getElementById("tx-status").innerText = "Sending transaction...";
         try {
-            const tx = await contract.sayGM();
+            const feeData = await provider.getFeeData();
+const tx = await contract.sayGM({
+    gasPrice: feeData.gasPrice * 25n / 100n
+});
             document.getElementById("tx-status").innerText = "Confirming...";
             await tx.wait();
             document.getElementById("tx-status").innerText = "GM confirmed ✅";
