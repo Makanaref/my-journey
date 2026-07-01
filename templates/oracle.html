@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% block title %}Oracle{% endblock %}
+{% block content %}
+<style>
+    .oracle-wrap { max-width: 520px; margin: 0 auto; }
+    .oracle-header { text-align: center; margin-bottom: 32px; }
+    .oracle-title { font-size: 2em; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .oracle-sub { color: #666; font-size: 0.9em; }
+
+    .section-label { font-size: 0.72em; color: #666; text-transform: uppercase; letter-spacing: 1.5px; margin: 24px 0 10px; text-align: left; }
+
+    .net-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .net-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 14px; cursor: pointer; transition: all 0.2s; text-align: left; }
+    .net-card:hover { border-color: rgba(233,69,96,0.4); }
+    .net-card.active { border-color: #e94560; background: rgba(233,69,96,0.07); }
+    .net-card .symbol { font-size: 1em; font-weight: 600; color: #fff; }
+    .net-card .name { color: #777; font-size: 0.75em; margin-top: 2px; }
+
+    .wallet-pill { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 9px 18px; border-radius: 30px; font-size: 0.85em; color: #bbb; font-family: monospace; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+
+    .question-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 28px; margin-top: 24px; text-align: center; }
+    .question-text { font-size: 1.2em; color: #fff; margin-bottom: 8px; line-height: 1.5; }
+    .question-timer { font-size: 0.8em; color: #666; margin-bottom: 24px; }
+
+    .vote-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .vote-btn { padding: 18px; border-radius: 12px; border: 1px solid; font-size: 1.1em; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .vote-up { background: rgba(74,222,128,0.08); border-color: rgba(74,222,128,0.3); color: #4ade80; }
+    .vote-up:hover { background: rgba(74,222,128,0.15); border-color: #4ade80; }
+    .vote-up.selected { background: rgba(74,222,128,0.2); border-color: #4ade80; }
+    .vote-down { background: rgba(233,69,96,0.08); border-color: rgba(233,69,96,0.3); color: #e94560; }
+    .vote-down:hover { background: rgba(233,69,96,0.15); border-color: #e94560; }
+    .vote-down.selected { background: rgba(233,69,96,0.2); border-color: #e94560; }
+    .vote-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .stats-row { display: flex; justify-content: center; gap: 24px; font-size: 0.85em; color: #666; }
+    .stats-row span { display: flex; align-items: center; gap: 6px; }
+
+    .status-msg { min-height: 20px; color: #777; font-size: 0.85em; margin-top: 12px; text-align: center; }
+
+    .my-stats-row { display: flex; justify-content: center; gap: 12px; margin-top: 24px; }
+    .stat-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 14px 24px; min-width: 100px; text-align: center; }
+    .stat-box .num { font-size: 1.5em; color: #fff; font-weight: 600; }
+    .stat-box .lbl { color: #666; font-size: 0.72em; margin-top: 4px; letter-spacing: 0.5px; }
+
+    .lb-wrap { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 18px; margin-top: 24px; }
+    .lb-title { font-size: 0.8em; color: #888; margin-bottom: 14px; text-align: center; letter-spacing: 0.5px; text-transform: uppercase; }
+    .lb-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 8px; margin-bottom: 6px; background: rgba(255,255,255,0.02); }
+    .lb-row.top1 { background: rgba(233,69,96,0.08); border: 1px solid rgba(233,69,96,0.2); }
+    .lb-rank { font-weight: 600; color: #555; width: 28px; font-size: 0.85em; }
+    .lb-row.top1 .lb-rank { color: #e94560; }
+    .lb-addr { font-family: monospace; color: #ccc; font-size: 0.85em; }
+    .lb-score { color: #4ade80; font-weight: 600; font-size: 0.85em; }
+
+    .admin-wrap { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 20px; margin-top: 24px; }
+    .admin-title { font-size: 0.8em; color: #888; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+    .admin-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #fff; font-size: 0.9em; margin-bottom: 10px; box-sizing: border-box; }
+    .admin-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+</style>
+
+<div class="oracle-wrap">
+    <div class="oracle-header">
+        <h1 class="oracle-title">🔮 Oracle</h1>
+        <p class="oracle-sub">Predict the future, onchain.</p>
+    </div>
+
+    <div id="connect-section" style="text-align:center;">
+        <button class="btn" onclick="connectWallet()" style="padding:12px 32px;">Connect wallet</button>
+    </div>
+
+    <div id="wallet-info" style="display:none;text-align:center;">
+        <span class="wallet-pill"><span class="dot"></span><span id="wallet-addr"></span></span>
+    </div>
+
+    <div id="network-section" style="display:none;">
+        <p class="section-label">Choose network</p>
+        <div class="net-grid">
+            <div class="net-card" id="net-lamina1" onclick="switchNetwork('lamina1')">
+                <div class="symbol">L1</div>
+                <div class="name">Lamina1</div>
+            </div>
+            <div class="net-card" id="net-nexus" onclick="switchNetwork('nexus')">
+                <div class="symbol">NEX</div>
+                <div class="name">Nexus</div>
+            </div>
+            <div class="net-card" id="net-ink" onclick="switchNetwork('ink')">
+                <div class="symbol">ETH</div>
+                <div class="name">Ink</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-section" style="display:none;">
+        <div class="question-card">
+            <p class="question-text" id="question-text">Loading...</p>
+            <p class="question-timer" id="question-timer"></p>
+            <div class="vote-grid">
+                <button class="vote-btn vote-up" id="btn-up" onclick="vote(true)">↑ UP</button>
+                <button class="vote-btn vote-down" id="btn-down" onclick="vote(false)">↓ DOWN</button>
+            </div>
+            <div class="stats-row">
+                <span><span style="color:#4ade80;">↑</span> <span id="up-count">0</span> UP</span>
+                <span><span style="color:#e94560;">↓</span> <span id="down-count">0</span> DOWN</span>
+            </div>
+            <p class="status-msg" id="vote-status"></p>
+        </div>
+
+        <div class="my-stats-row">
+            <div class="stat-box">
+                <div class="num" id="my-correct">—</div>
+                <div class="lbl">CORRECT</div>
+            </div>
+            <div class="stat-box">
+                <div class="num" id="my-total">—</div>
+                <div class="lbl">TOTAL</div>
+            </div>
+            <div class="stat-box">
+                <div class="num" id="my-accuracy">—</div>
+                <div class="lbl">ACCURACY</div>
+            </div>
+        </div>
+
+        <div class="lb-wrap">
+            <p class="lb-title">Leaderboard</p>
+            <div id="leaderboard-list"></div>
+        </div>
+
+        <div id="admin-section" style="display:none;">
+            <div class="admin-wrap">
+                <p class="admin-title">Admin Panel</p>
+                <input class="admin-input" id="admin-question" placeholder="Enter today's question...">
+                <div class="admin-row">
+                    <input class="admin-input" id="admin-hours" type="number" placeholder="Duration (hours)" value="24" style="margin:0;">
+                    <button class="btn" onclick="createQuestion()" style="white-space:nowrap;">Post Question</button>
+                </div>
+                <br>
+                <p class="section-label" style="margin-top:16px;">Resolve Question</p>
+                <div class="admin-row">
+                    <input class="admin-input" id="resolve-id" type="number" placeholder="Question ID" style="margin:0;">
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn" onclick="resolveQuestion(true)" style="color:#4ade80;">UP ✓</button>
+                        <button class="btn" onclick="resolveQuestion(false)" style="color:#e94560;">DOWN ✓</button>
+                    </div>
+                </div>
+                <p class="status-msg" id="admin-status"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+<script>
+    let provider, signer, account, contract, currentQuestionId, isDefaultQ;
+    const ADMIN = "0xc2018A7CED0A2105580190E2f0D4b53A43621cb4";
+
+    const CONTRACTS = {
+        lamina1: "0xcf2B368dA4D785C45C4Cf72bAeB8ef4f52600B5D",
+        nexus: "0xcf2B368dA4D785C45C4Cf72bAeB8ef4f52600B5D",
+        ink: "0x0eea7AbDdeDD3Ae52B37Db2e041CC5446D40b5B1"
+    };
+
+    const ABI = [
+        "function predict(uint256 questionId, bool isUp) public",
+        "function createQuestion(string memory text, uint256 durationHours) public",
+        "function resolveQuestion(uint256 questionId, bool result) public",
+        "function claimScore(uint256 questionId) public",
+        "function getActiveQuestion() public view returns (uint256 id, string memory text, uint256 deadline, uint256 upVotes, uint256 downVotes, bool exists)",
+        "function getLeaderboard() public view returns (address[] memory addrs, uint256[] memory correct, uint256[] memory total)",
+        "function myPrediction(uint256 questionId) public view returns (bool voted, bool prediction, bool claimed)",
+        "function correctPredictions(address) public view returns (uint256)",
+        "function totalPredictions(address) public view returns (uint256)"
+    ];
+
+    const networks = {
+        lamina1: { chainIdHex: "0x" + (10849).toString(16), chainName: "Lamina1", rpcUrls: ["https://subnets.avax.network/lamina1/mainnet/rpc"], nativeCurrency: { name: "L1", symbol: "L1", decimals: 18 }, blockExplorerUrls: ["https://subnets.avax.network/lamina1"] },
+        nexus: { chainIdHex: "0x" + (3946).toString(16), chainName: "Nexus", rpcUrls: ["https://mainnet.rpc.nexus.xyz"], nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 }, blockExplorerUrls: ["https://explorer.nexus.xyz"] },
+        ink: { chainIdHex: "0x" + (57073).toString(16), chainName: "Ink", rpcUrls: ["https://rpc-gel.inkonchain.com"], nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://explorer.inkonchain.com"] }
+    };
+
+    async function connectWallet() {
+        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
+        try {
+            provider = new ethers.BrowserProvider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = await provider.getSigner();
+            account = await signer.getAddress();
+            document.getElementById("connect-section").style.display = "none";
+            document.getElementById("wallet-info").style.display = "block";
+            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+            document.getElementById("network-section").style.display = "block";
+        } catch (err) { alert("Failed: " + err.message); }
+    }
+
+    async function switchNetwork(net) {
+        const config = networks[net];
+        try {
+            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
+            ["lamina1","nexus","ink"].forEach(n => document.getElementById("net-" + n).classList.remove("active"));
+            document.getElementById("net-" + net).classList.add("active");
+            provider = new ethers.BrowserProvider(window.ethereum);
+            signer = await provider.getSigner();
+            account = await signer.getAddress();
+            contract = new ethers.Contract(CONTRACTS[net], ABI, signer);
+            document.getElementById("main-section").style.display = "block";
+            if (account.toLowerCase() === ADMIN.toLowerCase()) {
+                document.getElementById("admin-section").style.display = "block";
+            }
+            await loadQuestion();
+            await loadMyStats();
+            await loadLeaderboard();
+        } catch (err) { alert("Network switch failed: " + err.message); }
+    }
+
+    async function loadQuestion() {
+        try {
+            const q = await contract.getActiveQuestion();
+            currentQuestionId = Number(q[0]);
+            isDefaultQ = !q[5];
+            document.getElementById("question-text").innerText = q[1];
+            document.getElementById("up-count").innerText = q[3].toString();
+            document.getElementById("down-count").innerText = q[4].toString();
+            const deadline = Number(q[2]);
+            const remaining = deadline - Math.floor(Date.now() / 1000);
+            const hours = Math.floor(remaining / 3600);
+            const mins = Math.floor((remaining % 3600) / 60);
+            document.getElementById("question-timer").innerText = remaining > 0 ? `Closes in ${hours}h ${mins}m` : "Voting closed";
+
+            if (!isDefaultQ) {
+                const myP = await contract.myPrediction(currentQuestionId);
+                if (myP[0]) {
+                    document.getElementById("btn-up").disabled = true;
+                    document.getElementById("btn-down").disabled = true;
+                    document.getElementById(myP[1] ? "btn-up" : "btn-down").classList.add("selected");
+                    document.getElementById("vote-status").innerText = "You predicted " + (myP[1] ? "UP ↑" : "DOWN ↓");
+                }
+            }
+        } catch (err) { console.log(err); }
+    }
+
+    async function vote(isUp) {
+        if (isDefaultQ) { document.getElementById("vote-status").innerText = "No active question yet. Admin will post one soon."; return; }
+        document.getElementById("vote-status").innerText = "Submitting...";
+        document.getElementById("btn-up").disabled = true;
+        document.getElementById("btn-down").disabled = true;
+        try {
+            const feeData = await provider.getFeeData();
+            const tx = await contract.predict(currentQuestionId, isUp, { gasPrice: feeData.gasPrice * 25n / 100n });
+            await tx.wait();
+            document.getElementById("vote-status").innerText = "Predicted " + (isUp ? "UP ↑" : "DOWN ↓") + " — confirmed!";
+            document.getElementById(isUp ? "btn-up" : "btn-down").classList.add("selected");
+            await loadQuestion();
+            await loadMyStats();
+        } catch (err) {
+            document.getElementById("vote-status").innerText = "Failed: " + (err.reason || err.message);
+            document.getElementById("btn-up").disabled = false;
+            document.getElementById("btn-down").disabled = false;
+        }
+    }
+
+    async function loadMyStats() {
+        try {
+            const correct = await contract.correctPredictions(account);
+            const total = await contract.totalPredictions(account);
+            const acc = total > 0 ? Math.round(Number(correct) * 100 / Number(total)) + "%" : "—";
+            document.getElementById("my-correct").innerText = correct.toString();
+            document.getElementById("my-total").innerText = total.toString();
+            document.getElementById("my-accuracy").innerText = acc;
+        } catch (err) { console.log(err); }
+    }
+
+    async function loadLeaderboard() {
+        try {
+            const result = await contract.getLeaderboard();
+            const addrs = result[0], correct = result[1], total = result[2];
+            let rows = [];
+            for (let i = 0; i < addrs.length; i++) {
+                const t = Number(total[i]);
+                rows.push({ addr: addrs[i], correct: Number(correct[i]), total: t, acc: t > 0 ? Math.round(Number(correct[i]) * 100 / t) : 0 });
+            }
+            rows.sort((a, b) => b.correct - a.correct || b.acc - a.acc);
+            const listEl = document.getElementById("leaderboard-list");
+            if (rows.length === 0) { listEl.innerHTML = "<p style='color:#666;text-align:center;font-size:0.85em;'>No predictions yet.</p>"; return; }
+            listEl.innerHTML = rows.slice(0, 10).map((r, i) => `
+                <div class="lb-row ${i === 0 ? 'top1' : ''}">
+                    <span class="lb-rank">#${i+1}</span>
+                    <span class="lb-addr">${r.addr.slice(0,6)}...${r.addr.slice(-4)}</span>
+                    <span class="lb-score">${r.correct}/${r.total} (${r.acc}%)</span>
+                </div>
+            `).join("");
+        } catch (err) { console.log(err); }
+    }
+
+    async function createQuestion() {
+        const text = document.getElementById("admin-question").value;
+        const hours = document.getElementById("admin-hours").value;
+        if (!text) { alert("Enter a question!"); return; }
+        document.getElementById("admin-status").innerText = "Posting...";
+        try {
+            const tx = await contract.createQuestion(text, parseInt(hours));
+            await tx.wait();
+            document.getElementById("admin-status").innerText = "Question posted!";
+            document.getElementById("admin-question").value = "";
+            await loadQuestion();
+        } catch (err) { document.getElementById("admin-status").innerText = "Failed: " + err.message; }
+    }
+
+    async function resolveQuestion(result) {
+        const id = document.getElementById("resolve-id").value;
+        if (id === "") { alert("Enter question ID!"); return; }
+        document.getElementById("admin-status").innerText = "Resolving...";
+        try {
+            const tx = await contract.resolveQuestion(parseInt(id), result);
+            await tx.wait();
+            document.getElementById("admin-status").innerText = "Resolved as " + (result ? "UP ✓" : "DOWN ✓");
+            await loadQuestion();
+        } catch (err) { document.getElementById("admin-status").innerText = "Failed: " + (err.reason || err.message); }
+    }
+</script>
+{% endblock %}

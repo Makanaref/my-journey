@@ -73,6 +73,10 @@ def dashboard():
 def tools():
     return render_template("tools.html")
 
+@app.route("/oracle")
+def oracle():
+    return render_template("oracle.html")
+
 @app.route("/gm")
 def gm():
     return render_template("gm.html")
