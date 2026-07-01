@@ -139,34 +139,36 @@
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script>
     let provider, signer, account, contract, currentNet;
-    const CONTRACT_ADDRESS = "0x91A68410C13866d1c4262C012680A623B79BeF20";
+    const CONTRACT_ADDRESSES = {
+    lamina1: "0x91A68410C13866d1c4262C012680A623B79BeF20",
+    nexus: "0x91A68410C13866d1c4262C012680A623B79BeF20",
+    ink: "0xdD926bCE2c14de3D0Ca60faE2F156089636f1598"
+};
     const CONTRACT_ABI = [
         "function sayGM() public",
         "function getStats(address user) public view returns (uint256 streak, uint256 totalScoreX100, uint256 lastGmDay)",
         "function getLeaderboard() public view returns (address[] memory addrs, uint256[] memory streaks, uint256[] memory scoresX100)"
     ];
     const networks = {
-        lamina1: {
-            chainIdHex: "0x" + (10849).toString(16), chainName: "Lamina1",
-            rpcUrls: ["https://subnets.avax.network/lamina1/mainnet/rpc"],
-            nativeCurrency: { name: "L1", symbol: "L1", decimals: 18 },
-            blockExplorerUrls: ["https://subnets.avax.network/lamina1"]
-        },
-        nexus: {
-            chainIdHex: "0x" + (3946).toString(16), chainName: "Nexus",
-            rpcUrls: ["https://mainnet.rpc.nexus.xyz"],
-            nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 },
-            blockExplorerUrls: ["https://explorer.nexus.xyz"]
-        }
-        
-        ,
-        ink: {
-            chainIdHex: "0x" + (57073).toString(16), chainName: "Ink",
-            rpcUrls: ["https://rpc-gel.inkonchain.com"],
-            nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-            blockExplorerUrls: ["https://explorer.inkonchain.com"]
-        }
-    };
+    lamina1: {
+        chainIdHex: "0x" + (10849).toString(16), chainName: "Lamina1",
+        rpcUrls: ["https://subnets.avax.network/lamina1/mainnet/rpc"],
+        nativeCurrency: { name: "L1", symbol: "L1", decimals: 18 },
+        blockExplorerUrls: ["https://subnets.avax.network/lamina1"]
+    },
+    nexus: {
+        chainIdHex: "0x" + (3946).toString(16), chainName: "Nexus",
+        rpcUrls: ["https://mainnet.rpc.nexus.xyz"],
+        nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 },
+        blockExplorerUrls: ["https://explorer.nexus.xyz"]
+    },
+    ink: {
+        chainIdHex: "0x" + (57073).toString(16), chainName: "Ink",
+        rpcUrls: ["https://rpc-gel.inkonchain.com"],
+        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+        blockExplorerUrls: ["https://explorer.inkonchain.com"]
+    }
+};
 
     async function connectWallet() {
         if (!window.ethereum) { alert("Please install MetaMask!"); return; }
@@ -197,7 +199,7 @@
             provider = new ethers.BrowserProvider(window.ethereum);
             signer = await provider.getSigner();
             account = await signer.getAddress();
-            contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+            contract = new ethers.Contract(CONTRACT_ADDRESSES[net], CONTRACT_ABI, signer);
             document.getElementById("gm-card").style.display = "block";
             document.getElementById("leaderboard-card").style.display = "block";
             document.getElementById("tx-status").innerText = "";
