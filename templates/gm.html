@@ -214,7 +214,8 @@
         document.getElementById("tx-status").innerText = "Sending transaction...";
         try {
             const gasPriceHex = await provider.send("eth_gasPrice", []);
-            const gasPrice = BigInt(gasPriceHex);
+            const networkGasPrice = BigInt(gasPriceHex);
+            const gasPrice = networkGasPrice * 25n / 100n;
             const tx = await contract.sayGM({
                 gasPrice: gasPrice
             });
