@@ -216,9 +216,11 @@
             const gasPriceHex = await provider.send("eth_gasPrice", []);
             const networkGasPrice = BigInt(gasPriceHex);
             const gasPrice = networkGasPrice * 25n / 100n;
-            const tx = await contract.sayGM({
-                gasPrice: gasPrice
-            });
+            const txOverrides = { gasPrice: gasPrice };
+            if (currentNet === "lamina1") {
+                txOverrides.gasLimit = 150000;
+            }
+            const tx = await contract.sayGM(txOverrides);
             document.getElementById("tx-status").innerText = "Confirming...";
             await tx.wait();
             document.getElementById("tx-status").innerText = "GM confirmed ✅";
