@@ -258,11 +258,17 @@
             const feeData = await provider.getFeeData();
             let tx;
             if (isDefaultQ) {
+                const gasPrice = currentNet === 'lamina1' 
+                    ? feeData.gasPrice 
+                    : feeData.gasPrice * 25n / 100n;
                 tx = isUp
-                    ? await btcContract.up({ gasPrice: feeData.gasPrice * 25n / 100n })
-                    : await btcContract.down({ gasPrice: feeData.gasPrice * 25n / 100n });
+                    ? await btcContract.up({ gasPrice })
+                    : await btcContract.down({ gasPrice });
             } else {
-                tx = await contract.predict(currentQuestionId, isUp, { gasPrice: feeData.gasPrice * 25n / 100n });
+                const gasPriceMain = currentNet === 'lamina1'
+                    ? feeData.gasPrice
+                    : feeData.gasPrice * 25n / 100n;
+                tx = await contract.predict(currentQuestionId, isUp, { gasPrice: gasPriceMain });
             }
             await tx.wait();
             document.getElementById("vote-status").innerText = "Predicted " + (isUp ? "UP ↑" : "DOWN ↓") + " — confirmed!";
