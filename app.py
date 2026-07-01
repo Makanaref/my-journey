@@ -76,7 +76,9 @@ def tools():
 @app.route("/oracle")
 def oracle():
     return render_template("oracle.html")
-
+@app.route("/games")
+def games():
+    return render_template("games.html")
 @app.route("/gm")
 def gm():
     return render_template("gm.html")
