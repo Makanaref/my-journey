@@ -150,7 +150,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script>
-    let provider, signer, account, contract, currentQuestionId, isDefaultQ;
+    let provider, signer, account, contract, btcContract, currentNet, currentQuestionId, isDefaultQ;
     const ADMIN = "0xc2018A7CED0A2105580190E2f0D4b53A43621cb4";
 
     const CONTRACTS = {
@@ -158,6 +158,17 @@
         nexus: "0xcf2B368dA4D785C45C4Cf72bAeB8ef4f52600B5D",
         ink: "0x0eea7AbDdeDD3Ae52B37Db2e041CC5446D40b5B1"
     };
+
+    const BTC_CONTRACTS = {
+        lamina1: "0x537F8d93048BCd10A9100C30c822FF33331696c4",
+        nexus: "0x1c543Ee670D5E4C77C4143A2d5Cb3b67459fCBe5",
+        ink: "0xD3864216053A9542293eA747172226967c2c6582"
+    };
+
+    const BTC_ABI = [
+        "function up() public",
+        "function down() public"
+    ];
 
     const ABI = [
         "function predict(uint256 questionId, bool isUp) public",
@@ -201,6 +212,8 @@
             signer = await provider.getSigner();
             account = await signer.getAddress();
             contract = new ethers.Contract(CONTRACTS[net], ABI, signer);
+          btcContract = new ethers.Contract(BTC_CONTRACTS[net], BTC_ABI, signer);
+            currentNet = net;
             document.getElementById("main-section").style.display = "block";
             if (account.toLowerCase() === ADMIN.toLowerCase()) {
                 document.getElementById("admin-section").style.display = "block";
@@ -245,11 +258,9 @@
             const feeData = await provider.getFeeData();
             let tx;
             if (isDefaultQ) {
-                tx = await signer.sendTransaction({
-                    to: "0x000000000000000000000000000000000000dEaD",
-                    value: 0,
-                    gasPrice: feeData.gasPrice * 25n / 100n
-                });
+                tx = isUp
+                    ? await btcContract.up({ gasPrice: feeData.gasPrice * 25n / 100n })
+                    : await btcContract.down({ gasPrice: feeData.gasPrice * 25n / 100n });
             } else {
                 tx = await contract.predict(currentQuestionId, isUp, { gasPrice: feeData.gasPrice * 25n / 100n });
             }
