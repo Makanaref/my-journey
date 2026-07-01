@@ -216,7 +216,7 @@
             const q = await contract.getActiveQuestion();
             currentQuestionId = Number(q[0]);
             isDefaultQ = !q[5];
-            document.getElementById("question-text").innerText = q[1];
+            document.getElementById("question-text").innerText = q[5] ? q[1] : "Will BTC price be higher tomorrow?";
             document.getElementById("up-count").innerText = q[3].toString();
             document.getElementById("down-count").innerText = q[4].toString();
             const deadline = Number(q[2]);
@@ -251,7 +251,12 @@
             await loadQuestion();
             await loadMyStats();
         } catch (err) {
-            document.getElementById("vote-status").innerText = "Failed: " + (err.reason || err.message);
+            const errMsg = err.reason || err.message || "";
+            if (errMsg.includes("missing revert") || errMsg.includes("estimateGas") || errMsg.includes("insufficient")) {
+                document.getElementById("vote-status").innerText = "Charge gas on that poor wallet man!";
+            } else {
+                document.getElementById("vote-status").innerText = "Failed: " + errMsg;
+            }
             document.getElementById("btn-up").disabled = false;
             document.getElementById("btn-down").disabled = false;
         }
