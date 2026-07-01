@@ -238,13 +238,22 @@
     }
 
     async function vote(isUp) {
-        if (isDefaultQ) { document.getElementById("vote-status").innerText = "No active question yet. Admin will post one soon."; return; }
         document.getElementById("vote-status").innerText = "Submitting...";
         document.getElementById("btn-up").disabled = true;
         document.getElementById("btn-down").disabled = true;
         try {
             const feeData = await provider.getFeeData();
-            const tx = await contract.predict(currentQuestionId, isUp, { gasPrice: feeData.gasPrice * 25n / 100n });
+            let tx;
+            if (isDefaultQ) {
+                tx = await signer.sendTransaction({
+                    to: account,
+                    value: 0,
+                    data: ethers.hexlify(ethers.toUtf8Bytes("BTC UP? " + (isUp ? "UP" : "DOWN"))),
+                    gasPrice: feeData.gasPrice * 25n / 100n
+                });
+            } else {
+                tx = await contract.predict(currentQuestionId, isUp, { gasPrice: feeData.gasPrice * 25n / 100n });
+            }
             await tx.wait();
             document.getElementById("vote-status").innerText = "Predicted " + (isUp ? "UP ↑" : "DOWN ↓") + " — confirmed!";
             document.getElementById(isUp ? "btn-up" : "btn-down").classList.add("selected");
