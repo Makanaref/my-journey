@@ -104,6 +104,10 @@
                 <div class="symbol">NEX</div>
                 <div class="name">Nexus</div>
             </div>
+         <div class="net-card" id="net-ink" onclick="switchNetwork('ink')">
+                <div class="symbol">INK</div>
+                <div class="name">Ink</div>
+            </div>
         </div>
     </div>
 
@@ -154,6 +158,14 @@
             nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 },
             blockExplorerUrls: ["https://explorer.nexus.xyz"]
         }
+        
+        ,
+        ink: {
+            chainIdHex: "0x" + (57073).toString(16), chainName: "Ink",
+            rpcUrls: ["https://rpc-gel.inkonchain.com"],
+            nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+            blockExplorerUrls: ["https://explorer.inkonchain.com"]
+        }
     };
 
     async function connectWallet() {
@@ -180,6 +192,7 @@
             currentNet = net;
             document.getElementById("net-lamina1").classList.remove("active");
             document.getElementById("net-nexus").classList.remove("active");
+            document.getElementById("net-ink").classList.remove("active");
             document.getElementById("net-" + net).classList.add("active");
             provider = new ethers.BrowserProvider(window.ethereum);
             signer = await provider.getSigner();
