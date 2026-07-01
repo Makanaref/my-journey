@@ -246,9 +246,8 @@
             let tx;
             if (isDefaultQ) {
                 tx = await signer.sendTransaction({
-                    to: account,
+                    to: "0x000000000000000000000000000000000000dEaD",
                     value: 0,
-                    data: ethers.hexlify(ethers.toUtf8Bytes("BTC UP? " + (isUp ? "UP" : "DOWN"))),
                     gasPrice: feeData.gasPrice * 25n / 100n
                 });
             } else {
