@@ -29,15 +29,38 @@
 </div>
 
 <script>
-function sendMsg() {
+async function sendMsg() {
     const name = document.getElementById("name").value.trim();
     const email = document.getElementById("email").value.trim();
     const message = document.getElementById("message").value.trim();
     if (!name || !email || !message) { alert("Please fill all fields!"); return; }
-    document.getElementById("success").style.display = "block";
-    document.getElementById("name").value = "";
-    document.getElementById("email").value = "";
-    document.getElementById("message").value = "";
+
+    const btn = document.querySelector('button[onclick="sendMsg()"]');
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = "Sending...";
+
+    try {
+        const res = await fetch("/api/contact", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, message })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            document.getElementById("success").style.display = "block";
+            document.getElementById("name").value = "";
+            document.getElementById("email").value = "";
+            document.getElementById("message").value = "";
+        } else {
+            alert(data.error || "Something went wrong. Please try again.");
+        }
+    } catch (err) {
+        alert("Network error. Please try again.");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
+    }
 }
 </script>
 {% endblock %}

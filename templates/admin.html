@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel{% endblock %}
+{% block content %}
+<div style="max-width:760px; margin:0 auto; padding:40px 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+        <h2 style="margin:0;">📬 Messages ({{ messages|length }})</h2>
+        <a href="/admin/logout" style="color:#e94560; text-decoration:none; font-size:0.9em;">Logout</a>
+    </div>
+
+    {% if messages|length == 0 %}
+    <p style="color:#666; text-align:center;">No messages yet.</p>
+    {% endif %}
+
+    {% for m in messages %}
+    <div style="background:rgba(255,255,255,0.03); border:1px solid {{ 'rgba(233,69,96,0.35)' if not m.is_read else 'rgba(255,255,255,0.08)' }}; border-radius:12px; padding:18px; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+            <div>
+                <strong style="color:#fff;">{{ m.name }}</strong>
+                <span style="color:#666; font-size:0.85em;"> &lt;{{ m.email }}&gt;</span>
+            </div>
+            <span style="color:#666; font-size:0.75em;">{{ m.created_at[:16].replace('T', ' ') }}</span>
+        </div>
+        <p style="color:#ccc; font-size:0.9em; line-height:1.6; white-space:pre-wrap; margin-bottom:12px;">{{ m.message }}</p>
+        <div style="display:flex; gap:10px;">
+            {% if not m.is_read %}
+            <form method="POST" action="/admin/read/{{ m.id }}">
+                <button type="submit" style="padding:6px 14px; background:rgba(46,204,113,0.12); border:1px solid rgba(46,204,113,0.35); color:#2ecc71; border-radius:8px; font-size:0.8em; cursor:pointer;">Mark as read</button>
+            </form>
+            {% endif %}
+            <form method="POST" action="/admin/delete/{{ m.id }}" onsubmit="return confirm('Delete this message?');">
+                <button type="submit" style="padding:6px 14px; background:rgba(233,69,96,0.08); border:1px solid rgba(233,69,96,0.3); color:#e94560; border-radius:8px; font-size:0.8em; cursor:pointer;">Delete</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
