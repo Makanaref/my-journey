@@ -78,7 +78,53 @@
     .lb-row.top1 .lb-rank { color: #e94560; }
     .lb-addr { font-family: monospace; color: #ccc; font-size: 0.85em; }
     .lb-score { color: #4ade80; font-weight: 600; font-size: 0.85em; }
+
+    /* === LAMPS === */
+    .lamps-scene {
+        background: #0a0a14;
+        border-radius: 0 0 12px 12px;
+        padding-bottom: 16px;
+        margin-bottom: 0;
+        overflow: hidden;
+    }
+    .lamps-ceiling { width: 100%; height: 2px; background: #1e1e30; }
+    .lamps-row { display: flex; justify-content: center; align-items: flex-start; padding: 0 20px; }
+    .lamp { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+    .lamp-wire { width: 1px; background: #2a2a40; }
+    .lamp-cap { background: #2a2a40; border-radius: 1px 1px 0 0; }
+    .lamp-bulb {
+        border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+        border: 1px solid #2a2a40;
+        background: #141422;
+        transition: all 0.5s ease;
+        position: relative;
+        margin-top: -1px;
+    }
+    .lamp-bulb.on {
+        border-color: rgba(233,69,96,0.5);
+        background: radial-gradient(circle at 50% 38%, #ff7050 0%, #e94560 50%, #6b1020 100%);
+    }
+    .lamp-glow {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        left: 50%;
+        transform: translateX(-50%);
+        background: radial-gradient(circle, rgba(233,69,96,0.15) 0%, transparent 70%);
+    }
+    .lamp-glow.on { opacity: 1; }
+    .lamps-count { text-align: center; color: #444; font-size: 11px; font-family: monospace; margin-top: 12px; }
+    .lamps-count span { color: #e94560; }
 </style>
+
+<!-- Lamps scene (بالای صفحه، بدون padding) -->
+<div class="lamps-scene">
+    <div class="lamps-ceiling"></div>
+    <div class="lamps-row" id="lamps-row"></div>
+    <div class="lamps-count" id="lamps-count"><span>0</span> GM today</div>
+</div>
 
 <div class="gm-wrap">
     <div class="gm-orb">👋</div>
@@ -104,18 +150,18 @@
                 <div class="symbol">NEX</div>
                 <div class="name">Nexus</div>
             </div>
-         <div class="net-card" id="net-ink" onclick="switchNetwork('ink')">
+            <div class="net-card" id="net-ink" onclick="switchNetwork('ink')">
                 <div class="symbol">INK</div>
                 <div class="name">Ink</div>
             </div>
-          <div class="net-card" id="net-base" onclick="switchNetwork('base')">
-    <div class="symbol">BASE</div>
-    <div class="name">Base</div>
-</div>
-          <div class="net-card" id="net-robinhood" onclick="switchNetwork('robinhood')">
-    <div class="symbol">HOOD</div>
-    <div class="name">Robinhood</div>
-</div>
+            <div class="net-card" id="net-base" onclick="switchNetwork('base')">
+                <div class="symbol">BASE</div>
+                <div class="name">Base</div>
+            </div>
+            <div class="net-card" id="net-robinhood" onclick="switchNetwork('robinhood')">
+                <div class="symbol">HOOD</div>
+                <div class="name">Robinhood</div>
+            </div>
         </div>
     </div>
 
@@ -155,64 +201,63 @@
             color:#e94560; cursor:pointer;
             transition:background 0.2s ease, transform 0.2s ease;
         }
-        .lb-page-btn:hover:not(:disabled) {
-            background:rgba(233,69,96,0.18);
-            transform:translateY(-1px);
-        }
-        .lb-page-btn:disabled {
-            opacity:0.35; cursor:not-allowed;
-        }
+        .lb-page-btn:hover:not(:disabled) { background:rgba(233,69,96,0.18); transform:translateY(-1px); }
+        .lb-page-btn:disabled { opacity:0.35; cursor:not-allowed; }
     </style>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script>
+    /* === LAMPS === */
+    const LAMP_CFG = [
+        {w:44,s:20,g:60},{w:64,s:24,g:72},{w:34,s:18,g:54},
+        {w:78,s:26,g:80},{w:50,s:22,g:66},{w:38,s:19,g:58},{w:60,s:23,g:70}
+    ];
+    function buildLamps() {
+        const row = document.getElementById('lamps-row');
+        LAMP_CFG.forEach((c, i) => {
+            const div = document.createElement('div');
+            div.className = 'lamp';
+            div.innerHTML = `
+                <div class="lamp-wire" style="height:${c.w}px"></div>
+                <div class="lamp-cap" style="width:${Math.round(c.s*0.5)}px;height:5px"></div>
+                <div class="lamp-bulb" id="bulb-${i}" style="width:${c.s}px;height:${c.s+3}px;">
+                    <div class="lamp-glow" id="glow-${i}" style="width:${c.g}px;height:${c.g}px;top:${Math.round(c.s*0.2)}px;"></div>
+                </div>
+            `;
+            row.appendChild(div);
+        });
+    }
+    function updateLamps(count) {
+        LAMP_CFG.forEach((_, i) => {
+            document.getElementById('bulb-'+i).classList.toggle('on', i < count);
+            document.getElementById('glow-'+i).classList.toggle('on', i < count);
+        });
+        document.getElementById('lamps-count').innerHTML = `<span>${count}</span> GM today`;
+    }
+    buildLamps();
+
+    /* === WALLET & CONTRACT === */
     let provider, signer, account, contract, currentNet;
     const CONTRACT_ADDRESSES = {
-    lamina1: "0x91A68410C13866d1c4262C012680A623B79BeF20",
-    nexus: "0x91A68410C13866d1c4262C012680A623B79BeF20",
-    ink: "0xc5B1Bb3e6CE937F64440895a6b976455F64dbaAE",
-    base: "0x0d246A70E2c9ddCDacF690E854E9a528aaE9c3f6",
-    robinhood: "0xEC76D7a9801Fd7De132b299a36B6E0125802430B"
-};
+        lamina1:   "0x91A68410C13866d1c4262C012680A623B79BeF20",
+        nexus:     "0x91A68410C13866d1c4262C012680A623B79BeF20",
+        ink:       "0xc5B1Bb3e6CE937F64440895a6b976455F64dbaAE",
+        base:      "0x0d246A70E2c9ddCDacF690E854E9a528aaE9c3f6",
+        robinhood: "0xEC76D7a9801Fd7De132b299a36B6E0125802430B"
+    };
     const CONTRACT_ABI = [
         "function sayGM() public",
         "function getStats(address user) public view returns (uint256 streak, uint256 totalScoreX100, uint256 lastGmDay)",
         "function getLeaderboard() public view returns (address[] memory addrs, uint256[] memory streaks, uint256[] memory scoresX100)"
     ];
     const networks = {
-    lamina1: {
-        chainIdHex: "0x" + (10849).toString(16), chainName: "Lamina1",
-        rpcUrls: ["https://subnets.avax.network/lamina1/mainnet/rpc"],
-        nativeCurrency: { name: "L1", symbol: "L1", decimals: 18 },
-        blockExplorerUrls: ["https://subnets.avax.network/lamina1"]
-    },
-    nexus: {
-        chainIdHex: "0x" + (3946).toString(16), chainName: "Nexus",
-        rpcUrls: ["https://mainnet.rpc.nexus.xyz"],
-        nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 },
-        blockExplorerUrls: ["https://explorer.nexus.xyz"]
-    },
-    ink: {
-        chainIdHex: "0x" + (57073).toString(16), chainName: "Ink",
-        rpcUrls: ["https://rpc-gel.inkonchain.com"],
-        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-        blockExplorerUrls: ["https://explorer.inkonchain.com"]
-    }
-
-    ,base: {
-        chainIdHex: "0x" + (8453).toString(16), chainName: "Base",
-        rpcUrls: ["https://mainnet.base.org"],
-        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-        blockExplorerUrls: ["https://basescan.org"]
-    }
-    ,robinhood: {
-        chainIdHex: "0x" + (4663).toString(16), chainName: "Robinhood Chain",
-        rpcUrls: ["https://rpc.mainnet.chain.robinhood.com"],
-        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-        blockExplorerUrls: ["https://robinhoodchain.blockscout.com"]
-    }
-};
+        lamina1:   { chainIdHex: "0x" + (10849).toString(16), chainName: "Lamina1",         rpcUrls: ["https://subnets.avax.network/lamina1/mainnet/rpc"], nativeCurrency: { name: "L1",  symbol: "L1",  decimals: 18 }, blockExplorerUrls: ["https://subnets.avax.network/lamina1"] },
+        nexus:     { chainIdHex: "0x" + (3946).toString(16),  chainName: "Nexus",            rpcUrls: ["https://mainnet.rpc.nexus.xyz"],                    nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 }, blockExplorerUrls: ["https://explorer.nexus.xyz"] },
+        ink:       { chainIdHex: "0x" + (57073).toString(16), chainName: "Ink",              rpcUrls: ["https://rpc-gel.inkonchain.com"],                   nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://explorer.inkonchain.com"] },
+        base:      { chainIdHex: "0x" + (8453).toString(16),  chainName: "Base",             rpcUrls: ["https://mainnet.base.org"],                        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://basescan.org"] },
+        robinhood: { chainIdHex: "0x" + (4663).toString(16),  chainName: "Robinhood Chain",  rpcUrls: ["https://rpc.mainnet.chain.robinhood.com"],          nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://robinhoodchain.blockscout.com"] }
+    };
 
     async function connectWallet() {
         if (!window.ethereum) { alert("Please install MetaMask!"); return; }
@@ -231,17 +276,10 @@
     async function switchNetwork(net) {
         const config = networks[net];
         try {
-            await window.ethereum.request({
-                method: "wallet_addEthereumChain",
-                params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }]
-            });
+            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
             currentNet = net;
-            document.getElementById("net-lamina1").classList.remove("active");
-            document.getElementById("net-nexus").classList.remove("active");
-            document.getElementById("net-ink").classList.remove("active");
-            document.getElementById("net-base").classList.remove("active");
-            document.getElementById("net-robinhood").classList.remove("active");
-            document.getElementById("net-" + net).classList.add("active");
+            Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
+            document.getElementById("net-"+net).classList.add("active");
             provider = new ethers.BrowserProvider(window.ethereum);
             signer = await provider.getSigner();
             account = await signer.getAddress();
@@ -261,19 +299,11 @@
         try {
             const gasPriceHex = await provider.send("eth_gasPrice", []);
             const networkGasPrice = BigInt(gasPriceHex);
-            const gasPricePercent = {
-                lamina1: 100,
-                nexus: 25,
-                ink: 25,
-                base: 15,
-                robinhood: 100
-            };
+            const gasPricePercent = { lamina1: 100, nexus: 25, ink: 25, base: 15, robinhood: 100 };
             const percent = BigInt(gasPricePercent[currentNet] ?? 25);
             const gasPrice = networkGasPrice * percent / 100n;
-            const txOverrides = { gasPrice: gasPrice };
-            if (currentNet === "lamina1") {
-                txOverrides.gasLimit = 150000;
-            }
+            const txOverrides = { gasPrice };
+            if (currentNet === "lamina1") txOverrides.gasLimit = 150000;
             const tx = await contract.sayGM(txOverrides);
             document.getElementById("tx-status").innerText = "Confirming...";
             await tx.wait();
@@ -301,11 +331,9 @@
             const result = await contract.getStats(account);
             document.getElementById("my-streak").innerText = result[0].toString();
             document.getElementById("my-score").innerText = (Number(result[1]) / 100).toFixed(2);
-
             const lastGmDay = Number(result[2]);
             const btn = document.getElementById("gm-button");
             const statusEl = document.getElementById("tx-status");
-
             if (lastGmDay === todayDayNumber()) {
                 btn.disabled = true;
                 btn.style.opacity = "0.5";
@@ -335,6 +363,7 @@
             rows.sort((a, b) => b.score - a.score);
             leaderboardRows = rows;
             leaderboardPage = 0;
+            updateLamps(Math.min(rows.length, LAMP_CFG.length));
             renderLeaderboardPage();
         } catch (err) { console.log(err); }
     }
@@ -342,17 +371,14 @@
     function renderLeaderboardPage() {
         const listEl = document.getElementById("leaderboard-list");
         const paginationEl = document.getElementById("lb-pagination");
-
         if (leaderboardRows.length === 0) {
             listEl.innerHTML = "<p style='color:#666;text-align:center;font-size:0.85em;'>No GMs yet. Be the first.</p>";
             paginationEl.style.display = "none";
             return;
         }
-
         const totalPages = Math.ceil(leaderboardRows.length / LB_PAGE_SIZE);
         const start = leaderboardPage * LB_PAGE_SIZE;
         const pageRows = leaderboardRows.slice(start, start + LB_PAGE_SIZE);
-
         listEl.innerHTML = pageRows.map((r, i) => `
             <div class="lb-row ${start + i === 0 ? 'top1' : ''}">
                 <span class="lb-rank">#${start + i + 1}</span>
@@ -360,7 +386,6 @@
                 <span class="lb-score">${r.score.toFixed(2)}</span>
             </div>
         `).join("");
-
         if (totalPages > 1) {
             paginationEl.style.display = "flex";
             document.getElementById("lb-page-indicator").innerText = `Page ${leaderboardPage + 1} of ${totalPages}`;
@@ -371,19 +396,7 @@
         }
     }
 
-    function leaderboardPrevPage() {
-        if (leaderboardPage > 0) {
-            leaderboardPage -= 1;
-            renderLeaderboardPage();
-        }
-    }
-
-    function leaderboardNextPage() {
-        const totalPages = Math.ceil(leaderboardRows.length / LB_PAGE_SIZE);
-        if (leaderboardPage < totalPages - 1) {
-            leaderboardPage += 1;
-            renderLeaderboardPage();
-        }
-    }
+    function leaderboardPrevPage() { if (leaderboardPage > 0) { leaderboardPage--; renderLeaderboardPage(); } }
+    function leaderboardNextPage() { const t = Math.ceil(leaderboardRows.length / LB_PAGE_SIZE); if (leaderboardPage < t - 1) { leaderboardPage++; renderLeaderboardPage(); } }
 </script>
 {% endblock %}
