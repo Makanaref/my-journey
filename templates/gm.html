@@ -112,6 +112,10 @@
     <div class="symbol">BASE</div>
     <div class="name">Base</div>
 </div>
+          <div class="net-card" id="net-robinhood" onclick="switchNetwork('robinhood')">
+    <div class="symbol">HOOD</div>
+    <div class="name">Robinhood</div>
+</div>
         </div>
     </div>
 
@@ -168,7 +172,8 @@
     lamina1: "0x91A68410C13866d1c4262C012680A623B79BeF20",
     nexus: "0x91A68410C13866d1c4262C012680A623B79BeF20",
     ink: "0xdD926bCE2c14de3D0Ca60faE2F156089636f1598",
-    base: "0x0d246A70E2c9ddCDacF690E854E9a528aaE9c3f6"
+    base: "0x0d246A70E2c9ddCDacF690E854E9a528aaE9c3f6",
+    robinhood: "0xEC76D7a9801Fd7De132b299a36B6E0125802430B"
 };
     const CONTRACT_ABI = [
         "function sayGM() public",
@@ -201,6 +206,12 @@
         nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
         blockExplorerUrls: ["https://basescan.org"]
     }
+    ,robinhood: {
+        chainIdHex: "0x" + (4663).toString(16), chainName: "Robinhood Chain",
+        rpcUrls: ["https://rpc.mainnet.chain.robinhood.com"],
+        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+        blockExplorerUrls: ["https://robinhoodchain.blockscout.com"]
+    }
 };
 
     async function connectWallet() {
@@ -229,7 +240,7 @@
             document.getElementById("net-nexus").classList.remove("active");
             document.getElementById("net-ink").classList.remove("active");
             document.getElementById("net-base").classList.remove("active");
-            document.getElementById("net-base").classList.remove("active");
+            document.getElementById("net-robinhood").classList.remove("active");
             document.getElementById("net-" + net).classList.add("active");
             provider = new ethers.BrowserProvider(window.ethereum);
             signer = await provider.getSigner();
@@ -254,7 +265,8 @@
                 lamina1: 100,
                 nexus: 25,
                 ink: 25,
-                base: 15
+                base: 15,
+                robinhood: 20
             };
             const percent = BigInt(gasPricePercent[currentNet] ?? 25);
             const gasPrice = networkGasPrice * percent / 100n;
