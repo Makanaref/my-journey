@@ -250,9 +250,14 @@
         try {
             const gasPriceHex = await provider.send("eth_gasPrice", []);
             const networkGasPrice = BigInt(gasPriceHex);
-            const gasPrice = currentNet === "lamina1"
-                ? networkGasPrice
-                : networkGasPrice * 25n / 100n;
+            const gasPricePercent = {
+                lamina1: 100,
+                nexus: 25,
+                ink: 25,
+                base: 9
+            };
+            const percent = BigInt(gasPricePercent[currentNet] ?? 25);
+            const gasPrice = networkGasPrice * percent / 100n;
             const txOverrides = { gasPrice: gasPrice };
             if (currentNet === "lamina1") {
                 txOverrides.gasLimit = 150000;
