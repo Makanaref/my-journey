@@ -271,7 +271,7 @@
             const percent = BigInt(gasPricePercent[currentNet] ?? 25);
             const gasPrice = networkGasPrice * percent / 100n;
             const txOverrides = { gasPrice: gasPrice };
-            if (currentNet === "lamina1") {
+            if (currentNet === "lamina1" || currentNet === "robinhood") {
                 txOverrides.gasLimit = 150000;
             }
             const tx = await contract.sayGM(txOverrides);
