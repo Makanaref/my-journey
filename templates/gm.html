@@ -108,6 +108,10 @@
                 <div class="symbol">INK</div>
                 <div class="name">Ink</div>
             </div>
+          <div class="net-card" id="net-base" onclick="switchNetwork('base')">
+    <div class="symbol">BASE</div>
+    <div class="name">Base</div>
+</div>
         </div>
     </div>
 
@@ -163,7 +167,8 @@
     const CONTRACT_ADDRESSES = {
     lamina1: "0x91A68410C13866d1c4262C012680A623B79BeF20",
     nexus: "0x91A68410C13866d1c4262C012680A623B79BeF20",
-    ink: "0xc5B1Bb3e6CE937F64440895a6b976455F64dbaAE"
+    ink: "0xdD926bCE2c14de3D0Ca60faE2F156089636f1598",
+    base: "0x0d246A70E2c9ddCDacF690E854E9a528aaE9c3f6"
 };
     const CONTRACT_ABI = [
         "function sayGM() public",
@@ -188,6 +193,13 @@
         rpcUrls: ["https://rpc-gel.inkonchain.com"],
         nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
         blockExplorerUrls: ["https://explorer.inkonchain.com"]
+    }
+
+    ,base: {
+        chainIdHex: "0x" + (8453).toString(16), chainName: "Base",
+        rpcUrls: ["https://mainnet.base.org"],
+        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+        blockExplorerUrls: ["https://basescan.org"]
     }
 };
 
@@ -216,6 +228,8 @@
             document.getElementById("net-lamina1").classList.remove("active");
             document.getElementById("net-nexus").classList.remove("active");
             document.getElementById("net-ink").classList.remove("active");
+            document.getElementById("net-base").classList.remove("active");
+            document.getElementById("net-base").classList.remove("active");
             document.getElementById("net-" + net).classList.add("active");
             provider = new ethers.BrowserProvider(window.ethereum);
             signer = await provider.getSigner();
