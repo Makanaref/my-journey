@@ -103,6 +103,18 @@
     .lamp-bulb.on {
         border-color: rgba(233,69,96,0.5);
         background: radial-gradient(circle at 50% 38%, #ff7050 0%, #e94560 50%, #6b1020 100%);
+        box-shadow: 0 0 10px rgba(233,69,96,0.35);
+    }
+    .lamp-bulb.flicker {
+        animation: lampFlicker 0.7s ease;
+    }
+    @keyframes lampFlicker {
+        0% { filter: brightness(0.3); }
+        20% { filter: brightness(1.7); }
+        35% { filter: brightness(0.5); }
+        55% { filter: brightness(1.4); }
+        75% { filter: brightness(0.8); }
+        100% { filter: brightness(1); }
     }
     .lamp-glow {
         position: absolute;
@@ -228,12 +240,23 @@
             row.appendChild(div);
         });
     }
+    let lastLampCount = 0;
     function updateLamps(count) {
         LAMP_CFG.forEach((_, i) => {
-            document.getElementById('bulb-'+i).classList.toggle('on', i < count);
-            document.getElementById('glow-'+i).classList.toggle('on', i < count);
+            const bulb = document.getElementById('bulb-'+i);
+            const glow = document.getElementById('glow-'+i);
+            const shouldBeOn = i < count;
+            const wasOn = i < lastLampCount;
+            bulb.classList.toggle('on', shouldBeOn);
+            glow.classList.toggle('on', shouldBeOn);
+            if (shouldBeOn && !wasOn) {
+                bulb.classList.remove('flicker');
+                void bulb.offsetWidth;
+                bulb.classList.add('flicker');
+            }
         });
         document.getElementById('lamps-count').innerHTML = `<span>${count}</span> GM today`;
+        lastLampCount = count;
     }
     buildLamps();
 
@@ -363,7 +386,14 @@
             rows.sort((a, b) => b.score - a.score);
             leaderboardRows = rows;
             leaderboardPage = 0;
-            updateLamps(Math.min(rows.length, LAMP_CFG.length));
+
+            const today = todayDayNumber();
+            const statsResults = await Promise.all(
+                addrs.map(addr => contract.getStats(addr).catch(() => null))
+            );
+            const todayCount = statsResults.filter(s => s && Number(s[2]) === today).length;
+            updateLamps(Math.min(todayCount, LAMP_CFG.length));
+
             renderLeaderboardPage();
         } catch (err) { console.log(err); }
     }
@@ -398,5 +428,10 @@
 
     function leaderboardPrevPage() { if (leaderboardPage > 0) { leaderboardPage--; renderLeaderboardPage(); } }
     function leaderboardNextPage() { const t = Math.ceil(leaderboardRows.length / LB_PAGE_SIZE); if (leaderboardPage < t - 1) { leaderboardPage++; renderLeaderboardPage(); } }
+
+    // Keep lamps in sync with Tehran midnight reset even if the page stays open
+    setInterval(() => {
+        if (contract) loadLeaderboard();
+    }, 120000);
 </script>
 {% endblock %}
