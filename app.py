@@ -117,6 +117,9 @@ def oracle():
 @app.route("/games")
 def games():
     return render_template("games.html")
+@app.route("/mint")
+def mint():
+    return render_template("mint.html")
 @app.route("/gm")
 def gm():
     return render_template("gm.html")
