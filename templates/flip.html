@@ -115,8 +115,20 @@
 <div class="flip-wrap">
     <div class="coin-scene">
         <div class="coin" id="coin">
-            <div class="coin-face heads">🪙</div>
-            <div class="coin-face tails">⭐</div>
+            <div class="coin-face heads">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9.5" stroke="#e94560" stroke-width="1.5" fill="rgba(233,69,96,0.1)"/>
+                    <circle cx="12" cy="12" r="6.5" stroke="#e94560" stroke-width="1" opacity="0.5"/>
+                    <text x="12" y="16" text-anchor="middle" font-size="9" font-weight="700" fill="#e94560" font-family="Georgia, serif">H</text>
+                </svg>
+            </div>
+            <div class="coin-face tails">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9.5" stroke="#f7b32b" stroke-width="1.5" fill="rgba(247,179,43,0.1)"/>
+                    <circle cx="12" cy="12" r="6.5" stroke="#f7b32b" stroke-width="1" opacity="0.5"/>
+                    <text x="12" y="16" text-anchor="middle" font-size="9" font-weight="700" fill="#f7b32b" font-family="Georgia, serif">T</text>
+                </svg>
+            </div>
         </div>
     </div>
     <h1 class="flip-title">Coin Flip</h1>
@@ -158,8 +170,8 @@
 
     <div id="game-card" style="display:none;">
         <div class="guess-row">
-            <button class="guess-btn" id="btn-heads" onclick="doFlip(true)">🪙 Heads</button>
-            <button class="guess-btn" id="btn-tails" onclick="doFlip(false)">⭐ Tails</button>
+            <button class="guess-btn" id="btn-heads" onclick="doFlip(true)">Heads</button>
+            <button class="guess-btn" id="btn-tails" onclick="doFlip(false)">Tails</button>
         </div>
         <p class="status-msg" id="flip-status"></p>
         <div class="stat-row">
@@ -268,21 +280,34 @@
         coin.classList.remove("result-heads", "result-tails");
 
         try {
+            const statsBefore = await contract.getStats(account);
+            const winsBefore = Number(statsBefore[2]);
+
             const overrides = await getTxOverrides();
             const tx = await contract.flip(guessHeads, overrides);
             document.getElementById("flip-status").innerText = "Confirming...";
             const receipt = await tx.wait();
 
             let won = null, result = null;
+            const iface = new ethers.Interface(CONTRACT_ABI.concat([
+                "event Flip(address indexed player, bool guessedHeads, bool result, bool won, uint64 currentStreak)"
+            ]));
             for (const log of receipt.logs) {
                 try {
-                    const parsed = contract.interface.parseLog(log);
+                    const parsed = iface.parseLog(log);
                     if (parsed && parsed.name === "Flip") {
                         won = parsed.args.won;
                         result = parsed.args.result;
                         break;
                     }
                 } catch (e) {}
+            }
+
+            if (won === null) {
+                const statsAfter = await contract.getStats(account);
+                const winsAfter = Number(statsAfter[2]);
+                won = winsAfter > winsBefore;
+                result = won ? guessHeads : !guessHeads;
             }
 
             coin.classList.add(result ? "result-heads" : "result-tails");
