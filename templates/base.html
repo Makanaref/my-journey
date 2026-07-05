@@ -143,6 +143,8 @@ body.light nav .links a:hover { color: #e94560; background: rgba(233,69,96,0.08)
 body.light .card { background-color: #ede8e2; border-color: rgba(233,69,96,0.15); box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
 body.light footer { background-color: #ede8e2; color: #8a7a6a; }
 body.light input, body.light textarea, body.light select { background: #e5dfd8; color: #2a2015; border-color: #cfc8c0; }
+body.light .content { filter: invert(1) hue-rotate(180deg); transition: filter 0.3s ease; }
+body.light .content img, body.light .content video { filter: invert(1) hue-rotate(180deg); }
         /* Responsive */
         @media (max-width: 650px) {
             nav .links { display: none; flex-direction: column; position: absolute; top: 60px; right: 0; background: #16213e; width: 100%; padding: 10px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
