@@ -372,7 +372,7 @@
             const percent = BigInt(gasPricePercent[currentNet] ?? 25);
             const gasPrice = networkGasPrice * percent / 100n;
             const txOverrides = { gasPrice };
-            if (currentNet === "lamina1") txOverrides.gasLimit = 150000;
+            if (["lamina1", "plume", "avax"].includes(currentNet)) txOverrides.gasLimit = 150000;
             const tx = await contract.sayGM(txOverrides);
             document.getElementById("tx-status").innerText = "Confirming...";
             await tx.wait();
