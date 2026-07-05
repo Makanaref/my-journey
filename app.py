@@ -197,6 +197,10 @@ def api_contact():
     conn.close()
     return jsonify({"success": True})
 
+@app.route("/debug-env")
+def debug_env():
+    return {"username_set": ADMIN_USERNAME, "password_length": len(ADMIN_PASSWORD)}
+
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     error = None
