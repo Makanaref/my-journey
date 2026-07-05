@@ -202,6 +202,18 @@
                 <div class="symbol">HOOD</div>
                 <div class="name">Robinhood</div>
             </div>
+            <div class="net-card" id="net-avax" onclick="switchNetwork('avax')">
+                <div class="symbol">AVAX</div>
+                <div class="name">Avalanche</div>
+            </div>
+            <div class="net-card" id="net-plume" onclick="switchNetwork('plume')">
+                <div class="symbol">PLUME</div>
+                <div class="name">Plume</div>
+            </div>
+            <div class="net-card" id="net-zetachain" onclick="switchNetwork('zetachain')">
+                <div class="symbol">ZETA</div>
+                <div class="name">ZetaChain</div>
+            </div>
         </div>
     </div>
 
@@ -295,7 +307,10 @@
         nexus:     "0x91A68410C13866d1c4262C012680A623B79BeF20",
         ink:       "0xc5B1Bb3e6CE937F64440895a6b976455F64dbaAE",
         base:      "0x0d246A70E2c9ddCDacF690E854E9a528aaE9c3f6",
-        robinhood: "0xEC76D7a9801Fd7De132b299a36B6E0125802430B"
+        robinhood: "0xEC76D7a9801Fd7De132b299a36B6E0125802430B",
+        avax: "0x4DF798fD9F5Ff9109e6D42B67D3eE86FE09D3bf1",
+        plume: "0xB72b9D6BF3a0d20a5A3152bcDD627A67eaDad56C",
+        zetachain: "0xdA8F4Da59a24b4F5ab1F1f2bd6D000F069F54080"
     };
     const CONTRACT_ABI = [
         "function sayGM() public",
@@ -307,7 +322,10 @@
         nexus:     { chainIdHex: "0x" + (3946).toString(16),  chainName: "Nexus",            rpcUrls: ["https://mainnet.rpc.nexus.xyz"],                    nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 }, blockExplorerUrls: ["https://explorer.nexus.xyz"] },
         ink:       { chainIdHex: "0x" + (57073).toString(16), chainName: "Ink",              rpcUrls: ["https://rpc-gel.inkonchain.com"],                   nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://explorer.inkonchain.com"] },
         base:      { chainIdHex: "0x" + (8453).toString(16),  chainName: "Base",             rpcUrls: ["https://mainnet.base.org"],                        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://basescan.org"] },
-        robinhood: { chainIdHex: "0x" + (4663).toString(16),  chainName: "Robinhood Chain",  rpcUrls: ["https://rpc.mainnet.chain.robinhood.com"],          nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://robinhoodchain.blockscout.com"] }
+        robinhood: { chainIdHex: "0x" + (4663).toString(16),  chainName: "Robinhood Chain",  rpcUrls: ["https://rpc.mainnet.chain.robinhood.com"],          nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://robinhoodchain.blockscout.com"] },
+        avax: { chainIdHex: "0x" + (43114).toString(16), chainName: "Avalanche", rpcUrls: ["https://api.avax.network/ext/bc/C/rpc"], nativeCurrency: { name: "AVAX", symbol: "AVAX", decimals: 18 }, blockExplorerUrls: ["https://snowtrace.io"] },
+        plume: { chainIdHex: "0x" + (98866).toString(16), chainName: "Plume", rpcUrls: ["https://rpc.plume.org"], nativeCurrency: { name: "PLUME", symbol: "PLUME", decimals: 18 }, blockExplorerUrls: ["https://explorer.plume.org"] },
+        zetachain: { chainIdHex: "0x" + (7000).toString(16), chainName: "ZetaChain", rpcUrls: ["https://zetachain-evm.blockpi.network/v1/rpc/public"], nativeCurrency: { name: "ZETA", symbol: "ZETA", decimals: 18 }, blockExplorerUrls: ["https://zetachain.blockscout.com"] }
     };
 
     async function connectWallet() {
@@ -350,7 +368,7 @@
         try {
             const gasPriceHex = await provider.send("eth_gasPrice", []);
             const networkGasPrice = BigInt(gasPriceHex);
-            const gasPricePercent = { lamina1: 100, nexus: 25, ink: 25, base: 15, robinhood: 100 };
+            const gasPricePercent = { lamina1: 100, nexus: 25, ink: 25, base: 15, robinhood: 100, avax: 25, plume: 25, zetachain: 25 };
             const percent = BigInt(gasPricePercent[currentNet] ?? 25);
             const gasPrice = networkGasPrice * percent / 100n;
             const txOverrides = { gasPrice };
