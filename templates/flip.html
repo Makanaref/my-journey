@@ -278,11 +278,11 @@
     async function getTxOverrides() {
         const gasPriceHex = await provider.send("eth_gasPrice", []);
         const networkGasPrice = BigInt(gasPriceHex);
-        const gasPricePercent = { lamina1: 100, nexus: 25, ink: 25, base: 15, robinhood: 100, avax: 25, plume: 25, zetachain: 25 };
+        const gasPricePercent = { lamina1: 100, nexus: 25, ink: 25, base: 15, robinhood: 100, avax: 25, plume: 25, zetachain: 100 };
         const percent = BigInt(gasPricePercent[currentNet] ?? 25);
         const gasPrice = networkGasPrice * percent / 100n;
         const overrides = { gasPrice };
-        if (currentNet === "lamina1" || currentNet === "robinhood") overrides.gasLimit = 150000;
+        if (["lamina1", "robinhood", "plume", "avax"].includes(currentNet)) overrides.gasLimit = 150000;
         return overrides;
     }
 

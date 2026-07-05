@@ -309,17 +309,19 @@
             const feeData = await provider.getFeeData();
             let tx;
             if (isDefaultQ) {
-                const gasPrice = currentNet === 'lamina1' 
-                    ? feeData.gasPrice 
-                    : feeData.gasPrice * 25n / 100n;
+                const isFullFee = ["lamina1", "zetachain"].includes(currentNet);
+                const gasPrice = isFullFee ? feeData.gasPrice : feeData.gasPrice * 25n / 100n;
+                const overridesBtc = { gasPrice };
+                if (["lamina1", "plume", "avax"].includes(currentNet)) overridesBtc.gasLimit = 150000;
                 tx = isUp
-                    ? await btcContract.up({ gasPrice })
-                    : await btcContract.down({ gasPrice });
+                    ? await btcContract.up(overridesBtc)
+                    : await btcContract.down(overridesBtc);
             } else {
-                const gasPriceMain = currentNet === 'lamina1'
-                    ? feeData.gasPrice
-                    : feeData.gasPrice * 25n / 100n;
-                tx = await contract.predict(currentQuestionId, isUp, { gasPrice: gasPriceMain });
+                const isFullFeeMain = ["lamina1", "zetachain"].includes(currentNet);
+                const gasPriceMain = isFullFeeMain ? feeData.gasPrice : feeData.gasPrice * 25n / 100n;
+                const overridesMain = { gasPrice: gasPriceMain };
+                if (["lamina1", "plume", "avax"].includes(currentNet)) overridesMain.gasLimit = 150000;
+                tx = await contract.predict(currentQuestionId, isUp, overridesMain);
             }
             await tx.wait();
             document.getElementById("vote-status").innerText = "Predicted " + (isUp ? "UP ↑" : "DOWN ↓") + " — confirmed!";
