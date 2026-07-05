@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+{% block title %}Coin Flip{% endblock %}
+{% block content %}
+<style>
+    .flip-wrap { max-width: 480px; margin: 0 auto; padding: 50px 20px; text-align: center; }
+    .coin-scene { width: 120px; height: 120px; margin: 0 auto 24px; perspective: 600px; }
+    .coin {
+        width: 100%; height: 100%; position: relative;
+        transform-style: preserve-3d;
+        transition: transform 1.4s cubic-bezier(0.4, 0.1, 0.2, 1);
+    }
+    .coin.spinning { animation: coinSpin 1.4s cubic-bezier(0.4, 0.1, 0.2, 1); }
+    .coin.result-heads { transform: rotateY(1800deg); }
+    .coin.result-tails { transform: rotateY(1980deg); }
+    @keyframes coinSpin {
+        from { transform: rotateY(0deg); }
+    }
+    .coin-face {
+        position: absolute; inset: 0; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2.6em; backface-visibility: hidden;
+        border: 2px solid rgba(233,69,96,0.4);
+        background: radial-gradient(circle at 35% 30%, #2a2040, #14101f 75%);
+        box-shadow: 0 0 24px rgba(233,69,96,0.2);
+    }
+    .coin-face.tails { transform: rotateY(180deg); }
+    .flip-title { font-size: 2.2em; margin-bottom: 6px; letter-spacing: -0.5px; }
+    .flip-sub { color: #777; font-size: 0.95em; margin-bottom: 28px; }
+    .wallet-pill {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        padding: 9px 18px; border-radius: 30px;
+        font-size: 0.85em; color: #bbb; font-family: monospace;
+    }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+    .section-label {
+        font-size: 0.72em; color: #666; text-transform: uppercase;
+        letter-spacing: 1.5px; margin: 32px 0 12px; text-align: left;
+    }
+    .net-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .net-card {
+        position: relative;
+        background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.09);
+        border-radius: 14px; padding: 16px 18px;
+        cursor: pointer; transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+        text-align: left; overflow: hidden;
+    }
+    .net-card::before {
+        content: "";
+        position: absolute; inset: 0;
+        background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.06), rgba(0,0,0,0) 60%);
+        pointer-events: none;
+    }
+    .net-card:hover {
+        border-color: rgba(233,69,96,0.45);
+        background: linear-gradient(160deg, rgba(233,69,96,0.08), rgba(255,255,255,0.02));
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(233,69,96,0.12);
+    }
+    .net-card.active {
+        border-color: #e94560;
+        background: linear-gradient(160deg, rgba(233,69,96,0.14), rgba(233,69,96,0.03));
+        box-shadow: 0 8px 20px rgba(233,69,96,0.18);
+    }
+    .net-card .symbol {
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 1.2em; font-weight: 700; color: #fff;
+        letter-spacing: 0.03em; position: relative;
+    }
+    .net-card .name {
+        color: rgba(255,255,255,0.4); font-size: 0.78em;
+        margin-top: 3px; position: relative;
+    }
+    .guess-row { display: flex; gap: 14px; justify-content: center; margin-top: 36px; }
+    .guess-btn {
+        flex: 1; max-width: 160px; padding: 16px; border-radius: 14px;
+        border: 1px solid rgba(233,69,96,0.3); background: rgba(233,69,96,0.06);
+        color: #fff; font-weight: 700; font-size: 1em; cursor: pointer;
+        transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .guess-btn:hover:not(:disabled) { transform: translateY(-3px); background: rgba(233,69,96,0.14); }
+    .guess-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .status-msg { min-height: 20px; color: #777; font-size: 0.85em; margin-top: 18px; }
+    .status-msg.win { color: #4ade80; font-weight: 600; }
+    .status-msg.lose { color: #e94560; font-weight: 600; }
+    .stat-row { display: flex; justify-content: center; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+    .stat-box {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 12px; padding: 14px 22px; min-width: 90px;
+    }
+    .stat-box .num { font-size: 1.5em; color: #fff; font-weight: 600; }
+    .stat-box .lbl { color: #666; font-size: 0.68em; margin-top: 4px; letter-spacing: 0.5px; }
+    .lb-wrap {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px; padding: 18px; margin-top: 36px; text-align: left;
+    }
+    .lb-title { font-size: 0.85em; color: #999; margin-bottom: 14px; text-align: center; letter-spacing: 0.5px; }
+    .lb-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 14px; border-radius: 8px; margin-bottom: 6px;
+        background: rgba(255,255,255,0.02);
+    }
+    .lb-row.top1 { background: rgba(233,69,96,0.08); border: 1px solid rgba(233,69,96,0.2); }
+    .lb-rank { font-weight: 600; color: #555; width: 28px; font-size: 0.85em; }
+    .lb-row.top1 .lb-rank { color: #e94560; }
+    .lb-addr { font-family: monospace; color: #ccc; font-size: 0.85em; }
+    .lb-score { color: #4ade80; font-weight: 600; font-size: 0.85em; }
+</style>
+
+<div class="flip-wrap">
+    <div class="coin-scene">
+        <div class="coin" id="coin">
+            <div class="coin-face heads">🪙</div>
+            <div class="coin-face tails">⭐</div>
+        </div>
+    </div>
+    <h1 class="flip-title">Coin Flip</h1>
+    <p class="flip-sub">Guess heads or tails, onchain.</p>
+
+    <div id="connect-section">
+        <button class="btn" onclick="connectWallet()" style="padding:12px 32px;">Connect wallet</button>
+    </div>
+
+    <div id="wallet-info" style="display:none;">
+        <span class="wallet-pill"><span class="dot"></span><span id="wallet-addr"></span></span>
+    </div>
+
+    <div id="network-card" style="display:none;">
+        <p class="section-label">Choose network</p>
+        <div class="net-grid">
+            <div class="net-card" id="net-lamina1" onclick="switchNetwork('lamina1')">
+                <div class="symbol">L1</div>
+                <div class="name">Lamina1</div>
+            </div>
+            <div class="net-card" id="net-nexus" onclick="switchNetwork('nexus')">
+                <div class="symbol">NEX</div>
+                <div class="name">Nexus</div>
+            </div>
+            <div class="net-card" id="net-ink" onclick="switchNetwork('ink')">
+                <div class="symbol">INK</div>
+                <div class="name">Ink</div>
+            </div>
+            <div class="net-card" id="net-base" onclick="switchNetwork('base')">
+                <div class="symbol">BASE</div>
+                <div class="name">Base</div>
+            </div>
+            <div class="net-card" id="net-robinhood" onclick="switchNetwork('robinhood')">
+                <div class="symbol">HOOD</div>
+                <div class="name">Robinhood</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-card" style="display:none;">
+        <div class="guess-row">
+            <button class="guess-btn" id="btn-heads" onclick="doFlip(true)">🪙 Heads</button>
+            <button class="guess-btn" id="btn-tails" onclick="doFlip(false)">⭐ Tails</button>
+        </div>
+        <p class="status-msg" id="flip-status"></p>
+        <div class="stat-row">
+            <div class="stat-box">
+                <div class="num" id="my-streak">—</div>
+                <div class="lbl">STREAK</div>
+            </div>
+            <div class="stat-box">
+                <div class="num" id="my-best">—</div>
+                <div class="lbl">BEST</div>
+            </div>
+            <div class="stat-box">
+                <div class="num" id="my-wins">—</div>
+                <div class="lbl">WINS</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="leaderboard-card" style="display:none;">
+        <div class="lb-wrap">
+            <p class="lb-title">LEADERBOARD (BEST STREAK)</p>
+            <div id="leaderboard-list"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+<script>
+    let provider, signer, account, contract, currentNet;
+
+    const CONTRACT_ADDRESSES = {
+        lamina1:   "0x61EeEaf07149d2F42d6eB66D80C8C13Ef9d1ecCD",
+        nexus:     "0x4d860020dc84f9AA1e24EF55f44859bc8CF55a8B",
+        ink:       "0xa0DD2BF6509FA667df2CC409017841871132DEE7",
+        base:      "0xc9cBB32684C961dcEEd0f2f3e94e5cD4E6339308",
+        robinhood: "0x033947CB876A2A5175d6EBe3058c9258e0c2231A"
+    };
+
+    const CONTRACT_ABI = [
+        "function flip(bool guessHeads) public",
+        "function getStats(address user) public view returns (uint256 currentStreak, uint256 bestStreak, uint256 totalWins, uint256 totalFlips)",
+        "function getLeaderboard() public view returns (address[] memory addrs, uint256[] memory bestStreaks, uint256[] memory totalWinsArr)"
+    ];
+
+    const networks = {
+        lamina1:   { chainIdHex: "0x" + (10849).toString(16), chainName: "Lamina1",        rpcUrls: ["https://subnets.avax.network/lamina1/mainnet/rpc"], nativeCurrency: { name: "L1",  symbol: "L1",  decimals: 18 }, blockExplorerUrls: ["https://subnets.avax.network/lamina1"] },
+        nexus:     { chainIdHex: "0x" + (3946).toString(16),  chainName: "Nexus",           rpcUrls: ["https://mainnet.rpc.nexus.xyz"],                    nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 }, blockExplorerUrls: ["https://explorer.nexus.xyz"] },
+        ink:       { chainIdHex: "0x" + (57073).toString(16), chainName: "Ink",             rpcUrls: ["https://rpc-gel.inkonchain.com"],                   nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://explorer.inkonchain.com"] },
+        base:      { chainIdHex: "0x" + (8453).toString(16),  chainName: "Base",            rpcUrls: ["https://mainnet.base.org"],                        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://basescan.org"] },
+        robinhood: { chainIdHex: "0x" + (4663).toString(16),  chainName: "Robinhood Chain", rpcUrls: ["https://rpc.mainnet.chain.robinhood.com"],          nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://robinhoodchain.blockscout.com"] }
+    };
+
+    async function connectWallet() {
+        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
+        try {
+            provider = new ethers.BrowserProvider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = await provider.getSigner();
+            account = await signer.getAddress();
+            document.getElementById("connect-section").style.display = "none";
+            document.getElementById("wallet-info").style.display = "block";
+            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+            document.getElementById("network-card").style.display = "block";
+        } catch (err) { alert("Connection failed: " + err.message); }
+    }
+
+    async function switchNetwork(net) {
+        const config = networks[net];
+        try {
+            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
+            currentNet = net;
+            Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
+            document.getElementById("net-"+net).classList.add("active");
+            provider = new ethers.BrowserProvider(window.ethereum);
+            signer = await provider.getSigner();
+            account = await signer.getAddress();
+            contract = new ethers.Contract(CONTRACT_ADDRESSES[net], CONTRACT_ABI, signer);
+            document.getElementById("game-card").style.display = "block";
+            document.getElementById("leaderboard-card").style.display = "block";
+            document.getElementById("flip-status").innerText = "";
+            await loadStats();
+            await loadLeaderboard();
+        } catch (err) { alert("Network switch failed: " + err.message); }
+    }
+
+    async function getTxOverrides() {
+        const gasPriceHex = await provider.send("eth_gasPrice", []);
+        const networkGasPrice = BigInt(gasPriceHex);
+        const gasPricePercent = { lamina1: 100, nexus: 25, ink: 25, base: 15, robinhood: 100 };
+        const percent = BigInt(gasPricePercent[currentNet] ?? 25);
+        const gasPrice = networkGasPrice * percent / 100n;
+        const overrides = { gasPrice };
+        if (currentNet === "lamina1" || currentNet === "robinhood") overrides.gasLimit = 150000;
+        return overrides;
+    }
+
+    async function doFlip(guessHeads) {
+        const btnHeads = document.getElementById("btn-heads");
+        const btnTails = document.getElementById("btn-tails");
+        btnHeads.disabled = true;
+        btnTails.disabled = true;
+        document.getElementById("flip-status").className = "status-msg";
+        document.getElementById("flip-status").innerText = "Sending transaction...";
+
+        const coin = document.getElementById("coin");
+        coin.classList.remove("result-heads", "result-tails");
+
+        try {
+            const overrides = await getTxOverrides();
+            const tx = await contract.flip(guessHeads, overrides);
+            document.getElementById("flip-status").innerText = "Confirming...";
+            const receipt = await tx.wait();
+
+            let won = null, result = null;
+            for (const log of receipt.logs) {
+                try {
+                    const parsed = contract.interface.parseLog(log);
+                    if (parsed && parsed.name === "Flip") {
+                        won = parsed.args.won;
+                        result = parsed.args.result;
+                        break;
+                    }
+                } catch (e) {}
+            }
+
+            coin.classList.add(result ? "result-heads" : "result-tails");
+
+            setTimeout(() => {
+                const statusEl = document.getElementById("flip-status");
+                if (won) {
+                    statusEl.className = "status-msg win";
+                    statusEl.innerText = "You won! 🎉 It was " + (result ? "Heads 🪙" : "Tails ⭐");
+                } else {
+                    statusEl.className = "status-msg lose";
+                    statusEl.innerText = "You lost. It was " + (result ? "Heads 🪙" : "Tails ⭐");
+                }
+            }, 1450);
+
+            await loadStats();
+            await loadLeaderboard();
+        } catch (err) {
+            document.getElementById("flip-status").innerText = "Failed: " + (err.reason || err.message || "unknown error");
+        }
+        btnHeads.disabled = false;
+        btnTails.disabled = false;
+    }
+
+    async function loadStats() {
+        try {
+            const result = await contract.getStats(account);
+            document.getElementById("my-streak").innerText = result[0].toString();
+            document.getElementById("my-best").innerText = result[1].toString();
+            document.getElementById("my-wins").innerText = result[2].toString();
+        } catch (err) { console.log(err); }
+    }
+
+    async function loadLeaderboard() {
+        try {
+            const result = await contract.getLeaderboard();
+            const addrs = result[0], bestStreaks = result[1], wins = result[2];
+            let rows = [];
+            for (let i = 0; i < addrs.length; i++) {
+                rows.push({ addr: addrs[i], best: Number(bestStreaks[i]), wins: Number(wins[i]) });
+            }
+            rows.sort((a, b) => b.best - a.best);
+            const listEl = document.getElementById("leaderboard-list");
+            if (rows.length === 0) {
+                listEl.innerHTML = "<p style='color:#666;text-align:center;font-size:0.85em;'>No flips yet. Be the first.</p>";
+                return;
+            }
+            listEl.innerHTML = rows.slice(0, 10).map((r, i) => `
+                <div class="lb-row ${i === 0 ? 'top1' : ''}">
+                    <span class="lb-rank">#${i+1}</span>
+                    <span class="lb-addr">${r.addr.slice(0,6)}...${r.addr.slice(-4)}</span>
+                    <span class="lb-score">${r.best} streak</span>
+                </div>
+            `).join("");
+        } catch (err) { console.log(err); }
+    }
+</script>
+{% endblock %}
