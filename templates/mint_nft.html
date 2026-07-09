@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+{% block title %}Mint NFT{% endblock %}
+{% block content %}
+<style>
+    .nft-wrap { max-width: 560px; margin: 0 auto; padding: 50px 20px; text-align: center; }
+    .nft-orb {
+        width: 84px; height: 84px; margin: 0 auto 20px;
+        border-radius: 50%; background: #1a1024;
+        border: 1px solid rgba(126,200,227,0.4);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .nft-title { font-size: 2em; margin-bottom: 6px; letter-spacing: -0.5px; }
+    .nft-sub { color: #777; font-size: 0.95em; margin-bottom: 28px; }
+    .wallet-pill {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+        padding: 9px 18px; border-radius: 30px; font-size: 0.85em; color: #bbb; font-family: monospace;
+    }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+    .section-label { font-size: 0.72em; color: #666; text-transform: uppercase; letter-spacing: 1.5px; margin: 32px 0 12px; text-align: left; }
+    .net-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .net-card {
+        position: relative; background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+        backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.09);
+        border-radius: 14px; padding: 16px 18px; cursor: pointer;
+        transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+        text-align: left; overflow: hidden;
+    }
+    .net-card::before {
+        content: ""; position: absolute; inset: 0;
+        background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.06), rgba(0,0,0,0) 60%);
+        pointer-events: none;
+    }
+    .net-card:hover {
+        border-color: rgba(126,200,227,0.45);
+        background: linear-gradient(160deg, rgba(126,200,227,0.08), rgba(255,255,255,0.02));
+        transform: translateY(-2px); box-shadow: 0 8px 20px rgba(126,200,227,0.12);
+    }
+    .net-card.active {
+        border-color: #7ec8e3;
+        background: linear-gradient(160deg, rgba(126,200,227,0.14), rgba(126,200,227,0.03));
+        box-shadow: 0 8px 20px rgba(126,200,227,0.18);
+    }
+    .net-card .symbol { font-family: Georgia, 'Times New Roman', serif; font-size: 1.2em; font-weight: 700; color: #fff; letter-spacing: 0.03em; position: relative; }
+    .net-card .name { color: rgba(255,255,255,0.4); font-size: 0.78em; margin-top: 3px; position: relative; }
+    .panel { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 20px; margin-top: 18px; text-align: left; }
+    .panel-title { font-size: 0.85em; color: #999; margin-bottom: 14px; letter-spacing: 0.5px; }
+    .field { margin-bottom: 14px; }
+    .field label { display:block; font-size: 0.75em; color: #777; margin-bottom: 6px; }
+    .field input, .field textarea {
+        width: 100%; padding: 10px 12px; border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.1); background: #0f1420; color: #fff;
+        font-size: 0.9em; box-sizing: border-box; font-family: inherit;
+    }
+    .field input:focus, .field textarea:focus { outline: none; border-color: rgba(126,200,227,0.5); }
+    .radio-row { display: flex; gap: 14px; margin-bottom: 14px; }
+    .radio-option { display: flex; align-items: center; gap: 6px; font-size: 0.85em; color: #ccc; cursor: pointer; }
+    .image-preview { width: 100%; max-width: 220px; border-radius: 10px; margin-top: 10px; display: none; }
+    .action-btn {
+        width: 100%; padding: 12px; border-radius: 8px; border: none;
+        background: #7ec8e3; color: #0f1420; font-weight: 700; font-size: 0.95em;
+        cursor: pointer; transition: transform 0.15s, background 0.15s;
+    }
+    .action-btn:hover { background: #9adcf2; transform: translateY(-1px); }
+    .action-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .status-msg { min-height: 18px; color: #777; font-size: 0.82em; margin-top: 10px; text-align: center; }
+    .token-select {
+        width: 100%; padding: 10px 12px; border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.1); background: #0f1420; color: #fff;
+        font-size: 0.88em; margin-bottom: 4px;
+    }
+    .nft-info-row { display:flex; justify-content:space-between; padding:6px 0; font-size:0.85em; color:#ccc; border-bottom:1px solid rgba(255,255,255,0.05); }
+    .nft-info-row span:first-child { color:#777; }
+    .share-box {
+        background: rgba(126,200,227,0.06); border: 1px solid rgba(126,200,227,0.25);
+        border-radius: 10px; padding: 12px; margin-top: 14px; font-size: 0.78em;
+        color: #9adcf2; word-break: break-all; text-align: left;
+    }
+</style>
+
+<div class="nft-wrap">
+    <div class="nft-orb">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="18" height="18" rx="3" stroke="#7ec8e3" stroke-width="1.5" fill="rgba(126,200,227,0.08)"/>
+            <circle cx="9" cy="9" r="2" stroke="#7ec8e3" stroke-width="1.3"/>
+            <path d="M3 16l5-5 4 4 3-3 6 6" stroke="#7ec8e3" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </div>
+    <h1 class="nft-title">Mint NFT</h1>
+    <p class="nft-sub">Create and mint your own NFT collection, onchain.</p>
+
+    <div id="connect-section">
+        <button class="btn" onclick="connectWallet()" style="padding:12px 32px;">Connect wallet</button>
+    </div>
+
+    <div id="wallet-info" style="display:none;">
+        <span class="wallet-pill"><span class="dot"></span><span id="wallet-addr"></span></span>
+    </div>
+
+    <div id="network-card" style="display:none;">
+        <p class="section-label">Choose network</p>
+        <div class="net-grid">
+            <div class="net-card" id="net-lamina1" onclick="switchNetwork('lamina1')"><div class="symbol">L1</div><div class="name">Lamina1</div></div>
+            <div class="net-card" id="net-nexus" onclick="switchNetwork('nexus')"><div class="symbol">NEX</div><div class="name">Nexus</div></div>
+            <div class="net-card" id="net-ink" onclick="switchNetwork('ink')"><div class="symbol">INK</div><div class="name">Ink</div></div>
+            <div class="net-card" id="net-base" onclick="switchNetwork('base')"><div class="symbol">BASE</div><div class="name">Base</div></div>
+            <div class="net-card" id="net-robinhood" onclick="switchNetwork('robinhood')"><div class="symbol">HOOD</div><div class="name">Robinhood</div></div>
+            <div class="net-card" id="net-avax" onclick="switchNetwork('avax')"><div class="symbol">AVAX</div><div class="name">Avalanche</div></div>
+            <div class="net-card" id="net-plume" onclick="switchNetwork('plume')"><div class="symbol">PLUME</div><div class="name">Plume</div></div>
+            <div class="net-card" id="net-zetachain" onclick="switchNetwork('zetachain')"><div class="symbol">ZETA</div><div class="name">ZetaChain</div></div>
+        </div>
+    </div>
+
+    <div id="create-panel" class="panel" style="display:none;">
+        <p class="panel-title">Create a new NFT collection</p>
+
+        <div class="field">
+            <label>Collection name</label>
+            <input type="text" id="nft-name" placeholder="e.g. Cosmic Cats" maxlength="60">
+        </div>
+        <div class="field">
+            <label>Symbol</label>
+            <input type="text" id="nft-symbol" placeholder="e.g. CCAT" maxlength="10">
+        </div>
+        <div class="field">
+            <label>Description (optional)</label>
+            <textarea id="nft-description" placeholder="Tell people about this NFT..." rows="3" maxlength="500"></textarea>
+        </div>
+
+        <div class="field">
+            <label>Image source</label>
+            <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="img-source" value="url" checked onchange="toggleImageSource('url')"> Paste URL</label>
+                <label class="radio-option"><input type="radio" name="img-source" value="upload" onchange="toggleImageSource('upload')"> Upload file</label>
+            </div>
+            <input type="text" id="nft-image-url" placeholder="https://...">
+            <input type="file" id="nft-image-file" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;">
+            <img id="nft-image-preview" class="image-preview">
+        </div>
+
+        <div class="field">
+            <label>Total supply</label>
+            <input type="number" id="nft-supply" placeholder="e.g. 100" min="1">
+        </div>
+
+        <div class="field">
+            <label>Mint price</label>
+            <div class="radio-row">
+                <label class="radio-option"><input type="radio" name="price-type" value="free" checked onchange="togglePriceType('free')"> Free (network fee only)</label>
+                <label class="radio-option"><input type="radio" name="price-type" value="paid" onchange="togglePriceType('paid')"> Set a price</label>
+            </div>
+            <input type="number" id="nft-price" placeholder="Price in native coin (e.g. 0.01)" min="0" step="0.0001" style="display:none;">
+        </div>
+
+        <button class="action-btn" id="create-nft-btn" onclick="createCollection()">Create Collection</button>
+        <p class="status-msg" id="create-nft-status"></p>
+        <div id="share-link-box" style="display:none;" class="share-box"></div>
+    </div>
+
+    <div id="mycollections-panel" class="panel" style="display:none;">
+        <p class="panel-title">My collections</p>
+        <select class="token-select" id="collection-select" onchange="loadSelectedCollection()">
+            <option value="">Select a collection...</option>
+        </select>
+    </div>
+
+    <div id="manage-panel" class="panel" style="display:none;">
+        <p class="panel-title">Collection details</p>
+        <div class="nft-info-row"><span>Name</span><span id="nc-name">—</span></div>
+        <div class="nft-info-row"><span>Symbol</span><span id="nc-symbol">—</span></div>
+        <div class="nft-info-row"><span>Minted</span><span id="nc-minted">—</span></div>
+        <div class="nft-info-row"><span>Price</span><span id="nc-price">—</span></div>
+        <div class="share-box" id="nc-share-link"></div>
+        <button class="action-btn" style="margin-top:14px;" id="mint-nft-btn" onclick="mintFromManage()">Mint one</button>
+        <p class="status-msg" id="manage-nft-status"></p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+<script>
+    let provider, signer, account, factoryContract, collectionContract, currentNet, currentCollectionAddress;
+    let uploadedImageUrl = null;
+
+    const FACTORY_ADDRESSES = {
+        lamina1:   "0x569bc0BBda0ecB3963DDc13cd438Bbb8E5f25a01",
+        nexus:     "0x0B5d173155Ee7e40d9d568E07B21dff11d7aE2E8",
+        ink:       "0x2a126cd72e55c39150092f7D52fd5741999C27E8",
+        base:      "0x5f550fe601d9610B1D1977E5b3b5491347ED0418",
+        robinhood: "0x620145Db1914c1F9c327FA282BD95b9039647Bc6",
+        avax:      "",
+        plume:     "0xC37f520dd4926C1dA1e685F35bC0b675AeD8D842",
+        zetachain: "0x34ef20427aEf0C0D9de3aafEcb51a9851F876462"
+    };
+
+    const FACTORY_ABI = [
+        "function createCollection(string name, string symbol, uint256 maxSupply, uint256 mintPrice, string metadataURI) public returns (address)",
+        "function getMyCollections(address creator) public view returns (address[] memory)",
+        "event CollectionCreated(address indexed collectionAddress, address indexed creator, string name, string symbol, uint256 maxSupply, uint256 mintPrice)"
+    ];
+
+    const COLLECTION_ABI = [
+        "function name() public view returns (string)",
+        "function symbol() public view returns (string)",
+        "function maxSupply() public view returns (uint256)",
+        "function mintPrice() public view returns (uint256)",
+        "function totalMinted() public view returns (uint256)",
+        "function mint() public payable"
+    ];
+
+    const networks = {
+        lamina1:   { chainIdHex: "0x" + (10849).toString(16), chainName: "Lamina1",        rpcUrls: ["https://subnets.avax.network/lamina1/mainnet/rpc"], nativeCurrency: { name: "L1",  symbol: "L1",  decimals: 18 }, blockExplorerUrls: ["https://subnets.avax.network/lamina1"] },
+        nexus:     { chainIdHex: "0x" + (3946).toString(16),  chainName: "Nexus",           rpcUrls: ["https://mainnet.rpc.nexus.xyz"],                    nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 }, blockExplorerUrls: ["https://explorer.nexus.xyz"] },
+        ink:       { chainIdHex: "0x" + (57073).toString(16), chainName: "Ink",             rpcUrls: ["https://rpc-gel.inkonchain.com"],                   nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://explorer.inkonchain.com"] },
+        base:      { chainIdHex: "0x" + (8453).toString(16),  chainName: "Base",            rpcUrls: ["https://mainnet.base.org"],                        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://basescan.org"] },
+        robinhood: { chainIdHex: "0x" + (4663).toString(16),  chainName: "Robinhood Chain",  rpcUrls: ["https://rpc.mainnet.chain.robinhood.com"],          nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://robinhoodchain.blockscout.com"] },
+        avax:      { chainIdHex: "0x" + (43114).toString(16), chainName: "Avalanche",       rpcUrls: ["https://api.avax.network/ext/bc/C/rpc"],            nativeCurrency: { name: "AVAX", symbol: "AVAX", decimals: 18 }, blockExplorerUrls: ["https://snowtrace.io"] },
+        plume:     { chainIdHex: "0x" + (98866).toString(16), chainName: "Plume",           rpcUrls: ["https://rpc.plume.org"],                            nativeCurrency: { name: "PLUME", symbol: "PLUME", decimals: 18 }, blockExplorerUrls: ["https://explorer.plume.org"] },
+        zetachain: { chainIdHex: "0x" + (7000).toString(16),  chainName: "ZetaChain",       rpcUrls: ["https://zetachain-evm.blockpi.network/v1/rpc/public"], nativeCurrency: { name: "ZETA", symbol: "ZETA", decimals: 18 }, blockExplorerUrls: ["https://zetachain.blockscout.com"] }
+    };
+
+    const gasPricePercent = { lamina1: 100, nexus: 25, ink: 25, base: 15, robinhood: 100, avax: 25, plume: 25, zetachain: 100 };
+
+    async function getTxOverrides() {
+        const gasPriceHex = await provider.send("eth_gasPrice", []);
+        const networkGasPrice = BigInt(gasPriceHex);
+        const percent = BigInt(gasPricePercent[currentNet] ?? 25);
+        const gasPrice = networkGasPrice * percent / 100n;
+        const overrides = { gasPrice };
+        if (["lamina1", "plume", "avax"].includes(currentNet)) overrides.gasLimit = 600000;
+        return overrides;
+    }
+
+    function toggleImageSource(mode) {
+        document.getElementById("nft-image-url").style.display = mode === "url" ? "block" : "none";
+        document.getElementById("nft-image-file").style.display = mode === "upload" ? "block" : "none";
+        document.getElementById("nft-image-preview").style.display = "none";
+        uploadedImageUrl = null;
+    }
+
+    function togglePriceType(mode) {
+        document.getElementById("nft-price").style.display = mode === "paid" ? "block" : "none";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const fileInput = document.getElementById("nft-image-file");
+        if (fileInput) {
+            fileInput.addEventListener("change", async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const statusEl = document.getElementById("create-nft-status");
+                statusEl.innerText = "Uploading image...";
+                try {
+                    const formData = new FormData();
+                    formData.append("image", file);
+                    const res = await fetch("/api/nft/upload-image", { method: "POST", body: formData });
+                    const data = await res.json();
+                    if (res.ok && data.image_url) {
+                        uploadedImageUrl = data.image_url;
+                        const preview = document.getElementById("nft-image-preview");
+                        preview.src = data.image_url;
+                        preview.style.display = "block";
+                        statusEl.innerText = "Image uploaded ✅";
+                    } else {
+                        statusEl.innerText = data.error || "Upload failed.";
+                    }
+                } catch (err) {
+                    statusEl.innerText = "Upload failed: " + err.message;
+                }
+            });
+        }
+    });
+
+    async function connectWallet() {
+        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
+        try {
+            provider = new ethers.BrowserProvider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = await provider.getSigner();
+            account = await signer.getAddress();
+            document.getElementById("connect-section").style.display = "none";
+            document.getElementById("wallet-info").style.display = "block";
+            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+            document.getElementById("network-card").style.display = "block";
+        } catch (err) { alert("Connection failed: " + err.message); }
+    }
+
+    async function switchNetwork(net) {
+        if (!FACTORY_ADDRESSES[net]) {
+            alert("This network isn't available for Mint NFT yet.");
+            return;
+        }
+        const config = networks[net];
+        try {
+            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
+            currentNet = net;
+            Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
+            document.getElementById("net-"+net).classList.add("active");
+            provider = new ethers.BrowserProvider(window.ethereum);
+            signer = await provider.getSigner();
+            account = await signer.getAddress();
+            factoryContract = new ethers.Contract(FACTORY_ADDRESSES[net], FACTORY_ABI, signer);
+            document.getElementById("create-panel").style.display = "block";
+            document.getElementById("mycollections-panel").style.display = "block";
+            document.getElementById("manage-panel").style.display = "none";
+            document.getElementById("create-nft-status").innerText = "";
+            document.getElementById("share-link-box").style.display = "none";
+            await loadMyCollections();
+            await maybeLoadFromUrl();
+        } catch (err) { alert("Network switch failed: " + err.message); }
+    }
+
+    async function createCollection() {
+        const name = document.getElementById("nft-name").value.trim();
+        const symbol = document.getElementById("nft-symbol").value.trim();
+        const description = document.getElementById("nft-description").value.trim();
+        const supply = document.getElementById("nft-supply").value.trim();
+        const priceType = document.querySelector('input[name="price-type"]:checked').value;
+        const priceInput = document.getElementById("nft-price").value.trim();
+        const imgSource = document.querySelector('input[name="img-source"]:checked').value;
+        const imgUrl = imgSource === "url" ? document.getElementById("nft-image-url").value.trim() : uploadedImageUrl;
+
+        const statusEl = document.getElementById("create-nft-status");
+
+        if (!name || !symbol || !supply || Number(supply) <= 0) {
+            statusEl.innerText = "Please fill all fields correctly.";
+            return;
+        }
+        if (!imgUrl) {
+            statusEl.innerText = "Please provide an image (URL or upload).";
+            return;
+        }
+        if (priceType === "paid" && (!priceInput || Number(priceInput) < 0)) {
+            statusEl.innerText = "Please enter a valid price.";
+            return;
+        }
+
+        const btn = document.getElementById("create-nft-btn");
+        btn.disabled = true;
+        statusEl.innerText = "Preparing metadata...";
+
+        try {
+            const metaRes = await fetch("/api/nft/create-metadata", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, description, image_url: imgUrl })
+            });
+            const metaData = await metaRes.json();
+            if (!metaRes.ok || !metaData.metadata_url) {
+                statusEl.innerText = metaData.error || "Failed to create metadata.";
+                btn.disabled = false;
+                return;
+            }
+
+            statusEl.innerText = "Sending transaction...";
+            const overrides = await getTxOverrides();
+            const priceWei = priceType === "paid" ? ethers.parseEther(priceInput) : 0n;
+            const tx = await factoryContract.createCollection(name, symbol, BigInt(supply), priceWei, metaData.metadata_url, overrides);
+            statusEl.innerText = "Confirming...";
+            const receipt = await tx.wait();
+
+            let newCollectionAddress = null;
+            for (const log of receipt.logs) {
+                try {
+                    const parsed = factoryContract.interface.parseLog(log);
+                    if (parsed && parsed.name === "CollectionCreated") {
+                        newCollectionAddress = parsed.args.collectionAddress;
+                        break;
+                    }
+                } catch (e) {}
+            }
+
+            statusEl.innerText = "Collection created ✅";
+            document.getElementById("nft-name").value = "";
+            document.getElementById("nft-symbol").value = "";
+            document.getElementById("nft-description").value = "";
+            document.getElementById("nft-supply").value = "";
+            document.getElementById("nft-price").value = "";
+            document.getElementById("nft-image-url").value = "";
+            document.getElementById("nft-image-preview").style.display = "none";
+            uploadedImageUrl = null;
+
+            if (newCollectionAddress) {
+                const shareUrl = window.location.origin + "/mint-nft?net=" + currentNet + "&collection=" + newCollectionAddress;
+                const shareBox = document.getElementById("share-link-box");
+                shareBox.innerText = "Share this link so others can mint: " + shareUrl;
+                shareBox.style.display = "block";
+            }
+
+            await loadMyCollections();
+        } catch (err) {
+            statusEl.innerText = "Failed: " + (err.reason || err.message || "unknown error");
+        }
+        btn.disabled = false;
+    }
+
+    async function loadMyCollections() {
+        try {
+            const collections = await factoryContract.getMyCollections(account);
+            const select = document.getElementById("collection-select");
+            select.innerHTML = '<option value="">Select a collection...</option>';
+            for (const addr of collections) {
+                try {
+                    const c = new ethers.Contract(addr, COLLECTION_ABI, provider);
+                    const sym = await c.symbol();
+                    const opt = document.createElement("option");
+                    opt.value = addr;
+                    opt.innerText = sym + " (" + addr.slice(0,6) + "..." + addr.slice(-4) + ")";
+                    select.appendChild(opt);
+                } catch (e) {}
+            }
+        } catch (err) { console.log(err); }
+    }
+
+    async function loadSelectedCollection() {
+        const addr = document.getElementById("collection-select").value;
+        if (!addr) {
+            document.getElementById("manage-panel").style.display = "none";
+            return;
+        }
+        await loadCollectionDetails(addr);
+    }
+
+    async function loadCollectionDetails(addr) {
+        currentCollectionAddress = addr;
+        collectionContract = new ethers.Contract(addr, COLLECTION_ABI, signer);
+        try {
+            const [name, symbol, maxSupply, mintPrice, totalMinted] = await Promise.all([
+                collectionContract.name(),
+                collectionContract.symbol(),
+                collectionContract.maxSupply(),
+                collectionContract.mintPrice(),
+                collectionContract.totalMinted()
+            ]);
+            document.getElementById("nc-name").innerText = name;
+            document.getElementById("nc-symbol").innerText = symbol;
+            document.getElementById("nc-minted").innerText = totalMinted.toString() + " / " + maxSupply.toString();
+            document.getElementById("nc-price").innerText = mintPrice === 0n ? "Free" : ethers.formatEther(mintPrice) + " " + networks[currentNet].nativeCurrency.symbol;
+
+            const shareUrl = window.location.origin + "/mint-nft?net=" + currentNet + "&collection=" + addr;
+            document.getElementById("nc-share-link").innerText = "Share link: " + shareUrl;
+
+            const mintBtn = document.getElementById("mint-nft-btn");
+            mintBtn.disabled = Number(totalMinted) >= Number(maxSupply);
+            mintBtn.innerText = Number(totalMinted) >= Number(maxSupply) ? "Sold out" : "Mint one";
+
+            document.getElementById("manage-panel").style.display = "block";
+            document.getElementById("manage-nft-status").innerText = "";
+        } catch (err) {
+            document.getElementById("manage-nft-status").innerText = "Failed to load collection info.";
+        }
+    }
+
+    async function mintFromManage() {
+        if (!collectionContract) return;
+        const btn = document.getElementById("mint-nft-btn");
+        const statusEl = document.getElementById("manage-nft-status");
+        btn.disabled = true;
+        statusEl.innerText = "Sending...";
+        try {
+            const mintPrice = await collectionContract.mintPrice();
+            const overrides = await getTxOverrides();
+            overrides.value = mintPrice;
+            const tx = await collectionContract.mint(overrides);
+            statusEl.innerText = "Confirming...";
+            await tx.wait();
+            statusEl.innerText = "Minted ✅";
+            await loadCollectionDetails(currentCollectionAddress);
+        } catch (err) {
+            statusEl.innerText = "Failed: " + (err.reason || err.message || "unknown error");
+            btn.disabled = false;
+        }
+    }
+
+    async function maybeLoadFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const collectionParam = params.get("collection");
+        if (collectionParam && ethers.isAddress(collectionParam)) {
+            await loadCollectionDetails(collectionParam);
+        }
+    }
+</script>
+{% endblock %}
