@@ -53,6 +53,13 @@ def init_db():
             is_read INTEGER NOT NULL DEFAULT 0
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS short_links (
+            code TEXT PRIMARY KEY,
+            target_url TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
     conn.commit()
     conn.close()
 
@@ -209,7 +216,8 @@ def upload_nft_image():
     filepath = os.path.join(UPLOAD_DIR, unique_name)
     file.save(filepath)
 
-    image_url = request.host_url.rstrip("/") + "/nft-image/" + unique_name
+    scheme = "https" if request.headers.get("X-Forwarded-Proto", "http") == "https" else request.scheme
+    image_url = f"{scheme}://{request.host}/nft-image/{unique_name}"
     return jsonify({"image_url": image_url})
 
 @app.route("/b20")
@@ -249,7 +257,8 @@ def create_nft_metadata():
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(metadata, f)
 
-    metadata_url = request.host_url.rstrip("/") + "/nft-metadata/" + unique_name
+    scheme2 = "https" if request.headers.get("X-Forwarded-Proto", "http") == "https" else request.scheme
+    metadata_url = f"{scheme2}://{request.host}/nft-metadata/{unique_name}"
     return jsonify({"metadata_url": metadata_url})
 
 @app.route("/nft-metadata/<filename>")
@@ -261,6 +270,38 @@ def serve_nft_metadata(filename):
     with open(filepath, "r", encoding="utf-8") as f:
         data = f.read()
     return app.response_class(data, mimetype="application/json")
+
+@app.route("/api/shorten", methods=["POST"])
+@limiter.limit("30 per hour")
+def api_shorten():
+    data = request.get_json(silent=True) or {}
+    target_url = (data.get("url") or "").strip()
+    if not target_url or len(target_url) > 2000:
+        return jsonify({"error": "Invalid URL"}), 400
+    if not (target_url.startswith("http://") or target_url.startswith("https://")):
+        return jsonify({"error": "Invalid URL"}), 400
+
+    code = uuid.uuid4().hex[:8]
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO short_links (code, target_url, created_at) VALUES (?, ?, ?)",
+        (code, target_url, datetime.datetime.utcnow().isoformat())
+    )
+    conn.commit()
+    conn.close()
+
+    scheme = "https" if request.headers.get("X-Forwarded-Proto", "http") == "https" else request.scheme
+    short_url = f"{scheme}://{request.host}/s/{code}"
+    return jsonify({"short_url": short_url})
+
+@app.route("/s/<code>")
+def resolve_short_link(code):
+    conn = get_db()
+    row = conn.execute("SELECT target_url FROM short_links WHERE code = ?", (code,)).fetchone()
+    conn.close()
+    if not row:
+        abort(404)
+    return redirect(row["target_url"])
 
 @app.route("/api/contact", methods=["POST"])
 @limiter.limit("10 per hour")

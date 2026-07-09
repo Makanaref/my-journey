@@ -471,10 +471,25 @@
             uploadedImageUrl = null;
 
             if (newCollectionAddress) {
-                const shareUrl = window.location.origin + "/mint-nft?net=" + currentNet + "&collection=" + newCollectionAddress + "&meta=" + encodeURIComponent(metaData.metadata_url);
+                const fullUrl = window.location.origin + "/mint-nft?net=" + currentNet + "&collection=" + newCollectionAddress + "&meta=" + encodeURIComponent(metaData.metadata_url);
                 const shareBox = document.getElementById("share-link-box");
-                shareBox.innerText = "Share this link so others can mint: " + shareUrl;
+                shareBox.innerText = "Preparing share link...";
                 shareBox.style.display = "block";
+                try {
+                    const shortRes = await fetch("/api/shorten", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ url: fullUrl })
+                    });
+                    const shortData = await shortRes.json();
+                    if (shortRes.ok && shortData.short_url) {
+                        shareBox.innerText = "Share this link so others can mint: " + shortData.short_url;
+                    } else {
+                        shareBox.innerText = "Share this link so others can mint: " + fullUrl;
+                    }
+                } catch (e) {
+                    shareBox.innerText = "Share this link so others can mint: " + fullUrl;
+                }
             }
 
             await loadMyCollections();
