@@ -126,6 +126,9 @@ def mint():
 @app.route("/flip")
 def flip():
     return render_template("flip.html")
+@app.route("/mint-nft")
+def mint_nft():
+    return render_template("mint_nft.html")
 @app.route("/gm")
 def gm():
     return render_template("gm.html")
@@ -208,6 +211,10 @@ def upload_nft_image():
 
     image_url = request.host_url.rstrip("/") + "/nft-image/" + unique_name
     return jsonify({"image_url": image_url})
+
+@app.route("/b20")
+def b20():
+    return render_template("b20.html")
 
 @app.route("/nft-image/<filename>")
 def serve_nft_image(filename):
