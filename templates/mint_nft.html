@@ -53,8 +53,29 @@
         font-size: 0.9em; box-sizing: border-box; font-family: inherit;
     }
     .field input:focus, .field textarea:focus { outline: none; border-color: rgba(126,200,227,0.5); }
-    .radio-row { display: flex; gap: 14px; margin-bottom: 14px; }
-    .radio-option { display: flex; align-items: center; gap: 6px; font-size: 0.85em; color: #ccc; cursor: pointer; }
+    .toggle-row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .toggle-option {
+        flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+        padding: 11px 10px; border-radius: 10px; font-size: 0.82em; color: #999;
+        background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08);
+        cursor: pointer; transition: all 0.2s ease;
+    }
+    .toggle-option input { display: none; }
+    .toggle-option.active {
+        color: #0f1420; background: #7ec8e3; border-color: #7ec8e3; font-weight: 700;
+    }
+    .toggle-option:hover:not(.active) { border-color: rgba(126,200,227,0.4); color: #ccc; }
+    .upload-zone {
+        border: 1.5px dashed rgba(126,200,227,0.3); border-radius: 12px;
+        padding: 24px 16px; text-align: center; cursor: pointer;
+        transition: border-color 0.2s ease, background 0.2s ease; position: relative;
+    }
+    .upload-zone:hover { border-color: rgba(126,200,227,0.6); background: rgba(126,200,227,0.03); }
+    .upload-zone input[type="file"] {
+        position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    }
+    .upload-zone-text { color: #7ec8e3; font-size: 0.85em; font-weight: 600; margin-top: 8px; }
+    .upload-zone-sub { color: rgba(255,255,255,0.35); font-size: 0.72em; margin-top: 4px; }
     .image-preview { width: 100%; max-width: 220px; border-radius: 10px; margin-top: 10px; display: none; }
     .action-btn {
         width: 100%; padding: 12px; border-radius: 8px; border: none;
@@ -73,9 +94,20 @@
     .nft-info-row span:first-child { color:#777; }
     .share-box {
         background: rgba(126,200,227,0.06); border: 1px solid rgba(126,200,227,0.25);
-        border-radius: 10px; padding: 12px; margin-top: 14px; font-size: 0.78em;
-        color: #9adcf2; word-break: break-all; text-align: left;
+        border-radius: 10px; padding: 14px; margin-top: 14px; font-size: 0.78em;
+        color: #ccc; text-align: left;
     }
+    .share-box a {
+        color: #7ec8e3; word-break: break-all; text-decoration: underline;
+        text-decoration-color: rgba(126,200,227,0.4);
+    }
+    .share-box a:hover { color: #9adcf2; }
+    .share-copy-btn {
+        margin-top: 10px; padding: 6px 14px; border-radius: 7px; font-size: 0.75em;
+        border: 1px solid rgba(126,200,227,0.3); background: rgba(126,200,227,0.08);
+        color: #7ec8e3; cursor: pointer; transition: background 0.2s ease;
+    }
+    .share-copy-btn:hover { background: rgba(126,200,227,0.18); }
 </style>
 
 <div class="nft-wrap">
@@ -129,12 +161,24 @@
 
         <div class="field">
             <label>Image source</label>
-            <div class="radio-row">
-                <label class="radio-option"><input type="radio" name="img-source" value="url" checked onchange="toggleImageSource('url')"> Paste URL</label>
-                <label class="radio-option"><input type="radio" name="img-source" value="upload" onchange="toggleImageSource('upload')"> Upload file</label>
+            <div class="toggle-row">
+                <label class="toggle-option active" id="opt-url" onclick="toggleImageSource('url')">
+                    <input type="radio" name="img-source" value="url" checked> 🔗 Paste URL
+                </label>
+                <label class="toggle-option" id="opt-upload" onclick="toggleImageSource('upload')">
+                    <input type="radio" name="img-source" value="upload"> 📁 Upload file
+                </label>
             </div>
             <input type="text" id="nft-image-url" placeholder="https://...">
-            <input type="file" id="nft-image-file" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;">
+            <label class="upload-zone" id="upload-zone" style="display:none;">
+                <input type="file" id="nft-image-file" accept="image/png,image/jpeg,image/gif,image/webp">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" style="margin:0 auto; display:block;">
+                    <path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke="#7ec8e3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="#7ec8e3" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+                <div class="upload-zone-text" id="upload-zone-label">Click to choose an image</div>
+                <div class="upload-zone-sub">PNG, JPG, GIF or WEBP</div>
+            </label>
             <img id="nft-image-preview" class="image-preview">
         </div>
 
@@ -145,9 +189,13 @@
 
         <div class="field">
             <label>Mint price</label>
-            <div class="radio-row">
-                <label class="radio-option"><input type="radio" name="price-type" value="free" checked onchange="togglePriceType('free')"> Free (network fee only)</label>
-                <label class="radio-option"><input type="radio" name="price-type" value="paid" onchange="togglePriceType('paid')"> Set a price</label>
+            <div class="toggle-row">
+                <label class="toggle-option active" id="opt-free" onclick="togglePriceType('free')">
+                    <input type="radio" name="price-type" value="free" checked> 🎁 Free
+                </label>
+                <label class="toggle-option" id="opt-paid" onclick="togglePriceType('paid')">
+                    <input type="radio" name="price-type" value="paid"> 💰 Set a price
+                </label>
             </div>
             <input type="number" id="nft-price" placeholder="Price in native coin (e.g. 0.01)" min="0" step="0.0001" style="display:none;">
         </div>
@@ -243,13 +291,17 @@
     }
 
     function toggleImageSource(mode) {
+        document.getElementById("opt-url").classList.toggle("active", mode === "url");
+        document.getElementById("opt-upload").classList.toggle("active", mode === "upload");
         document.getElementById("nft-image-url").style.display = mode === "url" ? "block" : "none";
-        document.getElementById("nft-image-file").style.display = mode === "upload" ? "block" : "none";
+        document.getElementById("upload-zone").style.display = mode === "upload" ? "block" : "none";
         document.getElementById("nft-image-preview").style.display = "none";
         uploadedImageUrl = null;
     }
 
     function togglePriceType(mode) {
+        document.getElementById("opt-free").classList.toggle("active", mode === "free");
+        document.getElementById("opt-paid").classList.toggle("active", mode === "paid");
         document.getElementById("nft-price").style.display = mode === "paid" ? "block" : "none";
     }
 
@@ -271,6 +323,7 @@
                         const preview = document.getElementById("nft-image-preview");
                         preview.src = data.image_url;
                         preview.style.display = "block";
+                        document.getElementById("upload-zone-label").innerText = file.name;
                         statusEl.innerText = "Image uploaded ✅";
                     } else {
                         statusEl.innerText = data.error || "Upload failed.";
@@ -400,6 +453,18 @@
         } catch (err) { alert("Network switch failed: " + err.message); }
     }
 
+    function renderShareBox(url) {
+        const shareBox = document.getElementById("share-link-box");
+        shareBox.innerHTML = 'Share this link so others can mint:<br><a href="' + url + '" target="_blank" rel="noopener">' + url + '</a><br><button class="share-copy-btn" onclick="copyShareLink(\'' + url + '\')">Copy link</button>';
+    }
+
+    function copyShareLink(url) {
+        navigator.clipboard.writeText(url).then(() => {
+            const btns = document.querySelectorAll(".share-copy-btn");
+            btns.forEach(b => { b.innerText = "Copied ✅"; setTimeout(() => { b.innerText = "Copy link"; }, 1500); });
+        });
+    }
+
     async function createCollection() {
         const name = document.getElementById("nft-name").value.trim();
         const symbol = document.getElementById("nft-symbol").value.trim();
@@ -483,13 +548,10 @@
                         body: JSON.stringify({ url: fullUrl })
                     });
                     const shortData = await shortRes.json();
-                    if (shortRes.ok && shortData.short_url) {
-                        shareBox.innerText = "Share this link so others can mint: " + shortData.short_url;
-                    } else {
-                        shareBox.innerText = "Share this link so others can mint: " + fullUrl;
-                    }
+                    const finalUrl = (shortRes.ok && shortData.short_url) ? shortData.short_url : fullUrl;
+                    renderShareBox(finalUrl);
                 } catch (e) {
-                    shareBox.innerText = "Share this link so others can mint: " + fullUrl;
+                    renderShareBox(fullUrl);
                 }
             }
 
