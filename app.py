@@ -383,7 +383,9 @@ def generic_page(page):
         except:
             abort(404)
     abort(404)
-
+@app.route("/networks")
+def networks():
+    return render_template("networks.html")
 @app.errorhandler(404)
 def not_found(e):
     return render_template("404.html"), 404
