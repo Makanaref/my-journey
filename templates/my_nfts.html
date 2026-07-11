@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block title %}My NFTs{% endblock %}
+{% block content %}
+<style>
+    .mynft-wrap { max-width: 900px; margin: 0 auto; padding: 50px 20px; text-align: center; }
+    .mynft-orb {
+        width: 84px; height: 84px; margin: 0 auto 20px;
+        border-radius: 50%; background: #1a1024;
+        border: 1px solid rgba(126,200,227,0.4);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .mynft-title { font-size: 2em; margin-bottom: 6px; letter-spacing: -0.5px; }
+    .mynft-sub { color: #777; font-size: 0.95em; margin-bottom: 28px; }
+    .wallet-pill {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+        padding: 9px 18px; border-radius: 30px; font-size: 0.85em; color: #bbb; font-family: monospace;
+    }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+    .scan-status { color: #999; font-size: 0.85em; margin: 20px 0; min-height: 20px; }
+    .nft-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 18px; margin-top: 24px; text-align: left;
+    }
+    .nft-card {
+        background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+        border: 1px solid rgba(255,255,255,0.09); border-radius: 14px; overflow: hidden;
+        transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .nft-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(126,200,227,0.4);
+        box-shadow: 0 12px 26px rgba(126,200,227,0.12);
+    }
+    .nft-card-image { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #0f1420; display: block; }
+    .nft-card-body { padding: 12px 14px 14px; }
+    .nft-card-name { font-weight: 700; color: #fff; font-size: 0.95em; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nft-card-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .nft-card-net {
+        font-size: 0.68em; color: #7ec8e3; background: rgba(126,200,227,0.1);
+        border: 1px solid rgba(126,200,227,0.25); border-radius: 999px; padding: 3px 9px;
+    }
+    .nft-card-badge {
+        font-size: 0.68em; color: #f7b32b; background: rgba(247,179,43,0.1);
+        border: 1px solid rgba(247,179,43,0.25); border-radius: 999px; padding: 3px 9px;
+    }
+    .nft-card-btn {
+        display: block; width: 100%; padding: 8px; border-radius: 8px; text-align: center;
+        background: rgba(126,200,227,0.08); border: 1px solid rgba(126,200,227,0.25);
+        color: #7ec8e3; font-size: 0.8em; font-weight: 600; text-decoration: none;
+        transition: background 0.2s ease;
+    }
+    .nft-card-btn:hover { background: rgba(126,200,227,0.18); }
+    .empty-state { color: #666; font-size: 0.9em; margin-top: 40px; }
+    .spinner {
+        width: 28px; height: 28px; margin: 0 auto 14px;
+        border: 2.5px solid rgba(126,200,227,0.2); border-top-color: #7ec8e3;
+        border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<div class="mynft-wrap">
+    <div class="mynft-orb">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="8" height="8" rx="2" stroke="#7ec8e3" stroke-width="1.5" fill="rgba(126,200,227,0.08)"/>
+            <rect x="13" y="3" width="8" height="8" rx="2" stroke="#7ec8e3" stroke-width="1.5" fill="rgba(126,200,227,0.08)"/>
+            <rect x="3" y="13" width="8" height="8" rx="2" stroke="#7ec8e3" stroke-width="1.5" fill="rgba(126,200,227,0.08)"/>
+            <rect x="13" y="13" width="8" height="8" rx="2" stroke="#7ec8e3" stroke-width="1.5" fill="rgba(126,200,227,0.08)"/>
+        </svg>
+    </div>
+    <h1 class="mynft-title">My NFTs</h1>
+    <p class="mynft-sub">Every NFT you've created or minted, across every network.</p>
+
+    <div id="connect-section">
+        <button class="btn" onclick="connectAndScan()" style="padding:12px 32px;">Connect wallet</button>
+    </div>
+
+    <div id="wallet-info" style="display:none;">
+        <span class="wallet-pill"><span class="dot"></span><span id="wallet-addr"></span></span>
+    </div>
+
+    <div id="scan-area" style="display:none;">
+        <div class="spinner" id="scan-spinner"></div>
+        <p class="scan-status" id="scan-status">Scanning networks...</p>
+        <div class="nft-grid" id="nft-grid"></div>
+        <p class="empty-state" id="empty-state" style="display:none;">No NFTs found yet. Go create or mint one!</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+<script>
+    const FACTORY_ADDRESSES = {
+        lamina1:   "0x569bc0BBda0ecB3963DDc13cd438Bbb8E5f25a01",
+        nexus:     "0x0B5d173155Ee7e40d9d568E07B21dff11d7aE2E8",
+        ink:       "0x2a126cd72e55c39150092f7D52fd5741999C27E8",
+        base:      "0x5f550fe601d9610B1D1977E5b3b5491347ED0418",
+        robinhood: "0x620145Db1914c1F9c327FA282BD95b9039647Bc6",
+        avax:      "",
+        plume:     "0xC37f520dd4926C1dA1e685F35bC0b675AeD8D842",
+        zetachain: "0x34ef20427aEf0C0D9de3aafEcb51a9851F876462"
+    };
+
+    const RPC_URLS = {
+        lamina1:   "https://subnets.avax.network/lamina1/mainnet/rpc",
+        nexus:     "https://mainnet.rpc.nexus.xyz",
+        ink:       "https://rpc-gel.inkonchain.com",
+        base:      "https://mainnet.base.org",
+        robinhood: "https://rpc.mainnet.chain.robinhood.com",
+        plume:     "https://rpc.plume.org",
+        zetachain: "https://zetachain-evm.blockpi.network/v1/rpc/public"
+    };
+
+    const NETWORK_LABELS = {
+        lamina1: "Lamina1", nexus: "Nexus", ink: "Ink", base: "Base",
+        robinhood: "Robinhood", avax: "Avalanche", plume: "Plume", zetachain: "ZetaChain"
+    };
+
+    const FACTORY_ABI = [
+        "event CollectionCreated(address indexed collectionAddress, address indexed creator, string name, string symbol, uint256 maxSupply, uint256 mintPrice)"
+    ];
+
+    const COLLECTION_ABI = [
+        "function name() public view returns (string)",
+        "function symbol() public view returns (string)",
+        "function balanceOf(address owner) public view returns (uint256)",
+        "function tokenURI(uint256 tokenId) public view returns (string)"
+    ];
+
+    async function connectAndScan() {
+        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
+        try {
+            const tempProvider = new ethers.BrowserProvider(window.ethereum);
+            await tempProvider.send("eth_requestAccounts", []);
+            const signer = await tempProvider.getSigner();
+            const account = await signer.getAddress();
+
+            document.getElementById("connect-section").style.display = "none";
+            document.getElementById("wallet-info").style.display = "block";
+            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+            document.getElementById("scan-area").style.display = "block";
+
+            await scanAllNetworks(account);
+        } catch (err) {
+            alert("Connection failed: " + err.message);
+        }
+    }
+
+    async function scanAllNetworks(account) {
+        const statusEl = document.getElementById("scan-status");
+        const spinnerEl = document.getElementById("scan-spinner");
+        const emptyEl = document.getElementById("empty-state");
+
+        const networkKeys = Object.keys(FACTORY_ADDRESSES).filter(k => FACTORY_ADDRESSES[k]);
+        let foundAny = false;
+        let completed = 0;
+
+        await Promise.all(networkKeys.map(async (netKey) => {
+            try {
+                statusEl.innerText = `Scanning ${NETWORK_LABELS[netKey]}... (${completed}/${networkKeys.length})`;
+                const provider = new ethers.JsonRpcProvider(RPC_URLS[netKey]);
+                const factory = new ethers.Contract(FACTORY_ADDRESSES[netKey], FACTORY_ABI, provider);
+
+                const events = await factory.queryFilter(factory.filters.CollectionCreated(), 0, "latest");
+
+                await Promise.all(events.map(async (ev) => {
+                    try {
+                        const collectionAddr = ev.args.collectionAddress;
+                        const creator = ev.args.creator;
+                        const collection = new ethers.Contract(collectionAddr, COLLECTION_ABI, provider);
+
+                        const balance = await collection.balanceOf(account);
+                        const isCreator = creator.toLowerCase() === account.toLowerCase();
+
+                        if (Number(balance) === 0 && !isCreator) return;
+
+                        let meta = { name: ev.args.name, image: "", description: "" };
+                        try {
+                            const uri = await collection.tokenURI(1);
+                            const metaRes = await fetch(uri);
+                            const metaJson = await metaRes.json();
+                            meta = { name: metaJson.name || ev.args.name, image: metaJson.image || "", description: metaJson.description || "" };
+                        } catch (e) {}
+
+                        foundAny = true;
+                        addNftCard({
+                            image: meta.image,
+                            name: meta.name,
+                            network: netKey,
+                            isCreator: isCreator,
+                            owned: Number(balance) > 0,
+                            collectionAddr: collectionAddr
+                        });
+                    } catch (e) {}
+                }));
+            } catch (e) {
+                console.log("Failed scanning " + netKey, e);
+            }
+            completed++;
+        }));
+
+        spinnerEl.style.display = "none";
+        statusEl.innerText = "";
+        if (!foundAny) emptyEl.style.display = "block";
+    }
+
+    function addNftCard(data) {
+        const gridEl = document.getElementById("nft-grid");
+        const card = document.createElement("div");
+        card.className = "nft-card";
+
+        const badge = data.isCreator ? '<span class="nft-card-badge">Created by you</span>' : "";
+        const imageHtml = data.image
+            ? `<img class="nft-card-image" src="${data.image}" loading="lazy">`
+            : `<div class="nft-card-image" style="display:flex;align-items:center;justify-content:center;color:#444;font-size:0.75em;">No image</div>`;
+
+        card.innerHTML = `
+            ${imageHtml}
+            <div class="nft-card-body">
+                <div class="nft-card-name">${escapeHtml(data.name)}</div>
+                <div class="nft-card-meta">
+                    <span class="nft-card-net">${NETWORK_LABELS[data.network]}</span>
+                    ${badge}
+                </div>
+                <a class="nft-card-btn" href="/mint-nft?net=${data.network}&collection=${data.collectionAddr}">View / Manage</a>
+            </div>
+        `;
+        gridEl.appendChild(card);
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement("div");
+        div.innerText = str || "Untitled";
+        return div.innerHTML;
+    }
+</script>
+{% endblock %}

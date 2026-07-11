@@ -136,6 +136,12 @@ def flip():
 @app.route("/mint-nft")
 def mint_nft():
     return render_template("mint_nft.html")
+@app.route("/my-nfts")
+def my_nfts():
+    return render_template("my_nfts.html")
+@app.route("/my-nfts")
+def my_nfts():
+    return render_template("my_nfts.html")
 @app.route("/gm")
 def gm():
     return render_template("gm.html")
