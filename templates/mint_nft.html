@@ -377,28 +377,32 @@
         document.getElementById("mint-view-panel").style.display = "block";
 
         let resolvedMetaUrl = metaUrl;
+        let debugMsg = "";
         if (!resolvedMetaUrl) {
             try {
                 const totalMintedForUri = await collectionContract.totalMinted();
+                debugMsg = "totalMinted=" + totalMintedForUri.toString() + " | ";
                 if (Number(totalMintedForUri) > 0) {
                     resolvedMetaUrl = await collectionContract.tokenURI(1);
+                    debugMsg += "tokenURI=" + resolvedMetaUrl + " | ";
                 }
             } catch (e) {
-                document.getElementById("mv-description").innerText = "DEBUG (totalMinted/tokenURI): " + e.message;
+                debugMsg += "ERROR(totalMinted/tokenURI): " + e.message + " | ";
             }
         }
 
         if (resolvedMetaUrl) {
             try {
                 const metaRes = await fetch(resolvedMetaUrl);
+                debugMsg += "fetchStatus=" + metaRes.status + " | ";
                 const meta = await metaRes.json();
                 document.getElementById("mv-image").src = meta.image || "";
-                document.getElementById("mv-description").innerText = meta.description || ("DEBUG url: " + resolvedMetaUrl);
+                document.getElementById("mv-description").innerText = meta.description || ("DEBUG: " + debugMsg);
             } catch (e) {
-                document.getElementById("mv-description").innerText = "DEBUG (fetch metadata): " + e.message + " | url: " + resolvedMetaUrl;
+                document.getElementById("mv-description").innerText = "DEBUG: " + debugMsg + "ERROR(fetch): " + e.message;
             }
         } else {
-            document.getElementById("mv-description").innerText = "DEBUG: resolvedMetaUrl is empty";
+            document.getElementById("mv-description").innerText = "DEBUG: " + debugMsg + "(resolvedMetaUrl still empty)";
         }
 
         try {
