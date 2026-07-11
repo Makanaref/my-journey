@@ -383,7 +383,9 @@
                 if (Number(totalMintedForUri) > 0) {
                     resolvedMetaUrl = await collectionContract.tokenURI(1);
                 }
-            } catch (e) {}
+            } catch (e) {
+                document.getElementById("mv-description").innerText = "DEBUG (totalMinted/tokenURI): " + e.message;
+            }
         }
 
         if (resolvedMetaUrl) {
@@ -391,8 +393,12 @@
                 const metaRes = await fetch(resolvedMetaUrl);
                 const meta = await metaRes.json();
                 document.getElementById("mv-image").src = meta.image || "";
-                document.getElementById("mv-description").innerText = meta.description || "";
-            } catch (e) {}
+                document.getElementById("mv-description").innerText = meta.description || ("DEBUG url: " + resolvedMetaUrl);
+            } catch (e) {
+                document.getElementById("mv-description").innerText = "DEBUG (fetch metadata): " + e.message + " | url: " + resolvedMetaUrl;
+            }
+        } else {
+            document.getElementById("mv-description").innerText = "DEBUG: resolvedMetaUrl is empty";
         }
 
         try {
