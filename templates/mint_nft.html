@@ -637,7 +637,9 @@
             document.getElementById("nc-minted").innerText = totalMinted.toString() + " / " + maxSupply.toString();
             document.getElementById("nc-price").innerText = mintPrice === 0n ? "Free" : ethers.formatEther(mintPrice) + " " + networks[currentNet].nativeCurrency.symbol;
 
-            const shareUrl = window.location.origin + "/mint-nft?net=" + currentNet + "&collection=" + addr;
+            let metaUri = "";
+            try { metaUri = await collectionContract.metadataURI(); } catch(e) {}
+            const shareUrl = window.location.origin + "/mint-nft?net=" + currentNet + "&collection=" + addr + (metaUri ? "&meta=" + encodeURIComponent(metaUri) : "");
             const ncShareBox = document.getElementById("nc-share-link");
             ncShareBox.innerHTML = ''
                 + '<div class="share-box-label">🔗 Mint link</div>'
