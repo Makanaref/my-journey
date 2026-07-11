@@ -233,6 +233,24 @@
         <div class="nft-info-row"><span>Price</span><span id="nc-price">—</span></div>
         <div class="share-box" id="nc-share-link"></div>
         <button class="action-btn" style="margin-top:14px;" id="mint-nft-btn" onclick="mintFromManage()">Mint one</button>
+        
+        <div style="margin-top:14px;">
+            <p class="section-label">Burn NFT</p>
+            <input type="number" id="burn-token-id" placeholder="Token ID to burn" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#0f1420;color:#fff;font-size:0.9em;box-sizing:border-box;margin-bottom:10px;">
+            <button class="action-btn" onclick="burnNFT()" style="background:rgba(233,69,96,0.3);color:#e94560;border:1px solid rgba(233,69,96,0.4);">Burn</button>
+            <p class="status-msg" id="burn-status"></p>
+        </div>
+
+        <div style="margin-top:14px;">
+            <p class="section-label">Send NFT</p>
+            <input type="number" id="send-token-id" placeholder="Token ID to send" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#0f1420;color:#fff;font-size:0.9em;box-sizing:border-box;margin-bottom:10px;">
+            <input type="text" id="send-to-address" placeholder="Recipient address (0x...)" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#0f1420;color:#fff;font-size:0.9em;box-sizing:border-box;font-family:monospace;margin-bottom:10px;">
+            <button class="action-btn" onclick="sendNFT()">Send</button>
+            <p class="status-msg" id="send-status"></p>
+        </div>
+
+        <p class="status-msg" id="manage-nft-status"></p>
+    </div>
         <p class="status-msg" id="manage-nft-status"></p>
         <div class="my-tokens-title">Your tokens in this collection</div>
         <div id="my-tokens-list"><p style="color:#666;font-size:0.8em;">Select a collection to see your tokens.</p></div>
@@ -284,6 +302,8 @@
         "function totalMinted() public view returns (uint256)",
         "function metadataURI() public view returns (string)",
         "function mint() public payable",
+        "function burn(uint256 tokenId) public",
+        "function transferFrom(address from, address to, uint256 tokenId) public"
         "function tokenURI(uint256 tokenId) public view returns (string)"
     ,
         "function ownerOf(uint256 tokenId) public view returns (address)",
@@ -761,6 +781,45 @@
         await loadMyTokensInCollection(addr);
         } catch (err) {
             alert("Failed: " + (err.reason || err.message || "unknown error"));
+        }
+    }
+async function burnNFT() {
+        const tokenId = document.getElementById("burn-token-id").value;
+        if (!tokenId) { alert("Enter Token ID!"); return; }
+        const statusEl = document.getElementById("burn-status");
+        statusEl.innerText = "Burning...";
+        try {
+            const overrides = await getTxOverrides();
+            const tx = await collectionContract.burn(parseInt(tokenId), overrides);
+            statusEl.innerText = "Confirming...";
+            await tx.wait();
+            statusEl.innerText = "Burned ✅";
+            document.getElementById("burn-token-id").value = "";
+            await loadCollectionDetails(currentCollectionAddress);
+        } catch (err) {
+            const msg = err.reason || err.message || "";
+            statusEl.innerText = "Failed: " + msg;
+        }
+    }
+
+    async function sendNFT() {
+        const tokenId = document.getElementById("send-token-id").value;
+        const to = document.getElementById("send-to-address").value.trim();
+        if (!tokenId || !to) { alert("Fill all fields!"); return; }
+        const statusEl = document.getElementById("send-status");
+        statusEl.innerText = "Sending...";
+        try {
+            const overrides = await getTxOverrides();
+            const tx = await collectionContract.transferFrom(account, to, parseInt(tokenId), overrides);
+            statusEl.innerText = "Confirming...";
+            await tx.wait();
+            statusEl.innerText = "Sent ✅";
+            document.getElementById("send-token-id").value = "";
+            document.getElementById("send-to-address").value = "";
+            await loadCollectionDetails(currentCollectionAddress);
+        } catch (err) {
+            const msg = err.reason || err.message || "";
+            statusEl.innerText = "Failed: " + msg;
         }
     }
     </script>
