@@ -788,8 +788,9 @@ async function burnNFT() {
         const statusEl = document.getElementById("burn-status");
         statusEl.innerText = "Burning...";
         try {
+            const freshContract = new ethers.Contract(currentCollectionAddress, COLLECTION_ABI, signer);
             const overrides = await getTxOverrides();
-            const tx = await collectionContract.burn(parseInt(tokenId), overrides);
+            const tx = await freshContract.burn(parseInt(tokenId), overrides);
             statusEl.innerText = "Confirming...";
             await tx.wait();
             statusEl.innerText = "Burned ✅";
@@ -808,8 +809,9 @@ async function burnNFT() {
         const statusEl = document.getElementById("send-status");
         statusEl.innerText = "Sending...";
         try {
+            const freshContract = new ethers.Contract(currentCollectionAddress, COLLECTION_ABI, signer);
             const overrides = await getTxOverrides();
-            const tx = await collectionContract.transferFrom(account, to, parseInt(tokenId), overrides);
+            const tx = await freshContract.transferFrom(account, to, parseInt(tokenId), overrides);
             statusEl.innerText = "Confirming...";
             await tx.wait();
             statusEl.innerText = "Sent ✅";
