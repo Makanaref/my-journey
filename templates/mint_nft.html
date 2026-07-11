@@ -457,6 +457,7 @@
         btn.disabled = true;
         statusEl.innerText = "Sending...";
         try {
+            collectionContract = new ethers.Contract(currentCollectionAddress, COLLECTION_ABI, signer);
             const mintPrice = await collectionContract.mintPrice();
             const overrides = await getTxOverrides();
             overrides.value = mintPrice;
@@ -693,6 +694,7 @@
         btn.disabled = true;
         statusEl.innerText = "Sending...";
         try {
+            collectionContract = new ethers.Contract(currentCollectionAddress, COLLECTION_ABI, signer);
             const mintPrice = await collectionContract.mintPrice();
             const overrides = await getTxOverrides();
             overrides.value = mintPrice;
