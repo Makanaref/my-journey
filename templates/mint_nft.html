@@ -618,10 +618,11 @@
             document.getElementById("manage-panel").style.display = "none";
             return;
         }
-        await loadCollectionDetails(addr);
+        const urlParams = getUrlParams();
+        await loadCollectionDetails(addr, urlParams.meta);
     }
 
-    async function loadCollectionDetails(addr) {
+    async function loadCollectionDetails(addr, metaUrl) {
         currentCollectionAddress = addr;
         collectionContract = new ethers.Contract(addr, COLLECTION_ABI, signer);
         try {
@@ -637,8 +638,13 @@
             document.getElementById("nc-minted").innerText = totalMinted.toString() + " / " + maxSupply.toString();
             document.getElementById("nc-price").innerText = mintPrice === 0n ? "Free" : ethers.formatEther(mintPrice) + " " + networks[currentNet].nativeCurrency.symbol;
 
-            let metaUri = "";
-            try { metaUri = await collectionContract.metadataURI(); } catch(e) {}
+            let metaUri = metaUrl || "";
+            if (!metaUri) {
+                try { metaUri = await collectionContract.metadataURI(); } catch(e) {}
+            }
+            if (!metaUri) {
+                try { metaUri = await collectionContract.metadataURI(); } catch(e) {}
+            }
             const shareUrl = window.location.origin + "/mint-nft?net=" + currentNet + "&collection=" + addr + (metaUri ? "&meta=" + encodeURIComponent(metaUri) : "");
             const ncShareBox = document.getElementById("nc-share-link");
             ncShareBox.innerHTML = ''
