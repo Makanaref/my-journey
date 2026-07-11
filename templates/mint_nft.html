@@ -546,7 +546,7 @@
 
             statusEl.innerText = "Sending transaction...";
             const overrides = await getTxOverrides();
-            overrides.gasLimit = 2500000;
+            overrides.gasLimit = currentNet === 'lamina1' ? 5000000 : 2500000;
             const priceWei = priceType === "paid" ? ethers.parseEther(priceInput) : 0n;
             const tx = await factoryContract.createCollection(name, symbol, BigInt(supply), priceWei, metaData.metadata_url, overrides);
             statusEl.innerText = "Confirming...";
