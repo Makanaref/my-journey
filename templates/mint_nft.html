@@ -234,23 +234,24 @@
         <div class="share-box" id="nc-share-link"></div>
         <button class="action-btn" style="margin-top:14px;" id="mint-nft-btn" onclick="mintFromManage()">Mint one</button>
         
-        <div style="margin-top:14px;">
-            <p class="section-label">Burn NFT</p>
-            <p style="font-size:0.8em;color:#666;margin-bottom:10px;">How many tokens do you want to burn?</p>
-            <input type="number" id="burn-count" placeholder="e.g. 2" min="1" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#0f1420;color:#fff;font-size:0.9em;box-sizing:border-box;margin-bottom:10px;">
-            <button class="action-btn" onclick="burnMultiple()" style="background:rgba(233,69,96,0.3);color:#e94560;border:1px solid rgba(233,69,96,0.4);">Burn</button>
-            <p class="status-msg" id="burn-status"></p>
-        </div>
+        <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
 
-        <div style="margin-top:14px;">
-            <p class="section-label">Send NFT</p>
-            <p style="font-size:0.8em;color:#666;margin-bottom:10px;">How many tokens do you want to send?</p>
-            <input type="number" id="send-count" placeholder="e.g. 3" min="1" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#0f1420;color:#fff;font-size:0.9em;box-sizing:border-box;margin-bottom:10px;">
-            <input type="text" id="send-to-address" placeholder="Recipient address (0x...)" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#0f1420;color:#fff;font-size:0.9em;box-sizing:border-box;font-family:monospace;margin-bottom:10px;">
-            <button class="action-btn" onclick="sendMultiple()">Send</button>
-            <p class="status-msg" id="send-status"></p>
-        </div>
+            <div style="background:rgba(233,69,96,0.05); border:1px solid rgba(233,69,96,0.15); border-radius:12px; padding:16px;">
+                <p style="font-size:0.7em; color:#e94560; text-transform:uppercase; letter-spacing:1px; margin:0 0 12px;">🔥 Burn</p>
+                <input type="number" id="burn-count" placeholder="Count" min="1" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid rgba(233,69,96,0.2); background:#0f1420; color:#fff; font-size:0.88em; box-sizing:border-box; margin-bottom:10px;">
+                <button onclick="burnMultiple()" style="width:100%; padding:9px; border-radius:8px; border:1px solid rgba(233,69,96,0.4); background:rgba(233,69,96,0.15); color:#e94560; font-size:0.85em; font-weight:700; cursor:pointer;">Burn</button>
+                <p class="status-msg" id="burn-status" style="margin-top:8px; font-size:0.75em;"></p>
+            </div>
 
+            <div style="background:rgba(126,200,227,0.05); border:1px solid rgba(126,200,227,0.15); border-radius:12px; padding:16px;">
+                <p style="font-size:0.7em; color:#7ec8e3; text-transform:uppercase; letter-spacing:1px; margin:0 0 12px;">📤 Send</p>
+                <input type="number" id="send-count" placeholder="Count" min="1" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid rgba(126,200,227,0.2); background:#0f1420; color:#fff; font-size:0.88em; box-sizing:border-box; margin-bottom:8px;">
+                <input type="text" id="send-to-address" placeholder="0x..." style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid rgba(126,200,227,0.2); background:#0f1420; color:#fff; font-size:0.82em; box-sizing:border-box; font-family:monospace; margin-bottom:10px;">
+                <button onclick="sendMultiple()" style="width:100%; padding:9px; border-radius:8px; border:1px solid rgba(126,200,227,0.4); background:rgba(126,200,227,0.15); color:#7ec8e3; font-size:0.85em; font-weight:700; cursor:pointer;">Send</button>
+                <p class="status-msg" id="send-status" style="margin-top:8px; font-size:0.75em;"></p>
+            </div>
+
+        </div>
         <p class="status-msg" id="manage-nft-status"></p>
     </div>
         <p class="status-msg" id="manage-nft-status"></p>
