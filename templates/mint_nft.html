@@ -331,6 +331,7 @@
         const percent = BigInt(gasPricePercent[currentNet] ?? 25);
         const gasPrice = networkGasPrice * percent / 100n;
         const overrides = { gasPrice };
+        if (["plume", "avax"].includes(currentNet)) overrides.gasLimit = 800000;
         return overrides;
     }
 
