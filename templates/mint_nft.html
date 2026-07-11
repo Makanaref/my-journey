@@ -806,6 +806,8 @@ async function burnNFT() {
         const tokenId = document.getElementById("send-token-id").value;
         const to = document.getElementById("send-to-address").value.trim();
         if (!tokenId || !to) { alert("Fill all fields!"); return; }
+        if (!currentCollectionAddress) { alert("No collection selected!"); return; }
+        console.log("sendNFT → collection:", currentCollectionAddress, "tokenId:", tokenId, "to:", to);
         const statusEl = document.getElementById("send-status");
         statusEl.innerText = "Sending...";
         try {
