@@ -726,7 +726,9 @@
         listEl.innerHTML = "<p style='color:#666;font-size:0.8em;'>Loading your tokens...</p>";
         try {
             const c = new ethers.Contract(addr, COLLECTION_ABI, signer);
-            const events = await c.queryFilter(c.filters.Transfer(null, account), 0, "latest");
+            const latestBlock = await provider.getBlockNumber();
+const fromBlock = Math.max(0, latestBlock - 2000);
+const events = await c.queryFilter(c.filters.Transfer(null, account), fromBlock, "latest");
             const candidateIds = [...new Set(events.map(e => e.args.tokenId.toString()))];
             const owned = [];
             await Promise.all(candidateIds.map(async (id) => {
@@ -787,7 +789,9 @@
     }
 async function getMyTokenIds() {
     const c = new ethers.Contract(currentCollectionAddress, COLLECTION_ABI, signer);
-    const events = await c.queryFilter(c.filters.Transfer(null, account), 0, "latest");
+    const latestBlock = await provider.getBlockNumber();
+    const fromBlock = Math.max(0, latestBlock - 2000);
+    const events = await c.queryFilter(c.filters.Transfer(null, account), fromBlock, "latest");
     const candidateIds = [...new Set(events.map(e => e.args.tokenId.toString()))];
     const owned = [];
     await Promise.all(candidateIds.map(async (id) => {
