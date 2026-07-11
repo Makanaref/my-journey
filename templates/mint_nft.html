@@ -236,16 +236,18 @@
         
         <div style="margin-top:14px;">
             <p class="section-label">Burn NFT</p>
-            <input type="number" id="burn-token-id" placeholder="Token ID to burn" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#0f1420;color:#fff;font-size:0.9em;box-sizing:border-box;margin-bottom:10px;">
-            <button class="action-btn" onclick="burnNFT()" style="background:rgba(233,69,96,0.3);color:#e94560;border:1px solid rgba(233,69,96,0.4);">Burn</button>
+            <p style="font-size:0.8em;color:#666;margin-bottom:10px;">How many tokens do you want to burn?</p>
+            <input type="number" id="burn-count" placeholder="e.g. 2" min="1" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#0f1420;color:#fff;font-size:0.9em;box-sizing:border-box;margin-bottom:10px;">
+            <button class="action-btn" onclick="burnMultiple()" style="background:rgba(233,69,96,0.3);color:#e94560;border:1px solid rgba(233,69,96,0.4);">Burn</button>
             <p class="status-msg" id="burn-status"></p>
         </div>
 
         <div style="margin-top:14px;">
             <p class="section-label">Send NFT</p>
-            <input type="number" id="send-token-id" placeholder="Token ID to send" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#0f1420;color:#fff;font-size:0.9em;box-sizing:border-box;margin-bottom:10px;">
+            <p style="font-size:0.8em;color:#666;margin-bottom:10px;">How many tokens do you want to send?</p>
+            <input type="number" id="send-count" placeholder="e.g. 3" min="1" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#0f1420;color:#fff;font-size:0.9em;box-sizing:border-box;margin-bottom:10px;">
             <input type="text" id="send-to-address" placeholder="Recipient address (0x...)" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#0f1420;color:#fff;font-size:0.9em;box-sizing:border-box;font-family:monospace;margin-bottom:10px;">
-            <button class="action-btn" onclick="sendNFT()">Send</button>
+            <button class="action-btn" onclick="sendMultiple()">Send</button>
             <p class="status-msg" id="send-status"></p>
         </div>
 
@@ -782,48 +784,73 @@
             alert("Failed: " + (err.reason || err.message || "unknown error"));
         }
     }
-async function burnNFT() {
-        const tokenId = document.getElementById("burn-token-id").value;
-        if (!tokenId) { alert("Enter Token ID!"); return; }
-        const statusEl = document.getElementById("burn-status");
-        statusEl.innerText = "Burning...";
+async function getMyTokenIds() {
+    const c = new ethers.Contract(currentCollectionAddress, COLLECTION_ABI, signer);
+    const events = await c.queryFilter(c.filters.Transfer(null, account), 0, "latest");
+    const candidateIds = [...new Set(events.map(e => e.args.tokenId.toString()))];
+    const owned = [];
+    await Promise.all(candidateIds.map(async (id) => {
         try {
-            const freshContract = new ethers.Contract(currentCollectionAddress, COLLECTION_ABI, signer);
-            const overrides = await getTxOverrides();
-            const tx = await freshContract.burn(parseInt(tokenId), overrides);
-            statusEl.innerText = "Confirming...";
-            await tx.wait();
-            statusEl.innerText = "Burned ✅";
-            document.getElementById("burn-token-id").value = "";
-            await loadCollectionDetails(currentCollectionAddress);
-        } catch (err) {
-            const msg = err.reason || err.message || "";
-            statusEl.innerText = "Failed: " + msg;
-        }
-    }
+            const owner = await c.ownerOf(id);
+            if (owner.toLowerCase() === account.toLowerCase()) owned.push(id);
+        } catch (e) {}
+    }));
+    owned.sort((a, b) => Number(a) - Number(b));
+    return owned;
+}
 
-    async function sendNFT() {
-        const tokenId = document.getElementById("send-token-id").value;
-        const to = document.getElementById("send-to-address").value.trim();
-        if (!tokenId || !to) { alert("Fill all fields!"); return; }
-        if (!currentCollectionAddress) { alert("No collection selected!"); return; }
-        console.log("sendNFT → collection:", currentCollectionAddress, "tokenId:", tokenId, "to:", to);
-        const statusEl = document.getElementById("send-status");
-        statusEl.innerText = "Sending...";
-        try {
-            const freshContract = new ethers.Contract(currentCollectionAddress, COLLECTION_ABI, signer);
+async function burnMultiple() {
+    const count = parseInt(document.getElementById("burn-count").value);
+    if (!count || count < 1) { alert("Enter a valid number!"); return; }
+    const statusEl = document.getElementById("burn-status");
+    statusEl.innerText = "Loading your tokens...";
+    try {
+        const owned = await getMyTokenIds();
+        if (owned.length === 0) { statusEl.innerText = "You don't own any tokens!"; return; }
+        if (count > owned.length) { statusEl.innerText = "You only own " + owned.length + " token(s)!"; return; }
+        if (!confirm("Burn " + count + " token(s)? This is permanent!")) return;
+        const toBurn = owned.slice(0, count);
+        const freshContract = new ethers.Contract(currentCollectionAddress, COLLECTION_ABI, signer);
+        for (let i = 0; i < toBurn.length; i++) {
+            statusEl.innerText = "Burning " + (i+1) + " of " + toBurn.length + "...";
             const overrides = await getTxOverrides();
-            const tx = await freshContract.transferFrom(account, to, parseInt(tokenId), overrides);
-            statusEl.innerText = "Confirming...";
+            const tx = await freshContract.burn(parseInt(toBurn[i]), overrides);
             await tx.wait();
-            statusEl.innerText = "Sent ✅";
-            document.getElementById("send-token-id").value = "";
-            document.getElementById("send-to-address").value = "";
-            await loadCollectionDetails(currentCollectionAddress);
-        } catch (err) {
-            const msg = err.reason || err.message || "";
-            statusEl.innerText = "Failed: " + msg;
         }
+        statusEl.innerText = "Burned " + count + " token(s) ✅";
+        document.getElementById("burn-count").value = "";
+        await loadCollectionDetails(currentCollectionAddress);
+    } catch (err) {
+        statusEl.innerText = "Failed: " + (err.reason || err.message || "unknown error");
     }
+}
+
+async function sendMultiple() {
+    const count = parseInt(document.getElementById("send-count").value);
+    const to = document.getElementById("send-to-address").value.trim();
+    if (!count || count < 1 || !to) { alert("Fill all fields!"); return; }
+    if (!ethers.isAddress(to)) { alert("Invalid address!"); return; }
+    const statusEl = document.getElementById("send-status");
+    statusEl.innerText = "Loading your tokens...";
+    try {
+        const owned = await getMyTokenIds();
+        if (owned.length === 0) { statusEl.innerText = "You don't own any tokens!"; return; }
+        if (count > owned.length) { statusEl.innerText = "You only own " + owned.length + " token(s)!"; return; }
+        const toSend = owned.slice(0, count);
+        const freshContract = new ethers.Contract(currentCollectionAddress, COLLECTION_ABI, signer);
+        for (let i = 0; i < toSend.length; i++) {
+            statusEl.innerText = "Sending " + (i+1) + " of " + toSend.length + "...";
+            const overrides = await getTxOverrides();
+            const tx = await freshContract.transferFrom(account, to, parseInt(toSend[i]), overrides);
+            await tx.wait();
+        }
+        statusEl.innerText = "Sent " + count + " token(s) ✅";
+        document.getElementById("send-count").value = "";
+        document.getElementById("send-to-address").value = "";
+        await loadCollectionDetails(currentCollectionAddress);
+    } catch (err) {
+        statusEl.innerText = "Failed: " + (err.reason || err.message || "unknown error");
+    }
+}
     </script>
 {% endblock %}
