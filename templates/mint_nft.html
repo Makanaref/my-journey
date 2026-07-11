@@ -376,9 +376,19 @@
         document.getElementById("manage-panel").style.display = "none";
         document.getElementById("mint-view-panel").style.display = "block";
 
-        if (metaUrl) {
+        let resolvedMetaUrl = metaUrl;
+        if (!resolvedMetaUrl) {
             try {
-                const metaRes = await fetch(metaUrl);
+                const totalMintedForUri = await collectionContract.totalMinted();
+                if (Number(totalMintedForUri) > 0) {
+                    resolvedMetaUrl = await collectionContract.tokenURI(1);
+                }
+            } catch (e) {}
+        }
+
+        if (resolvedMetaUrl) {
+            try {
+                const metaRes = await fetch(resolvedMetaUrl);
                 const meta = await metaRes.json();
                 document.getElementById("mv-image").src = meta.image || "";
                 document.getElementById("mv-description").innerText = meta.description || "";

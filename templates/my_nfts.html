@@ -124,7 +124,8 @@
         "function name() public view returns (string)",
         "function symbol() public view returns (string)",
         "function balanceOf(address owner) public view returns (uint256)",
-        "function tokenURI(uint256 tokenId) public view returns (string)"
+        "function tokenURI(uint256 tokenId) public view returns (string)",
+        "function totalMinted() public view returns (uint256)"
     ];
 
     async function connectAndScan() {
@@ -176,10 +177,13 @@
 
                         let meta = { name: ev.args.name, image: "", description: "" };
                         try {
-                            const uri = await collection.tokenURI(1);
-                            const metaRes = await fetch(uri);
-                            const metaJson = await metaRes.json();
-                            meta = { name: metaJson.name || ev.args.name, image: metaJson.image || "", description: metaJson.description || "" };
+                            const totalMinted = await collection.totalMinted();
+                            if (Number(totalMinted) > 0) {
+                                const uri = await collection.tokenURI(1);
+                                const metaRes = await fetch(uri);
+                                const metaJson = await metaRes.json();
+                                meta = { name: metaJson.name || ev.args.name, image: metaJson.image || "", description: metaJson.description || "" };
+                            }
                         } catch (e) {}
 
                         foundAny = true;
