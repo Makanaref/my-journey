@@ -112,7 +112,16 @@
         background: #7ec8e3; color: #0f1420; transform: translateY(-1px);
         box-shadow: 0 6px 16px rgba(126,200,227,0.25);
     }
-</style>
+
+    .my-tokens-title { font-size:0.78em; color:#999; margin:18px 0 10px; letter-spacing:0.5px; border-top:1px solid rgba(255,255,255,0.06); padding-top:14px; }
+    .token-row { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-radius:8px; background:rgba(255,255,255,0.02); margin-bottom:6px; }
+    .token-id { font-family:monospace; color:#ccc; font-size:0.85em; }
+    .token-actions { display:flex; gap:6px; }
+    .token-btn { padding:5px 12px; border-radius:6px; font-size:0.75em; font-weight:600; border:1px solid rgba(126,200,227,0.3); background:rgba(126,200,227,0.08); color:#7ec8e3; cursor:pointer; transition:background 0.2s ease; }
+    .token-btn:hover { background:rgba(126,200,227,0.18); }
+    .token-btn-danger { border-color:rgba(233,69,96,0.3); background:rgba(233,69,96,0.08); color:#e94560; }
+    .token-btn-danger:hover { background:rgba(233,69,96,0.18); }
+    </style>
 
 <div class="nft-wrap">
     <div class="nft-orb">
@@ -225,6 +234,8 @@
         <div class="share-box" id="nc-share-link"></div>
         <button class="action-btn" style="margin-top:14px;" id="mint-nft-btn" onclick="mintFromManage()">Mint one</button>
         <p class="status-msg" id="manage-nft-status"></p>
+        <div class="my-tokens-title">Your tokens in this collection</div>
+        <div id="my-tokens-list"><p style="color:#666;font-size:0.8em;">Select a collection to see your tokens.</p></div>
     </div>
     <div id="mint-view-panel" class="panel" style="display:none; text-align:center;">
         <img id="mv-image" style="width:100%; max-width:280px; border-radius:14px; margin-bottom:16px;">
@@ -245,15 +256,18 @@
     let provider, signer, account, factoryContract, collectionContract, currentNet, currentCollectionAddress;
     let uploadedImageUrl = null;
 
+    // Base and Robinhood still run the OLD contract (no burn() function) until redeployed.
+    const OLD_FACTORY_NETWORKS = ["base", "robinhood"];
+
     const FACTORY_ADDRESSES = {
-        lamina1:   "0x569bc0BBda0ecB3963DDc13cd438Bbb8E5f25a01",
-        nexus:     "0x0B5d173155Ee7e40d9d568E07B21dff11d7aE2E8",
-        ink:       "0x2a126cd72e55c39150092f7D52fd5741999C27E8",
+        lamina1:   "0x5A923cC58951F731307C73bE6b004503c8c8e17f",
+        nexus:     "0x802BeAeC89A61a5e0da9EE05476AC45E40daE13c",
+        ink:       "0x1eFfd154CB7adae114F36Af6101a7559c6a98f3F",
         base:      "0x5f550fe601d9610B1D1977E5b3b5491347ED0418",
         robinhood: "0x620145Db1914c1F9c327FA282BD95b9039647Bc6",
-        avax:      "",
-        plume:     "0xC37f520dd4926C1dA1e685F35bC0b675AeD8D842",
-        zetachain: "0x34ef20427aEf0C0D9de3aafEcb51a9851F876462"
+        avax:      "0x01d85BF4fb62c2Ba5746e4BC9821E6a7E05d68f4",
+        plume:     "0x9791cDBf9a6AF15C313B49d80299769fB8Bd608D",
+        zetachain: "0xF988CAc77e456e915aFbDC22BBc8c114fbd4Cd96"
     };
 
     const FACTORY_ABI = [
@@ -271,6 +285,11 @@
         "function metadataURI() public view returns (string)",
         "function mint() public payable",
         "function tokenURI(uint256 tokenId) public view returns (string)"
+    ,
+        "function ownerOf(uint256 tokenId) public view returns (address)",
+        "function transferFrom(address from, address to, uint256 tokenId) public",
+        "function burn(uint256 tokenId) public",
+        "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)"
     ];
 
     const networks = {
@@ -378,34 +397,20 @@
         document.getElementById("manage-panel").style.display = "none";
         document.getElementById("mint-view-panel").style.display = "block";
 
-        let debugMsg = "";
         let resolvedMetaUrl = metaUrl;
         if (!resolvedMetaUrl) {
             try {
                 resolvedMetaUrl = await collectionContract.metadataURI();
             } catch(e) {}
         }
-        if (!resolvedMetaUrl) {
-            try {
-                const total = await collectionContract.totalMinted();
-                if (Number(total) > 0) {
-                    resolvedMetaUrl = await collectionContract.tokenURI(1);
-                }
-            } catch(e) {}
-        }
 
         if (resolvedMetaUrl) {
             try {
                 const metaRes = await fetch(resolvedMetaUrl);
-                debugMsg += "fetchStatus=" + metaRes.status + " | ";
                 const meta = await metaRes.json();
                 document.getElementById("mv-image").src = meta.image || "";
-                document.getElementById("mv-description").innerText = meta.description || ("DEBUG: " + debugMsg);
-            } catch (e) {
-                document.getElementById("mv-description").innerText = "DEBUG: " + debugMsg + "ERROR(fetch): " + e.message;
-            }
-        } else {
-            document.getElementById("mv-description").innerText = "DEBUG: " + debugMsg + "(resolvedMetaUrl still empty)";
+                document.getElementById("mv-description").innerText = meta.description || "";
+            } catch (e) {}
         }
 
         try {
@@ -692,5 +697,71 @@
             await loadCollectionDetails(collectionParam);
         }
     }
-</script>
+
+    async function loadMyTokensInCollection(addr) {
+        const listEl = document.getElementById("my-tokens-list");
+        if (!listEl) return;
+        listEl.innerHTML = "<p style='color:#666;font-size:0.8em;'>Loading your tokens...</p>";
+        try {
+            const c = new ethers.Contract(addr, COLLECTION_ABI, signer);
+            const events = await c.queryFilter(c.filters.Transfer(null, account), 0, "latest");
+            const candidateIds = [...new Set(events.map(e => e.args.tokenId.toString()))];
+            const owned = [];
+            await Promise.all(candidateIds.map(async (id) => {
+                try {
+                    const owner = await c.ownerOf(id);
+                    if (owner.toLowerCase() === account.toLowerCase()) owned.push(id);
+                } catch (e) {}
+            }));
+            owned.sort((a,b) => Number(a) - Number(b));
+            if (owned.length === 0) {
+                listEl.innerHTML = "<p style='color:#666;font-size:0.8em;'>You don't own any tokens from this collection.</p>";
+                return;
+            }
+            listEl.innerHTML = owned.map(id => `
+                <div class="token-row">
+                    <span class="token-id">#${id}</span>
+                    <div class="token-actions">
+                        <button class="token-btn" onclick="sendToken('${addr}', '${id}')">Send</button>
+                        <button class="token-btn token-btn-danger" onclick="burnToken('${addr}', '${id}')">Burn</button>
+                    </div>
+                </div>
+            `).join("");
+        } catch (err) {
+            listEl.innerHTML = "<p style='color:#666;font-size:0.8em;'>Couldn't load your tokens.</p>";
+        }
+    }
+
+    async function sendToken(addr, tokenId) {
+        const to = prompt("Enter the recipient wallet address:");
+        if (!to) return;
+        if (!ethers.isAddress(to)) { alert("Invalid address."); return; }
+        try {
+            const c = new ethers.Contract(addr, COLLECTION_ABI, signer);
+            const overrides = await getTxOverrides();
+            const tx = await c.transferFrom(account, to, tokenId, overrides);
+            await tx.wait();
+            alert("Sent!");
+            await loadMyTokensInCollection(addr);
+        } catch (err) {
+            alert("Failed: " + (err.reason || err.message || "unknown error"));
+        }
+    }
+
+    async function burnToken(addr, tokenId) {
+        if (!confirm("Are you sure? Burning token #" + tokenId + " is permanent and cannot be undone.")) return;
+        try {
+            const c = new ethers.Contract(addr, COLLECTION_ABI, signer);
+            const overrides = await getTxOverrides();
+            const tx = await c.burn(tokenId, overrides);
+            await tx.wait();
+            alert("Burned!");
+            await loadMyTokensInCollection(addr);
+            await loadCollectionDetails(addr);
+        await loadMyTokensInCollection(addr);
+        } catch (err) {
+            alert("Failed: " + (err.reason || err.message || "unknown error"));
+        }
+    }
+    </script>
 {% endblock %}
