@@ -245,8 +245,8 @@
         const grid = document.getElementById("nft-grid");
         let found = false;
 
-        const explorerNets = ["nexus", "ink", "base", "robinhood", "plume", "zetachain"];
-        const rpcOnlyNets = ["lamina1", "avax"];
+        const explorerNets = ["nexus", "ink", "base", "robinhood"];
+const rpcOnlyNets = ["lamina1", "avax", "plume", "zetachain"];
 
         await Promise.all([
             ...explorerNets.map(async (netKey) => {
