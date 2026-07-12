@@ -1,5 +1,7 @@
 from web3 import Web3
 import json
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 RPC_URLS = {
     "lamina1":   "https://subnets.avax.network/lamina1/mainnet/rpc",
@@ -17,10 +19,15 @@ NETWORK_LABELS = {
     "robinhood": "Robinhood", "avax": "Avalanche", "plume": "Plume", "zetachain": "ZetaChain"
 }
 
+BLOCK_RANGES = {
+    "lamina1": 2000, "nexus": 2000, "ink": 10000, "base": 9000,
+    "robinhood": 9000, "avax": 2000, "plume": 9000, "zetachain": 2000
+}
+
 NFT_FACTORY_ADDRESSES = {
     "lamina1":   "0x02fFD8C9D9c6ea769cdFd530625eE9154a719786",
     "nexus":     "0x802BeAeC89A61a5e0da9EE05476AC45E40daE13c",
-    "ink":       "0x1eFfd154CB7adae114F36Af6101a7559c6a98f3F",
+    "ink":       "0x63837Ed21c882ad2d3Ba8678d66020804A2DD6dA",
     "base":      "0x5f550fe601d9610B1D1977E5b3b5491347ED0418",
     "robinhood": "0x620145Db1914c1F9c327FA282BD95b9039647Bc6",
     "avax":      "0x01d85BF4fb62c2Ba5746e4BC9821E6a7E05d68f4",
@@ -70,59 +77,31 @@ ORACLE_ADDRESSES = {
     "zetachain": "0x5A80759a9Ad738c75b3d0aB5335Ef0357231526a"
 }
 
-NFT_FACTORY_ABI = json.loads('''[
-    {"anonymous": false, "inputs": [
-        {"indexed": true, "name": "collectionAddress", "type": "address"},
-        {"indexed": true, "name": "creator", "type": "address"},
-        {"indexed": false, "name": "name", "type": "string"},
-        {"indexed": false, "name": "symbol", "type": "string"},
-        {"indexed": false, "name": "maxSupply", "type": "uint256"},
-        {"indexed": false, "name": "mintPrice", "type": "uint256"}
-    ], "name": "CollectionCreated", "type": "event"}
-]''')
-
-NFT_COLLECTION_ABI = json.loads('''[
-    {"constant": true, "inputs": [{"name": "owner", "type": "address"}], "name": "balanceOf", "outputs": [{"name": "", "type": "uint256"}], "type": "function"},
-    {"constant": true, "inputs": [], "name": "totalMinted", "outputs": [{"name": "", "type": "uint256"}], "type": "function"},
-    {"constant": true, "inputs": [], "name": "metadataURI", "outputs": [{"name": "", "type": "string"}], "type": "function"}
-]''')
-
-TOKEN_FACTORY_ABI = json.loads('''[
-    {"anonymous": false, "inputs": [
-        {"indexed": true, "name": "tokenAddress", "type": "address"},
-        {"indexed": true, "name": "creator", "type": "address"},
-        {"indexed": false, "name": "name", "type": "string"},
-        {"indexed": false, "name": "symbol", "type": "string"},
-        {"indexed": false, "name": "initialSupply", "type": "uint256"}
-    ], "name": "TokenCreated", "type": "event"}
-]''')
-
-TOKEN_ABI = json.loads('''[
-    {"constant": true, "inputs": [], "name": "name", "outputs": [{"name": "", "type": "string"}], "type": "function"},
-    {"constant": true, "inputs": [], "name": "symbol", "outputs": [{"name": "", "type": "string"}], "type": "function"},
-    {"constant": true, "inputs": [{"name": "", "type": "address"}], "name": "balanceOf", "outputs": [{"name": "", "type": "uint256"}], "type": "function"}
-]''')
-
-GM_ABI = json.loads('''[
-    {"constant": true, "inputs": [{"name": "user", "type": "address"}], "name": "getStats",
-     "outputs": [{"name": "streak", "type": "uint256"}, {"name": "totalScoreX100", "type": "uint256"}, {"name": "lastGmDay", "type": "uint256"}],
-     "type": "function"}
-]''')
-
-FLIP_ABI = json.loads('''[
-    {"constant": true, "inputs": [{"name": "user", "type": "address"}], "name": "getStats",
-     "outputs": [{"name": "currentStreak", "type": "uint256"}, {"name": "bestStreak", "type": "uint256"}, {"name": "totalWins", "type": "uint256"}, {"name": "totalFlips", "type": "uint256"}],
-     "type": "function"}
-]''')
-
-ORACLE_ABI = json.loads('''[
-    {"constant": true, "inputs": [{"name": "", "type": "address"}], "name": "correctPredictions", "outputs": [{"name": "", "type": "uint256"}], "type": "function"},
-    {"constant": true, "inputs": [{"name": "", "type": "address"}], "name": "totalPredictions", "outputs": [{"name": "", "type": "uint256"}], "type": "function"}
-]''')
+NFT_FACTORY_ABI = json.loads('[{"anonymous":false,"inputs":[{"indexed":true,"name":"collectionAddress","type":"address"},{"indexed":true,"name":"creator","type":"address"},{"indexed":false,"name":"name","type":"string"},{"indexed":false,"name":"symbol","type":"string"},{"indexed":false,"name":"maxSupply","type":"uint256"},{"indexed":false,"name":"mintPrice","type":"uint256"}],"name":"CollectionCreated","type":"event"}]')
+NFT_COLLECTION_ABI = json.loads('[{"constant":true,"inputs":[{"name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"totalMinted","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[],"name":"metadataURI","outputs":[{"name":"","type":"string"}],"type":"function"}]')
+TOKEN_FACTORY_ABI = json.loads('[{"anonymous":false,"inputs":[{"indexed":true,"name":"tokenAddress","type":"address"},{"indexed":true,"name":"creator","type":"address"},{"indexed":false,"name":"name","type":"string"},{"indexed":false,"name":"symbol","type":"string"},{"indexed":false,"name":"initialSupply","type":"uint256"}],"name":"TokenCreated","type":"event"}]')
+TOKEN_ABI = json.loads('[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"}]')
+GM_ABI = json.loads('[{"constant":true,"inputs":[{"name":"user","type":"address"}],"name":"getStats","outputs":[{"name":"streak","type":"uint256"},{"name":"totalScoreX100","type":"uint256"},{"name":"lastGmDay","type":"uint256"}],"type":"function"}]')
+FLIP_ABI = json.loads('[{"constant":true,"inputs":[{"name":"user","type":"address"}],"name":"getStats","outputs":[{"name":"currentStreak","type":"uint256"},{"name":"bestStreak","type":"uint256"},{"name":"totalWins","type":"uint256"},{"name":"totalFlips","type":"uint256"}],"type":"function"}]')
+ORACLE_ABI = json.loads('[{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"correctPredictions","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"totalPredictions","outputs":[{"name":"","type":"uint256"}],"type":"function"}]')
 
 
 def get_w3(net_key):
-    return Web3(Web3.HTTPProvider(RPC_URLS[net_key], request_kwargs={"timeout": 12}))
+    return Web3(Web3.HTTPProvider(RPC_URLS[net_key], request_kwargs={"timeout": 10}))
+
+
+def get_logs_chunked(contract_event, latest, chunk_size, max_blocks=200000):
+    all_events = []
+    to_block = latest
+    while to_block > max(0, latest - max_blocks):
+        from_block = max(0, to_block - chunk_size)
+        try:
+            events = contract_event.get_logs(from_block=from_block, to_block=to_block)
+            all_events.extend(events)
+        except Exception:
+            break
+        to_block = from_block - 1
+    return all_events
 
 
 def scan_nfts_for_network(net_key, account):
@@ -134,42 +113,42 @@ def scan_nfts_for_network(net_key, account):
             return results
         factory = w3.eth.contract(address=Web3.to_checksum_address(factory_addr), abi=NFT_FACTORY_ABI)
         latest = w3.eth.block_number
-        from_block = max(0, latest - 100000)
-        events = factory.events.CollectionCreated().get_logs(from_block=from_block, to_block="latest")
+        chunk = BLOCK_RANGES.get(net_key, 2000)
+        events = get_logs_chunked(factory.events.CollectionCreated(), latest, chunk)
         for ev in events:
-            collection_addr = ev["args"]["collectionAddress"]
-            creator = ev["args"]["creator"]
-            collection = w3.eth.contract(address=collection_addr, abi=NFT_COLLECTION_ABI)
             try:
-                balance = collection.functions.balanceOf(Web3.to_checksum_address(account)).call()
-            except Exception:
-                balance = 0
-            is_creator = creator.lower() == account.lower()
-            if balance == 0 and not is_creator:
-                continue
-
-            name = ev["args"]["name"]
-            image = ""
-            try:
-                total_minted = collection.functions.totalMinted().call()
-                if total_minted > 0:
-                    uri = collection.functions.metadataURI().call()
-                    import urllib.request
-                    with urllib.request.urlopen(uri, timeout=8) as resp:
-                        meta = json.loads(resp.read().decode())
-                        name = meta.get("name", name)
-                        image = meta.get("image", "")
+                collection_addr = ev["args"]["collectionAddress"]
+                creator = ev["args"]["creator"]
+                collection = w3.eth.contract(address=collection_addr, abi=NFT_COLLECTION_ABI)
+                try:
+                    balance = collection.functions.balanceOf(Web3.to_checksum_address(account)).call()
+                except Exception:
+                    balance = 0
+                is_creator = creator.lower() == account.lower()
+                if balance == 0 and not is_creator:
+                    continue
+                name = ev["args"]["name"]
+                image = ""
+                try:
+                    total_minted = collection.functions.totalMinted().call()
+                    if total_minted > 0:
+                        uri = collection.functions.metadataURI().call()
+                        with urllib.request.urlopen(uri, timeout=5) as resp:
+                            meta = json.loads(resp.read().decode())
+                            name = meta.get("name", name)
+                            image = meta.get("image", "")
+                except Exception:
+                    pass
+                results.append({
+                    "network": net_key,
+                    "network_label": NETWORK_LABELS[net_key],
+                    "collection": collection_addr,
+                    "name": name,
+                    "image": image,
+                    "is_creator": is_creator
+                })
             except Exception:
                 pass
-
-            results.append({
-                "network": net_key,
-                "network_label": NETWORK_LABELS[net_key],
-                "collection": collection_addr,
-                "name": name,
-                "image": image,
-                "is_creator": is_creator
-            })
     except Exception as e:
         print(f"NFT scan failed for {net_key}: {e}")
     return results
@@ -184,27 +163,30 @@ def scan_tokens_for_network(net_key, account):
             return results
         factory = w3.eth.contract(address=Web3.to_checksum_address(factory_addr), abi=TOKEN_FACTORY_ABI)
         latest = w3.eth.block_number
-        from_block = max(0, latest - 100000)
-        events = factory.events.TokenCreated().get_logs(from_block=from_block, to_block="latest")
+        chunk = BLOCK_RANGES.get(net_key, 2000)
+        events = get_logs_chunked(factory.events.TokenCreated(), latest, chunk)
         for ev in events:
-            token_addr = ev["args"]["tokenAddress"]
-            token = w3.eth.contract(address=token_addr, abi=TOKEN_ABI)
             try:
-                balance = token.functions.balanceOf(Web3.to_checksum_address(account)).call()
+                token_addr = ev["args"]["tokenAddress"]
+                token = w3.eth.contract(address=token_addr, abi=TOKEN_ABI)
+                try:
+                    balance = token.functions.balanceOf(Web3.to_checksum_address(account)).call()
+                except Exception:
+                    balance = 0
+                if balance == 0:
+                    continue
+                name = token.functions.name().call()
+                symbol = token.functions.symbol().call()
+                results.append({
+                    "network": net_key,
+                    "network_label": NETWORK_LABELS[net_key],
+                    "token": token_addr,
+                    "name": name,
+                    "symbol": symbol,
+                    "balance": balance / 1e18
+                })
             except Exception:
-                balance = 0
-            if balance == 0:
-                continue
-            name = token.functions.name().call()
-            symbol = token.functions.symbol().call()
-            results.append({
-                "network": net_key,
-                "network_label": NETWORK_LABELS[net_key],
-                "token": token_addr,
-                "name": name,
-                "symbol": symbol,
-                "balance": balance / 1e18
-            })
+                pass
     except Exception as e:
         print(f"Token scan failed for {net_key}: {e}")
     return results
@@ -216,7 +198,6 @@ def scan_ranks_for_network(net_key, account):
     try:
         w3 = get_w3(net_key)
         acc = Web3.to_checksum_address(account)
-
         if GM_ADDRESSES.get(net_key):
             try:
                 gm = w3.eth.contract(address=Web3.to_checksum_address(GM_ADDRESSES[net_key]), abi=GM_ABI)
@@ -227,7 +208,6 @@ def scan_ranks_for_network(net_key, account):
                     has_data = True
             except Exception:
                 pass
-
         if FLIP_ADDRESSES.get(net_key):
             try:
                 flip = w3.eth.contract(address=Web3.to_checksum_address(FLIP_ADDRESSES[net_key]), abi=FLIP_ABI)
@@ -239,7 +219,6 @@ def scan_ranks_for_network(net_key, account):
                     has_data = True
             except Exception:
                 pass
-
         if ORACLE_ADDRESSES.get(net_key):
             try:
                 oracle = w3.eth.contract(address=Web3.to_checksum_address(ORACLE_ADDRESSES[net_key]), abi=ORACLE_ABI)
@@ -253,7 +232,6 @@ def scan_ranks_for_network(net_key, account):
                 pass
     except Exception as e:
         print(f"Rank scan failed for {net_key}: {e}")
-
     return result if has_data else None
 
 
@@ -265,13 +243,10 @@ def _scan_one_network(net_key, account):
 
 
 def scan_all(account):
-    from concurrent.futures import ThreadPoolExecutor, as_completed
-
     nfts = []
     tokens = []
     ranks = []
-
-    with ThreadPoolExecutor(max_workers=len(RPC_URLS)) as executor:
+    with ThreadPoolExecutor(max_workers=8) as executor:
         futures = {executor.submit(_scan_one_network, net_key, account): net_key for net_key in RPC_URLS}
         for future in as_completed(futures):
             try:
@@ -282,5 +257,4 @@ def scan_all(account):
                     ranks.append(net_rank)
             except Exception as e:
                 print(f"Scan failed for {futures[future]}: {e}")
-
     return {"nfts": nfts, "tokens": tokens, "ranks": ranks}
