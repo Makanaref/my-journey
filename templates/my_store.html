@@ -115,113 +115,34 @@
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script>
-    const EXPLORER_APIS = {
-        lamina1:   "https://subnets.avax.network/lamina1/api/v2",
-        nexus:     "https://explorer.nexus.xyz/api/v2",
-        ink:       "https://explorer.inkonchain.com/api/v2",
-        base:      "https://base.blockscout.com/api/v2",
-        robinhood: "https://robinhoodchain.blockscout.com/api/v2",
-        avax:      "https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan",
-        plume:     "https://explorer.plume.org/api/v2",
-        zetachain: "https://zetachain.blockscout.com/api/v2"
-    };
-
-    const RPC_URLS = {
-        lamina1:   "https://subnets.avax.network/lamina1/mainnet/rpc",
-        nexus:     "https://mainnet.rpc.nexus.xyz",
-        ink:       "https://rpc-gel.inkonchain.com",
-        base:      "https://mainnet.base.org",
-        robinhood: "https://rpc.mainnet.chain.robinhood.com",
-        avax:      "https://api.avax.network/ext/bc/C/rpc",
-        plume:     "https://rpc.plume.org",
-        zetachain: "https://zetachain-evm.blockpi.network/v1/rpc/public"
-    };
-
-    const NETWORK_LABELS = {
-        lamina1: "Lamina1", nexus: "Nexus", ink: "Ink", base: "Base",
-        robinhood: "Robinhood", avax: "Avalanche", plume: "Plume", zetachain: "ZetaChain"
-    };
-
-    const NFT_FACTORY_ADDRESSES = {
-        lamina1:   "0x02fFD8C9D9c6ea769cdFd530625eE9154a719786",
-        nexus:     "0x802BeAeC89A61a5e0da9EE05476AC45E40daE13c",
-        ink:       "0x63837Ed21c882ad2d3Ba8678d66020804A2DD6dA",
-        base:      "0x5f550fe601d9610B1D1977E5b3b5491347ED0418",
-        robinhood: "0x620145Db1914c1F9c327FA282BD95b9039647Bc6",
-        avax:      "0x01d85BF4fb62c2Ba5746e4BC9821E6a7E05d68f4",
-        plume:     "0x9791cDBf9a6AF15C313B49d80299769fB8Bd608D",
-        zetachain: "0xF988CAc77e456e915aFbDC22BBc8c114fbd4Cd96"
-    };
-
-    const GM_ADDRESSES = {
-        lamina1:   "0x91A68410C13866d1c4262C012680A623B79BeF20",
-        nexus:     "0x91A68410C13866d1c4262C012680A623B79BeF20",
-        ink:       "0xc5B1Bb3e6CE937F64440895a6b976455F64dbaAE",
-        base:      "0x0d246A70E2c9ddCDacF690E854E9a528aaE9c3f6",
-        robinhood: "0xEC76D7a9801Fd7De132b299a36B6E0125802430B",
-        avax:      "0x4DF798fD9F5Ff9109e6D42B67D3eE86FE09D3bf1",
-        plume:     "0xB72b9D6BF3a0d20a5A3152bcDD627A67eaDad56C",
-        zetachain: "0xdA8F4Da59a24b4F5ab1F1f2bd6D000F069F54080"
-    };
-
-    const FLIP_ADDRESSES = {
-        lamina1:   "0x61EeEaf07149d2F42d6eB66D80C8C13Ef9d1ecCD",
-        nexus:     "0x4d860020dc84f9AA1e24EF55f44859bc8CF55a8B",
-        ink:       "0xa0DD2BF6509FA667df2CC409017841871132DEE7",
-        base:      "0xc9cBB32684C961dcEEd0f2f3e94e5cD4E6339308",
-        robinhood: "0x033947CB876A2A5175d6EBe3058c9258e0c2231A",
-        avax:      "0xCbF9e3DD39edb8E39328135b1131d7c70956eF6b",
-        plume:     "0x103e0F501530DaF1b99F66843CF86d516FfD3FB0",
-        zetachain: "0x01447Fa5e71ae03449f5F7ae67D9Bf047A9d6C4F"
-    };
-
-    const ORACLE_ADDRESSES = {
-        lamina1:   "0xcf2B368dA4D785C45C4Cf72bAeB8ef4f52600B5D",
-        nexus:     "0xcf2B368dA4D785C45C4Cf72bAeB8ef4f52600B5D",
-        ink:       "0x0eea7AbDdeDD3Ae52B37Db2e041CC5446D40b5B1",
-        avax:      "0xD00C4A6854da53E321c3FEca1c10E5F3F59a0d31",
-        plume:     "0xe8E2F8133d40a20eA030A44f7b8A5eee1519Dc2e",
-        zetachain: "0x5A80759a9Ad738c75b3d0aB5335Ef0357231526a"
-    };
-
-    const NFT_FACTORY_ABI = [
-        "event CollectionCreated(address indexed collectionAddress, address indexed creator, string name, string symbol, uint256 maxSupply, uint256 mintPrice)"
-    ];
-    const NFT_COLLECTION_ABI = [
-        "function balanceOf(address owner) public view returns (uint256)",
-        "function totalMinted() public view returns (uint256)",
-        "function metadataURI() public view returns (string)"
-    ];
-    const GM_ABI = [
-        "function getStats(address user) public view returns (uint256 streak, uint256 totalScoreX100, uint256 lastGmDay)"
-    ];
-    const FLIP_ABI = [
-        "function getStats(address user) public view returns (uint256 currentStreak, uint256 bestStreak, uint256 totalWins, uint256 totalFlips)"
-    ];
-    const ORACLE_ABI = [
-        "function correctPredictions(address) public view returns (uint256)",
-        "function totalPredictions(address) public view returns (uint256)"
-    ];
-
-    let userAccount = null;
-
     async function connectAndScanAll() {
         if (!window.ethereum) { alert("Please install MetaMask!"); return; }
         try {
             const tempProvider = new ethers.BrowserProvider(window.ethereum);
             await tempProvider.send("eth_requestAccounts", []);
             const signer = await tempProvider.getSigner();
-            userAccount = await signer.getAddress();
+            const account = await signer.getAddress();
 
             document.getElementById("connect-section").style.display = "none";
             document.getElementById("wallet-info").style.display = "block";
-            document.getElementById("wallet-addr").innerText = userAccount.slice(0,6) + "..." + userAccount.slice(-4);
+            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
             document.getElementById("scan-area").style.display = "block";
 
-            await Promise.all([scanNfts(), scanTokens(), scanRanks()]);
+            const res = await fetch("/api/scan-wallet?account=" + account);
+            const data = await res.json();
 
             document.getElementById("scan-spinner").style.display = "none";
             document.getElementById("scan-status").innerText = "";
+
+            if (!res.ok) {
+                document.getElementById("scan-status").innerText = "Failed to scan: " + (data.error || "unknown error");
+                return;
+            }
+
+            renderNfts(data.nfts || []);
+            renderTokens(data.tokens || []);
+            renderRanks(data.ranks || []);
+
             document.getElementById("tab-nav").style.display = "flex";
         } catch (err) {
             alert("Connection failed: " + err.message);
@@ -241,179 +162,71 @@
         return div.innerHTML;
     }
 
-    async function scanNfts() {
+    function renderNfts(nfts) {
         const grid = document.getElementById("nft-grid");
-        const networkKeys = Object.keys(NFT_FACTORY_ADDRESSES).filter(k => NFT_FACTORY_ADDRESSES[k]);
-        let found = false;
-
-        await Promise.all(networkKeys.map(async (netKey) => {
-            try {
-                const provider = new ethers.JsonRpcProvider(RPC_URLS[netKey]);
-                const factory = new ethers.Contract(NFT_FACTORY_ADDRESSES[netKey], NFT_FACTORY_ABI, provider);
-                const latestBlock = await provider.getBlockNumber();
-                const MAX_RANGE = { lamina1: 2000, nexus: 2000, ink: 10000, base: 9000, robinhood: 9000, avax: 2000, plume: 9000, zetachain: 2000 };
-                const range = MAX_RANGE[netKey] || 5000;
-                let allEvents = [];
-                for (let to = latestBlock; to > Math.max(0, latestBlock - 100000); to -= range) {
-                    const from = Math.max(0, to - range);
-                    try { allEvents = allEvents.concat(await factory.queryFilter(factory.filters.CollectionCreated(), from, to)); } catch(e) { break; }
-                }
-
-                await Promise.all(allEvents.map(async (ev) => {
-                    try {
-                        const collectionAddr = ev.args.collectionAddress;
-                        const creator = ev.args.creator;
-                        const collection = new ethers.Contract(collectionAddr, NFT_COLLECTION_ABI, provider);
-                        const balance = await collection.balanceOf(userAccount);
-                        const isCreator = creator.toLowerCase() === userAccount.toLowerCase();
-                        if (Number(balance) === 0 && !isCreator) return;
-
-                        let meta = { name: ev.args.name, image: "" };
-                        try {
-                            const totalMinted = await collection.totalMinted();
-                            if (Number(totalMinted) > 0) {
-                                const uri = await collection.metadataURI();
-                                const metaRes = await fetch(uri);
-                                const metaJson = await metaRes.json();
-                                meta = { name: metaJson.name || ev.args.name, image: metaJson.image || "" };
-                            }
-                        } catch (e) {}
-
-                        found = true;
-                        const card = document.createElement("div");
-                        card.className = "nft-card";
-                        const badge = isCreator ? '<span class="nft-card-badge">Created by you</span>' : "";
-                        const imageHtml = meta.image
-                            ? `<img class="nft-card-image" src="${meta.image}" loading="lazy">`
-                            : `<div class="nft-card-image" style="display:flex;align-items:center;justify-content:center;color:#444;font-size:0.75em;">No image</div>`;
-                        card.innerHTML = `
-                            ${imageHtml}
-                            <div class="nft-card-body">
-                                <div class="nft-card-name">${escapeHtml(meta.name)}</div>
-                                <div class="nft-card-meta">
-                                    <span class="nft-card-net">${NETWORK_LABELS[netKey]}</span>
-                                    ${badge}
-                                </div>
-                                <a class="nft-card-btn" href="/mint-nft?net=${netKey}&collection=${collectionAddr}">View / Manage</a>
-                            </div>
-                        `;
-                        grid.appendChild(card);
-                    } catch (e) {}
-                }));
-            } catch (e) { console.log("NFT scan failed for " + netKey, e); }
-        }));
-
-        document.getElementById("nft-empty").style.display = found ? "none" : "block";
+        grid.innerHTML = "";
+        nfts.forEach(n => {
+            const card = document.createElement("div");
+            card.className = "nft-card";
+            const badge = n.is_creator ? '<span class="nft-card-badge">Created by you</span>' : "";
+            const imageHtml = n.image
+                ? `<img class="nft-card-image" src="${n.image}" loading="lazy">`
+                : `<div class="nft-card-image" style="display:flex;align-items:center;justify-content:center;color:#444;font-size:0.75em;">No image</div>`;
+            card.innerHTML = `
+                ${imageHtml}
+                <div class="nft-card-body">
+                    <div class="nft-card-name">${escapeHtml(n.name)}</div>
+                    <div class="nft-card-meta">
+                        <span class="nft-card-net">${n.network_label}</span>
+                        ${badge}
+                    </div>
+                    <a class="nft-card-btn" href="/mint-nft?net=${n.network}&collection=${n.collection}">View / Manage</a>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+        document.getElementById("nft-empty").style.display = nfts.length ? "none" : "block";
     }
 
-    async function scanTokens() {
+    function renderTokens(tokens) {
         const grid = document.getElementById("token-grid");
-        let found = false;
-        const nets = Object.keys(EXPLORER_APIS);
-        await Promise.all(nets.map(async (netKey) => {
-            try {
-                const api = EXPLORER_APIS[netKey];
-                const res = await fetch(`${api}/addresses/${userAccount}/token-balances`);
-                if (!res.ok) return;
-                const data = await res.json();
-                const items = Array.isArray(data) ? data : (data.items || []);
-                for (const item of items) {
-                    try {
-                        const token = item.token || item;
-                        if (token.type !== "ERC-20") continue;
-                        const balance = BigInt(item.value || "0");
-                        if (balance === 0n) continue;
-                        const name = token.name || "Unknown";
-                        const symbol = token.symbol || "?";
-                        const decimals = parseInt(token.decimals || "18");
-                        const humanBalance = (Number(balance) / Math.pow(10, decimals)).toLocaleString(undefined, {maximumFractionDigits: 4});
-                        found = true;
-                        const card = document.createElement("div");
-                        card.className = "token-card";
-                        card.innerHTML = `
-                            <div class="token-card-symbol">${escapeHtml(symbol)}</div>
-                            <div class="token-card-name">${escapeHtml(name)}</div>
-                            <div class="token-card-row"><span>Network</span><span>${NETWORK_LABELS[netKey]}</span></div>
-                            <div class="token-card-row"><span>Balance</span><span>${humanBalance} ${escapeHtml(symbol)}</span></div>
-                        `;
-                        grid.appendChild(card);
-                    } catch(e) {}
-                }
-            } catch(e) { console.log("Token scan failed for " + netKey, e); }
-        }));
-        document.getElementById("token-empty").style.display = found ? "none" : "block";
+        grid.innerHTML = "";
+        tokens.forEach(t => {
+            const card = document.createElement("div");
+            card.className = "token-card";
+            card.innerHTML = `
+                <div class="token-card-symbol">${escapeHtml(t.symbol)}</div>
+                <div class="token-card-name">${escapeHtml(t.name)}</div>
+                <div class="token-card-row"><span>Network</span><span>${t.network_label}</span></div>
+                <div class="token-card-row"><span>Balance</span><span>${Number(t.balance).toLocaleString(undefined, {maximumFractionDigits: 4})} ${escapeHtml(t.symbol)}</span></div>
+            `;
+            grid.appendChild(card);
+        });
+        document.getElementById("token-empty").style.display = tokens.length ? "none" : "block";
     }
 
-    async function scanRanks() {
+    function renderRanks(ranks) {
         const grid = document.getElementById("rank-grid");
-        const networkKeys = Object.keys(RPC_URLS);
-        let found = false;
-
-        await Promise.all(networkKeys.map(async (netKey) => {
-            try {
-                const provider = new ethers.JsonRpcProvider(RPC_URLS[netKey]);
-                let gmStats = null, flipStats = null, oracleStats = null;
-
-                if (GM_ADDRESSES[netKey]) {
-                    try {
-                        const gm = new ethers.Contract(GM_ADDRESSES[netKey], GM_ABI, provider);
-                        const r = await gm.getStats(userAccount);
-                        if (Number(r[0]) > 0 || Number(r[1]) > 0) {
-                            gmStats = { streak: r[0].toString(), score: (Number(r[1]) / 100).toFixed(2) };
-                        }
-                    } catch (e) {}
-                }
-
-                if (FLIP_ADDRESSES[netKey]) {
-                    try {
-                        const flip = new ethers.Contract(FLIP_ADDRESSES[netKey], FLIP_ABI, provider);
-                        const r = await flip.getStats(userAccount);
-                        if (Number(r[3]) > 0) {
-                            flipStats = { best: r[1].toString(), wins: r[2].toString(), flips: r[3].toString() };
-                        }
-                    } catch (e) {}
-                }
-
-                if (ORACLE_ADDRESSES[netKey]) {
-                    try {
-                        const oracle = new ethers.Contract(ORACLE_ADDRESSES[netKey], ORACLE_ABI, provider);
-                        const [correct, total] = await Promise.all([
-                            oracle.correctPredictions(userAccount),
-                            oracle.totalPredictions(userAccount)
-                        ]);
-                        if (Number(total) > 0) {
-                            oracleStats = { correct: correct.toString(), total: total.toString() };
-                        }
-                    } catch (e) {}
-                }
-
-                if (!gmStats && !flipStats && !oracleStats) return;
-                found = true;
-
-                let rowsHtml = "";
-                if (gmStats) {
-                    rowsHtml += `<div class="rank-stat-row"><span>GM streak</span><span class="rank-value">${gmStats.streak}</span></div>`;
-                    rowsHtml += `<div class="rank-stat-row"><span>GM score</span><span class="rank-value">${gmStats.score}</span></div>`;
-                }
-                if (flipStats) {
-                    rowsHtml += `<div class="rank-stat-row"><span>Coin Flip best streak</span><span class="rank-value">${flipStats.best}</span></div>`;
-                    rowsHtml += `<div class="rank-stat-row"><span>Coin Flip wins</span><span class="rank-value">${flipStats.wins} / ${flipStats.flips}</span></div>`;
-                }
-                if (oracleStats) {
-                    rowsHtml += `<div class="rank-stat-row"><span>Oracle correct</span><span class="rank-value">${oracleStats.correct} / ${oracleStats.total}</span></div>`;
-                }
-
-                const card = document.createElement("div");
-                card.className = "rank-card";
-                card.innerHTML = `
-                    <div class="rank-card-title">🏆 ${NETWORK_LABELS[netKey]}</div>
-                    ${rowsHtml}
-                `;
-                grid.appendChild(card);
-            } catch (e) { console.log("Rank scan failed for " + netKey, e); }
-        }));
-
-        document.getElementById("rank-empty").style.display = found ? "none" : "block";
+        grid.innerHTML = "";
+        ranks.forEach(r => {
+            let rowsHtml = "";
+            if (r.gm_streak !== undefined) {
+                rowsHtml += `<div class="rank-stat-row"><span>GM streak</span><span class="rank-value">${r.gm_streak}</span></div>`;
+                rowsHtml += `<div class="rank-stat-row"><span>GM score</span><span class="rank-value">${r.gm_score}</span></div>`;
+            }
+            if (r.flip_total !== undefined) {
+                rowsHtml += `<div class="rank-stat-row"><span>Coin Flip best streak</span><span class="rank-value">${r.flip_best}</span></div>`;
+                rowsHtml += `<div class="rank-stat-row"><span>Coin Flip wins</span><span class="rank-value">${r.flip_wins} / ${r.flip_total}</span></div>`;
+            }
+            if (r.oracle_total !== undefined) {
+                rowsHtml += `<div class="rank-stat-row"><span>Oracle correct</span><span class="rank-value">${r.oracle_correct} / ${r.oracle_total}</span></div>`;
+            }
+            const card = document.createElement("div");
+            card.className = "rank-card";
+            card.innerHTML = `<div class="rank-card-title">🏆 ${r.network_label}</div>${rowsHtml}`;
+            grid.appendChild(card);
+        });
+        document.getElementById("rank-empty").style.display = ranks.length ? "none" : "block";
     }
 </script>
 {% endblock %}
