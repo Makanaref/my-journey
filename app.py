@@ -144,6 +144,18 @@ def my_nfts():
 @app.route("/my-store")
 def my_store():
     return render_template("my_store.html")
+@app.route("/api/scan-wallet")
+@limiter.limit("10 per minute")
+def scan_wallet():
+    account = request.args.get("account", "").strip()
+    if not account or len(account) != 42 or not account.startswith("0x"):
+        return jsonify({"error": "Invalid address"}), 400
+    try:
+        from indexer import scan_all
+        result = scan_all(account)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 @app.route("/gm")
 def gm():
     return render_template("gm.html")

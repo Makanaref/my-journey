@@ -2,4 +2,4 @@ flask
 gunicorn
 requests
 flask-talisman
-flask-limiter
+flask-limiterweb3
