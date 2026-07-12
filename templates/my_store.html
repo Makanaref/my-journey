@@ -345,7 +345,7 @@ const rpcOnlyNets = ["lamina1", "avax", "plume", "zetachain"];
     async function scanTokens() {
         const grid = document.getElementById("token-grid");
         let found = false;
-        const nets = Object.keys(EXPLORER_APIS);
+        const nets = ["nexus", "ink", "base", "robinhood"];
         await Promise.all(nets.map(async (netKey) => {
             try {
                 const api = EXPLORER_APIS[netKey];
