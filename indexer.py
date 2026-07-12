@@ -134,8 +134,8 @@ def scan_nfts_for_network(net_key, account):
             return results
         factory = w3.eth.contract(address=Web3.to_checksum_address(factory_addr), abi=NFT_FACTORY_ABI)
         latest = w3.eth.block_number
-from_block = max(0, latest - 100000)
-events = factory.events.CollectionCreated().get_logs(from_block=from_block, to_block="latest")
+        from_block = max(0, latest - 100000)
+        events = factory.events.CollectionCreated().get_logs(from_block=from_block, to_block="latest")
         for ev in events:
             collection_addr = ev["args"]["collectionAddress"]
             creator = ev["args"]["creator"]
@@ -184,8 +184,8 @@ def scan_tokens_for_network(net_key, account):
             return results
         factory = w3.eth.contract(address=Web3.to_checksum_address(factory_addr), abi=TOKEN_FACTORY_ABI)
         latest = w3.eth.block_number
-from_block = max(0, latest - 100000)
-events = factory.events.TokenCreated().get_logs(from_block=from_block, to_block="latest")
+        from_block = max(0, latest - 100000)
+        events = factory.events.TokenCreated().get_logs(from_block=from_block, to_block="latest")
         for ev in events:
             token_addr = ev["args"]["tokenAddress"]
             token = w3.eth.contract(address=token_addr, abi=TOKEN_ABI)
