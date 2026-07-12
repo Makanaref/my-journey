@@ -139,7 +139,10 @@ def mint_nft():
 @app.route("/my-nfts")
 def my_nfts():
     return render_template("my_nfts.html")
-@app.route("/gm")
+
+@app.route("/my-store")
+def my_store():
+    return render_template("my_store.html")@app.route("/gm")
 def gm():
     return render_template("gm.html")
 
