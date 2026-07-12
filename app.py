@@ -18,9 +18,10 @@ app.secret_key = os.environ.get("SECRET_KEY", "change-this-in-production")
 csp = {
     'default-src': "'self'",
     'style-src': ["'self'", "'unsafe-inline'"],
-    'script-src': ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+    'script-src': ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
     'img-src': ["'self'", "data:", "https:"],
     'font-src': ["'self'", "https:"],
+    'connect-src': ["'self'", "https:"],
 }
 Talisman(app, content_security_policy=csp, force_https=False)
 
