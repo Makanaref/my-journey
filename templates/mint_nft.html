@@ -471,7 +471,12 @@
             const urlParams = getUrlParams();
             await loadMintView(currentCollectionAddress, urlParams.meta);
         } catch (err) {
-            statusEl.innerText = "Failed: " + (err.reason || err.message || "unknown error");
+            const errMsg = err.reason || err.message || "";
+if (errMsg.includes("max fee per gas less than block base fee") || errMsg.includes("maxFeePerGas")) {
+    statusEl.innerText = "Gas fee too low. Please increase the gas fee in MetaMask (select at least Low).";
+} else {
+    statusEl.innerText = "Failed: " + errMsg;
+}
             btn.disabled = false;
         }
     }
@@ -615,7 +620,12 @@
 
             await loadMyCollections();
         } catch (err) {
-            statusEl.innerText = "Failed: " + (err.reason || err.message || "unknown error");
+            const errMsg = err.reason || err.message || "";
+if (errMsg.includes("max fee per gas less than block base fee") || errMsg.includes("maxFeePerGas")) {
+    statusEl.innerText = "Gas fee too low. Please increase the gas fee in MetaMask (select at least Low).";
+} else {
+    statusEl.innerText = "Failed: " + errMsg;
+}
         }
         btn.disabled = false;
     }
@@ -707,7 +717,12 @@
             statusEl.innerText = "Minted ✅";
             await loadCollectionDetails(currentCollectionAddress);
         } catch (err) {
-            statusEl.innerText = "Failed: " + (err.reason || err.message || "unknown error");
+            const errMsg = err.reason || err.message || "";
+if (errMsg.includes("max fee per gas less than block base fee") || errMsg.includes("maxFeePerGas")) {
+    statusEl.innerText = "Gas fee too low. Please increase the gas fee in MetaMask (select at least Low).";
+} else {
+    statusEl.innerText = "Failed: " + errMsg;
+}
             btn.disabled = false;
         }
     }
@@ -826,7 +841,12 @@ async function burnMultiple() {
         document.getElementById("burn-count").value = "";
         await loadCollectionDetails(currentCollectionAddress);
     } catch (err) {
-        statusEl.innerText = "Failed: " + (err.reason || err.message || "unknown error");
+        const errMsg = err.reason || err.message || "";
+if (errMsg.includes("max fee per gas less than block base fee") || errMsg.includes("maxFeePerGas")) {
+    statusEl.innerText = "Gas fee too low. Please increase the gas fee in MetaMask (select at least Low).";
+} else {
+    statusEl.innerText = "Failed: " + errMsg;
+}
     }
 }
 
@@ -854,7 +874,12 @@ async function sendMultiple() {
         document.getElementById("send-to-address").value = "";
         await loadCollectionDetails(currentCollectionAddress);
     } catch (err) {
-        statusEl.innerText = "Failed: " + (err.reason || err.message || "unknown error");
+        const errMsg = err.reason || err.message || "";
+if (errMsg.includes("max fee per gas less than block base fee") || errMsg.includes("maxFeePerGas")) {
+    statusEl.innerText = "Gas fee too low. Please increase the gas fee in MetaMask (select at least Low).";
+} else {
+    statusEl.innerText = "Failed: " + errMsg;
+}
     }
 }
     </script>
