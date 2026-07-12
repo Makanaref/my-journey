@@ -200,9 +200,19 @@ def scan_nfts_via_rpc(net_key, account):
         w3 = Web3(Web3.HTTPProvider(RPC_URLS[net_key], request_kwargs={"timeout": 8}))
         factory = w3.eth.contract(address=Web3.to_checksum_address(factory_addr), abi=NFT_FACTORY_ABI)
         latest = w3.eth.block_number
-        from_block = max(0, latest - 200000)
-        events = factory.events.CollectionCreated().get_logs(from_block=from_block, to_block=latest)
-        for ev in events:
+        chunk = 2000
+        max_blocks = 200000
+        all_events = []
+        to_block = latest
+        while to_block > max(0, latest - max_blocks):
+            from_block = max(0, to_block - chunk)
+            try:
+                events = factory.events.CollectionCreated().get_logs(from_block=from_block, to_block=to_block)
+                all_events.extend(events)
+            except Exception:
+                pass
+            to_block = from_block - 1
+        for ev in all_events:
             try:
                 collection_addr = ev["args"]["collectionAddress"]
                 creator = ev["args"]["creator"]
