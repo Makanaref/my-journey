@@ -271,7 +271,11 @@
             try {
                 const provider = new ethers.JsonRpcProvider(RPC_URLS[netKey]);
                 const factory = new ethers.Contract(NFT_FACTORY_ADDRESSES[netKey], NFT_FACTORY_ABI, provider);
-                const events = await factory.queryFilter(factory.filters.CollectionCreated(), 0, "latest");
+                const latestBlock = await provider.getBlockNumber();
+const MAX_RANGE = { lamina1: 2000, nexus: 2000, ink: 10000, base: 9000, robinhood: 9000, avax: 9000, plume: 9000, zetachain: 9000 };
+const range = MAX_RANGE[netKey] || 5000;
+const fromBlock = Math.max(0, latestBlock - range);
+const events = await factory.queryFilter(factory.filters.CollectionCreated(), fromBlock, latestBlock);
 
                 await Promise.all(events.map(async (ev) => {
                     try {
@@ -330,7 +334,11 @@
             try {
                 const provider = new ethers.JsonRpcProvider(RPC_URLS[netKey]);
                 const factory = new ethers.Contract(TOKEN_FACTORY_ADDRESSES[netKey], TOKEN_FACTORY_ABI, provider);
-                const events = await factory.queryFilter(factory.filters.TokenCreated(), 0, "latest");
+                const latestBlock = await provider.getBlockNumber();
+const MAX_RANGE = { lamina1: 2000, nexus: 2000, ink: 10000, base: 9000, robinhood: 9000, avax: 9000, plume: 9000, zetachain: 9000 };
+const range = MAX_RANGE[netKey] || 5000;
+const fromBlock = Math.max(0, latestBlock - range);
+const events = await factory.queryFilter(factory.filters.TokenCreated(), fromBlock, latestBlock);
 
                 await Promise.all(events.map(async (ev) => {
                     try {
