@@ -142,7 +142,8 @@ def my_nfts():
 
 @app.route("/my-store")
 def my_store():
-    return render_template("my_store.html")@app.route("/gm")
+    return render_template("my_store.html")
+@app.route("/gm")
 def gm():
     return render_template("gm.html")
 
