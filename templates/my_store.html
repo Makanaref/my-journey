@@ -243,67 +243,104 @@
 
     async function scanNfts() {
         const grid = document.getElementById("nft-grid");
-        const networkKeys = Object.keys(NFT_FACTORY_ADDRESSES).filter(k => NFT_FACTORY_ADDRESSES[k]);
         let found = false;
 
-        await Promise.all(networkKeys.map(async (netKey) => {
-            try {
-                const provider = new ethers.JsonRpcProvider(RPC_URLS[netKey]);
-                const factory = new ethers.Contract(NFT_FACTORY_ADDRESSES[netKey], NFT_FACTORY_ABI, provider);
-                const latestBlock = await provider.getBlockNumber();
-                const MAX_RANGE = { lamina1: 2000, nexus: 2000, ink: 10000, base: 9000, robinhood: 9000, avax: 2000, plume: 9000, zetachain: 2000 };
-                const range = MAX_RANGE[netKey] || 5000;
-                let allEvents = [];
-                for (let to = latestBlock; to > Math.max(0, latestBlock - 100000); to -= range) {
-                    const from = Math.max(0, to - range);
-                    try { allEvents = allEvents.concat(await factory.queryFilter(factory.filters.CollectionCreated(), from, to)); } catch(e) { break; }
-                }
+        const explorerNets = ["nexus", "ink", "base", "robinhood", "plume", "zetachain"];
+        const rpcOnlyNets = ["lamina1", "avax"];
 
-                await Promise.all(allEvents.map(async (ev) => {
-                    try {
-                        const collectionAddr = ev.args.collectionAddress;
-                        const creator = ev.args.creator;
-                        const collection = new ethers.Contract(collectionAddr, NFT_COLLECTION_ABI, provider);
-                        const balance = await collection.balanceOf(userAccount);
-                        const isCreator = creator.toLowerCase() === userAccount.toLowerCase();
-                        if (Number(balance) === 0 && !isCreator) return;
-
-                        let meta = { name: ev.args.name, image: "" };
+        await Promise.all([
+            ...explorerNets.map(async (netKey) => {
+                try {
+                    const api = EXPLORER_APIS[netKey];
+                    const res = await fetch(`${api}/addresses/${userAccount}/nft?type=ERC-721`);
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    const items = Array.isArray(data) ? data : (data.items || []);
+                    for (const item of items) {
                         try {
-                            const totalMinted = await collection.totalMinted();
-                            if (Number(totalMinted) > 0) {
+                            const collectionAddr = item.token?.address || item.address;
+                            const name = item.token?.name || item.name || "Unknown";
+                            let image = "";
+                            try {
+                                const meta = item.metadata ? JSON.parse(item.metadata) : null;
+                                image = meta?.image || item.image_url || "";
+                            } catch(e) {}
+                            if (!collectionAddr) continue;
+                            found = true;
+                            const card = document.createElement("div");
+                            card.className = "nft-card";
+                            const imageHtml = image
+                                ? `<img class="nft-card-image" src="${image}" loading="lazy">`
+                                : `<div class="nft-card-image" style="display:flex;align-items:center;justify-content:center;color:#444;font-size:0.75em;">No image</div>`;
+                            card.innerHTML = `
+                                ${imageHtml}
+                                <div class="nft-card-body">
+                                    <div class="nft-card-name">${escapeHtml(name)}</div>
+                                    <div class="nft-card-meta">
+                                        <span class="nft-card-net">${NETWORK_LABELS[netKey]}</span>
+                                    </div>
+                                    <a class="nft-card-btn" href="/mint-nft?net=${netKey}&collection=${collectionAddr}">View / Manage</a>
+                                </div>
+                            `;
+                            grid.appendChild(card);
+                        } catch(e) {}
+                    }
+                } catch(e) { console.log("NFT API scan failed for " + netKey, e); }
+            }),
+
+            ...rpcOnlyNets.filter(n => NFT_FACTORY_ADDRESSES[n]).map(async (netKey) => {
+                try {
+                    const provider = new ethers.JsonRpcProvider(RPC_URLS[netKey]);
+                    const factory = new ethers.Contract(NFT_FACTORY_ADDRESSES[netKey], NFT_FACTORY_ABI, provider);
+                    const latestBlock = await provider.getBlockNumber();
+                    const range = 2000;
+                    let allEvents = [];
+                    for (let to = latestBlock; to > Math.max(0, latestBlock - 100000); to -= range) {
+                        const from = Math.max(0, to - range);
+                        try { allEvents = allEvents.concat(await factory.queryFilter(factory.filters.CollectionCreated(), from, to)); } catch(e) { break; }
+                    }
+                    await Promise.all(allEvents.map(async (ev) => {
+                        try {
+                            const collectionAddr = ev.args.collectionAddress;
+                            const creator = ev.args.creator;
+                            const collection = new ethers.Contract(collectionAddr, NFT_COLLECTION_ABI, provider);
+                            const balance = await collection.balanceOf(userAccount);
+                            const isCreator = creator.toLowerCase() === userAccount.toLowerCase();
+                            if (Number(balance) === 0 && !isCreator) return;
+                            let meta = { name: ev.args.name, image: "" };
+                            try {
                                 const uri = await collection.metadataURI();
                                 const metaRes = await fetch(uri);
                                 const metaJson = await metaRes.json();
                                 meta = { name: metaJson.name || ev.args.name, image: metaJson.image || "" };
-                            }
-                        } catch (e) {}
-
-                        found = true;
-                        const card = document.createElement("div");
-                        card.className = "nft-card";
-                        const badge = isCreator ? '<span class="nft-card-badge">Created by you</span>' : "";
-                        const imageHtml = meta.image
-                            ? `<img class="nft-card-image" src="${meta.image}" loading="lazy">`
-                            : `<div class="nft-card-image" style="display:flex;align-items:center;justify-content:center;color:#444;font-size:0.75em;">No image</div>`;
-                        card.innerHTML = `
-                            ${imageHtml}
-                            <div class="nft-card-body">
-                                <div class="nft-card-name">${escapeHtml(meta.name)}</div>
-                                <div class="nft-card-meta">
-                                    <span class="nft-card-net">${NETWORK_LABELS[netKey]}</span>
-                                    ${badge}
+                            } catch(e) {}
+                            found = true;
+                            const card = document.createElement("div");
+                            card.className = "nft-card";
+                            const badge = isCreator ? '<span class="nft-card-badge">Created by you</span>' : "";
+                            const imageHtml = meta.image
+                                ? `<img class="nft-card-image" src="${meta.image}" loading="lazy">`
+                                : `<div class="nft-card-image" style="display:flex;align-items:center;justify-content:center;color:#444;font-size:0.75em;">No image</div>`;
+                            card.innerHTML = `
+                                ${imageHtml}
+                                <div class="nft-card-body">
+                                    <div class="nft-card-name">${escapeHtml(meta.name)}</div>
+                                    <div class="nft-card-meta">
+                                        <span class="nft-card-net">${NETWORK_LABELS[netKey]}</span>
+                                        ${badge}
+                                    </div>
+                                    <a class="nft-card-btn" href="/mint-nft?net=${netKey}&collection=${collectionAddr}">View / Manage</a>
                                 </div>
-                                <a class="nft-card-btn" href="/mint-nft?net=${netKey}&collection=${collectionAddr}">View / Manage</a>
-                            </div>
-                        `;
-                        grid.appendChild(card);
-                    } catch (e) {}
-                }));
-            } catch (e) { console.log("NFT scan failed for " + netKey, e); }
-        }));
+                            `;
+                            grid.appendChild(card);
+                        } catch(e) {}
+                    }));
+                } catch(e) { console.log("NFT RPC scan failed for " + netKey, e); }
+            })
+        ]);
 
         document.getElementById("nft-empty").style.display = found ? "none" : "block";
+    }
     }
 
     async function scanTokens() {
