@@ -78,10 +78,12 @@
     .upload-zone-sub { color: rgba(255,255,255,0.35); font-size: 0.72em; margin-top: 4px; }
     .image-preview { width: 100%; max-width: 220px; border-radius: 10px; margin-top: 10px; display: none; }
     .action-btn {
-        width: 100%; padding: 12px; border-radius: 8px; border: none;
-        background: #7ec8e3; color: #0f1420; font-weight: 700; font-size: 0.95em;
-        cursor: pointer; transition: transform 0.15s, background 0.15s;
-    }
+    width: auto; min-width: 160px; max-width: 280px;
+    padding: 11px 28px; border-radius: 10px; border: none;
+    background: #7ec8e3; color: #0f1420; font-weight: 700; font-size: 0.95em;
+    cursor: pointer; transition: transform 0.15s, background 0.15s;
+    display: block; margin: 0 auto;
+}
     .action-btn:hover { background: #9adcf2; transform: translateY(-1px); }
     .action-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
     .status-msg { min-height: 18px; color: #777; font-size: 0.82em; margin-top: 10px; text-align: center; }
