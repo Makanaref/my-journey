@@ -246,7 +246,7 @@
         let found = false;
 
         const explorerNets = ["nexus", "ink", "base", "robinhood"];
-const rpcOnlyNets = ["lamina1", "avax", "plume", "zetachain"];
+const rpcOnlyNets = ["lamina1", "avax"];
 
         await Promise.all([
             ...explorerNets.map(async (netKey) => {
@@ -382,7 +382,7 @@ const rpcOnlyNets = ["lamina1", "avax", "plume", "zetachain"];
 
     async function scanRanks() {
         const grid = document.getElementById("rank-grid");
-        const networkKeys = Object.keys(RPC_URLS);
+        const networkKeys = ["lamina1", "nexus", "ink", "base", "robinhood", "avax"];
         let found = false;
 
         await Promise.all(networkKeys.map(async (netKey) => {
