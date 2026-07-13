@@ -325,33 +325,39 @@
             const variant = deployType === 'stable' ? 1 : 0;
             const salt = ethers.keccak256(ethers.toUtf8Bytes(name + symbol + Date.now()));
 
-            // CRITICAL FIX: Use the exact encoding from base-std
-            // For Asset: encodeAssetCreateParams(name, symbol, admin, decimals)
-            // This is (string, string, address, uint8) - NO version byte!
-            const coder = ethers.AbiCoder.defaultAbiCoder();
+            // FINAL FIX: Encode params correctly for B20
+            // The factory expects: (string name, string symbol, address admin, uint8 decimals)
+            // But we need to encode it as bytes
+            const abiCoder = ethers.AbiCoder.defaultAbiCoder();
             
             let params;
             if (deployType === 'stable') {
-                // Stablecoin: (string, string, address, string) - iso currency code
-                params = coder.encode(
+                params = abiCoder.encode(
                     ["string", "string", "address", "string"],
                     [name, symbol, account, currency.toUpperCase().slice(0, 3)]
                 );
             } else {
-                // Asset: (string, string, address, uint8)
-                params = coder.encode(
+                // For Asset: encode as (string, string, address, uint8)
+                params = abiCoder.encode(
                     ["string", "string", "address", "uint8"],
                     [name, symbol, account, decimals]
                 );
             }
+            
+            // Remove the 0x prefix for concatenation
+            const paramsHex = params.slice(2);
+            
+            // The params should be passed as bytes, not string
+            // Convert hex to bytes
+            const paramsBytes = ethers.getBytes(params);
 
-            console.log("=== ENCODING DEBUG ===");
+            console.log("=== FINAL DEBUG ===");
             console.log("Name:", name);
             console.log("Symbol:", symbol);
             console.log("Account:", account);
             console.log("Decimals:", decimals);
             console.log("Params hex:", params);
-            console.log("Params length:", params.length);
+            console.log("Params bytes:", paramsBytes);
 
             const initCalls = [];
             
@@ -377,9 +383,14 @@
                 "function createB20(uint8 variant, bytes32 salt, bytes params, bytes[] initCalls) returns (address)"
             ]);
 
-            const data = factoryInterface.encodeFunctionData("createB20", [variant, salt, params, initCalls]);
+            const data = factoryInterface.encodeFunctionData("createB20", [
+                variant, 
+                salt, 
+                paramsBytes,  // Pass as bytes, not hex string
+                initCalls
+            ]);
 
-            console.log("Final data:", data);
+            console.log("Final data length:", data.length);
 
             const feeData = await provider.getFeeData();
             const tx = await signer.sendTransaction({
