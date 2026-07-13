@@ -54,12 +54,15 @@
         color: #7ec8e3; font-size: 0.78em; font-weight: 600; text-decoration: none; transition: background 0.2s ease;
     }
     .nft-card-btn:hover { background: rgba(126,200,227,0.18); }
-    .token-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-top: 24px; text-align: left; }
-    .token-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; }
-    .token-card-symbol { font-weight: 700; color: #2dd4bf; font-size: 1.1em; margin-bottom: 4px; }
-    .token-card-name { color: #999; font-size: 0.78em; margin-bottom: 10px; }
-    .token-card-row { display: flex; justify-content: space-between; font-size: 0.8em; color: #ccc; padding: 4px 0; border-top: 1px solid rgba(255,255,255,0.04); }
-    .token-card-row span:first-child { color: #666; }
+    .token-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 24px; text-align: left; }
+    .token-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 16px; transition: border-color 0.2s, transform 0.2s; }
+    .token-card:hover { border-color: rgba(126,200,227,0.3); transform: translateY(-2px); }
+    .token-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .token-card-symbol { font-weight: 700; color: #fff; font-size: 1.1em; }
+    .token-card-net-badge { font-size: 0.65em; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+    .token-card-name { color: #666; font-size: 0.75em; margin-bottom: 12px; }
+    .token-card-balance { font-size: 1.3em; font-weight: 600; color: #2dd4bf; margin-bottom: 2px; }
+    .token-card-balance-label { font-size: 0.7em; color: #555; }
     .rank-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-top: 24px; text-align: left; }
     .rank-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; }
     .rank-card-title { font-weight: 700; color: #fff; font-size: 0.95em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
@@ -191,18 +194,39 @@
     function renderTokens(tokens) {
         const grid = document.getElementById("token-grid");
         grid.innerHTML = "";
+        if (tokens.length === 0) {
+            document.getElementById("token-empty").style.display = "block";
+            return;
+        }
+
+        const NET_COLORS = {
+            "Nexus":     { bg: "rgba(99,102,241,0.15)", color: "#818cf8" },
+            "Ink":       { bg: "rgba(14,165,233,0.15)", color: "#38bdf8" },
+            "Base":      { bg: "rgba(59,130,246,0.15)", color: "#60a5fa" },
+            "Robinhood": { bg: "rgba(34,197,94,0.15)",  color: "#4ade80" },
+            "Lamina1":   { bg: "rgba(233,69,96,0.15)",  color: "#e94560" },
+            "Avalanche": { bg: "rgba(239,68,68,0.15)",  color: "#f87171" },
+            "Plume":     { bg: "rgba(168,85,247,0.15)", color: "#c084fc" },
+            "ZetaChain": { bg: "rgba(20,184,166,0.15)", color: "#2dd4bf" },
+        };
+
         tokens.forEach(t => {
+            const bal = Number(t.balance);
+            const balStr = bal === 0 ? "0" : bal < 0.0001 ? bal.toExponential(2) : bal.toLocaleString(undefined, {maximumFractionDigits: 4});
+            const netStyle = NET_COLORS[t.network_label] || { bg: "rgba(255,255,255,0.08)", color: "#ccc" };
             const card = document.createElement("div");
             card.className = "token-card";
             card.innerHTML = `
-                <div class="token-card-symbol">${escapeHtml(t.symbol)}</div>
+                <div class="token-card-header">
+                    <span class="token-card-symbol">${escapeHtml(t.symbol)}</span>
+                    <span class="token-card-net-badge" style="background:${netStyle.bg};color:${netStyle.color};">${escapeHtml(t.network_label)}</span>
+                </div>
                 <div class="token-card-name">${escapeHtml(t.name)}</div>
-                <div class="token-card-row"><span>Network</span><span>${t.network_label}</span></div>
-                <div class="token-card-row"><span>Balance</span><span>${Number(t.balance).toLocaleString(undefined, {maximumFractionDigits: 4})} ${escapeHtml(t.symbol)}</span></div>
+                <div class="token-card-balance">${balStr}</div>
+                <div class="token-card-balance-label">${escapeHtml(t.symbol)} balance</div>
             `;
             grid.appendChild(card);
         });
-        document.getElementById("token-empty").style.display = tokens.length ? "none" : "block";
     }
 
     function renderRanks(ranks) {
