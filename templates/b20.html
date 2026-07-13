@@ -300,11 +300,14 @@
             return; 
         }
         
-        // Validate decimals based on type
         if (deployType === 'stable') {
             if (decimals !== 6) { 
                 statusEl.innerText = "Stablecoin decimals must be 6."; 
                 return; 
+            }
+            if (!currency || currency.length !== 3) {
+                statusEl.innerText = "Please enter a valid 3-letter ISO currency code (e.g. USD)."; 
+                return;
             }
         } else {
             if (decimals < 6 || decimals > 18) { 
@@ -319,28 +322,25 @@
         try {
             const B20_FACTORY = "0xB20F000000000000000000000000000000000000";
             
-            // ASSET = 0, STABLECOIN = 1
             const variant = deployType === 'stable' ? 1 : 0;
-            
             const salt = ethers.keccak256(ethers.toUtf8Bytes(name + symbol + Date.now()));
 
-            // Build params based on variant type
             let params;
             if (deployType === 'stable') {
-                // STABLECOIN params: (string name, string symbol, address initialAdmin, string isoCurrencyCode)
+                const isoCode = currency.toUpperCase().slice(0, 3);
                 params = ethers.AbiCoder.defaultAbiCoder().encode(
                     ["string", "string", "address", "string"],
-                    [name, symbol, account, currency]
+                    [name, symbol, account, isoCode]
                 );
+                console.log("Stablecoin params:", { name, symbol, account, isoCode });
             } else {
-                // ASSET params: (string name, string symbol, address initialAdmin, uint8 decimals)
                 params = ethers.AbiCoder.defaultAbiCoder().encode(
                     ["string", "string", "address", "uint8"],
                     [name, symbol, account, decimals]
                 );
+                console.log("Asset params:", { name, symbol, account, decimals });
             }
 
-            // Build initCalls
             const initCalls = [];
             
             const grantRoleInterface = new ethers.Interface([
@@ -367,15 +367,12 @@
 
             const data = factoryInterface.encodeFunctionData("createB20", [variant, salt, params, initCalls]);
 
-            console.log("Deploying with:", {
-                variant,
-                name,
-                symbol,
-                decimals,
-                currency: deployType === 'stable' ? currency : 'N/A',
-                cap,
-                mintRole,
-                account
+            console.log("Transaction data:", {
+                to: B20_FACTORY,
+                variant: variant,
+                salt: salt,
+                params: params,
+                initCalls: initCalls
             });
 
             const feeData = await provider.getFeeData();
@@ -388,7 +385,6 @@
             statusEl.innerText = "Confirming transaction...";
             const receipt = await tx.wait();
 
-            // Find token address from logs
             const tokenAddress = receipt.logs.find(log => 
                 log.address.toLowerCase().startsWith("0xb200")
             )?.address || "Check explorer";
@@ -401,13 +397,11 @@
             console.error("Full error:", err);
             let errorMsg = err.message;
             if (err.data) {
-                // Try to decode the error
                 try {
                     if (err.data.startsWith("0x")) {
                         const hexStr = err.data.slice(2);
-                        const decoded = new TextDecoder().decode(
-                            new Uint8Array(hexStr.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
-                        );
+                        const bytes = new Uint8Array(hexStr.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                        const decoded = new TextDecoder().decode(bytes);
                         if (decoded) errorMsg = decoded;
                     }
                 } catch {
