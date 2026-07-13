@@ -12,6 +12,7 @@
     .card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 20px; margin-top: 16px; }
     .b20-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #fff; font-size: 0.9em; margin-bottom: 10px; box-sizing: border-box; font-family: monospace; }
     .b20-input:focus { outline: none; border-color: rgba(233,69,96,0.5); }
+    .b20-input:disabled { opacity: 0.5; cursor: not-allowed; }
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
     .info-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 14px; }
     .info-box .lbl { color: #666; font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -26,6 +27,7 @@
     .copy-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #888; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75em; }
     .copy-btn:hover { color: #fff; }
     .badge { display: inline-block; background: rgba(233,69,96,0.15); border: 1px solid rgba(233,69,96,0.3); color: #e94560; padding: 3px 10px; border-radius: 20px; font-size: 0.75em; margin-left: 8px; vertical-align: middle; }
+    .hidden { display: none; }
 </style>
 
 <div class="b20-wrap">
@@ -45,7 +47,7 @@
     <div id="main-section" style="display:none;">
         <div class="tab-row">
             <button class="tab active" onclick="switchTab('interact')">Interact</button>
-            <button class="tab" onclick="switchTab('deploy')">Deploy Guide</button>
+            <button class="tab" onclick="switchTab('deploy')">Deploy</button>
         </div>
 
         <div class="tab-content active" id="tab-interact">
@@ -113,7 +115,12 @@
                 <input class="b20-input" id="deploy-symbol" placeholder="e.g. MTK">
 
                 <p class="section-label">Decimals (6-18)</p>
-                <input class="b20-input" id="deploy-decimals" type="number" value="18" min="6" max="18" style="">
+                <input class="b20-input" id="deploy-decimals" type="number" value="18" min="6" max="18">
+
+                <div id="stable-currency-field" class="hidden">
+                    <p class="section-label">ISO Currency Code</p>
+                    <input class="b20-input" id="deploy-currency" placeholder="e.g. USD, EUR, GBP" value="USD">
+                </div>
 
                 <p class="section-label">Supply Cap (0 = unlimited)</p>
                 <input class="b20-input" id="deploy-cap" type="number" placeholder="e.g. 1000000" value="0">
@@ -268,8 +275,15 @@
         document.getElementById("type-asset").style.background = t === 'asset' ? 'rgba(233,69,96,0.07)' : 'transparent';
         document.getElementById("type-stable").style.borderColor = t === 'stable' ? '#e94560' : 'rgba(255,255,255,0.1)';
         document.getElementById("type-stable").style.background = t === 'stable' ? 'rgba(233,69,96,0.07)' : 'transparent';
-        document.getElementById("deploy-decimals").disabled = t === 'stable';
-        if (t === 'stable') document.getElementById("deploy-decimals").value = 6;
+        
+        if (t === 'stable') {
+            document.getElementById("deploy-decimals").disabled = true;
+            document.getElementById("deploy-decimals").value = 6;
+            document.getElementById("stable-currency-field").classList.remove("hidden");
+        } else {
+            document.getElementById("deploy-decimals").disabled = false;
+            document.getElementById("stable-currency-field").classList.add("hidden");
+        }
     }
 
     async function deployB20() {
@@ -279,46 +293,65 @@
         const cap = document.getElementById("deploy-cap").value.trim();
         const mintRole = document.getElementById("deploy-mint-role").checked;
         const statusEl = document.getElementById("deploy-status");
+        const currency = document.getElementById("deploy-currency")?.value.trim() || "USD";
 
-        if (!name || !symbol) { statusEl.innerText = "Please fill name and symbol."; return; }
-        if (decimals < 6 || decimals > 18) { statusEl.innerText = "Decimals must be between 6 and 18."; return; }
+        if (!name || !symbol) { 
+            statusEl.innerText = "Please fill name and symbol."; 
+            return; 
+        }
+        
+        // Validate decimals based on type
+        if (deployType === 'stable') {
+            if (decimals !== 6) { 
+                statusEl.innerText = "Stablecoin decimals must be 6."; 
+                return; 
+            }
+        } else {
+            if (decimals < 6 || decimals > 18) { 
+                statusEl.innerText = "Decimals must be between 6 and 18."; 
+                return; 
+            }
+        }
 
         statusEl.innerText = "Preparing transaction...";
         document.getElementById("deploy-btn").disabled = true;
 
         try {
-            // Correct factory address (with uppercase letters)
             const B20_FACTORY = "0xB20F000000000000000000000000000000000000";
             
-            // Use correct enum for variant (as numeric)
-            // ASSET = 0, STABLECOIN = 1 according to docs
+            // ASSET = 0, STABLECOIN = 1
             const variant = deployType === 'stable' ? 1 : 0;
             
             const salt = ethers.keccak256(ethers.toUtf8Bytes(name + symbol + Date.now()));
 
-            // Build params using AbiCoder (with correct order)
-            // For ASSET: (string name, string symbol, address initialAdmin, uint8 decimals)
-            const params = ethers.AbiCoder.defaultAbiCoder().encode(
-                ["string", "string", "address", "uint8"],
-                [name, symbol, account, decimals]
-            );
+            // Build params based on variant type
+            let params;
+            if (deployType === 'stable') {
+                // STABLECOIN params: (string name, string symbol, address initialAdmin, string isoCurrencyCode)
+                params = ethers.AbiCoder.defaultAbiCoder().encode(
+                    ["string", "string", "address", "string"],
+                    [name, symbol, account, currency]
+                );
+            } else {
+                // ASSET params: (string name, string symbol, address initialAdmin, uint8 decimals)
+                params = ethers.AbiCoder.defaultAbiCoder().encode(
+                    ["string", "string", "address", "uint8"],
+                    [name, symbol, account, decimals]
+                );
+            }
 
-            // Build initCalls with correct ABIs
+            // Build initCalls
             const initCalls = [];
             
-            // grantRole function on B20 token
             const grantRoleInterface = new ethers.Interface([
                 "function grantRole(bytes32 role, address account)"
             ]);
             
-            // updateSupplyCap function on B20 token
             const capInterface = new ethers.Interface([
                 "function updateSupplyCap(uint256 cap)"
             ]);
 
             if (mintRole) {
-                // MINT_ROLE hash - based on base-std docs
-                // B20 uses "MINTER_ROLE"
                 const MINT_ROLE = ethers.keccak256(ethers.toUtf8Bytes("MINTER_ROLE"));
                 initCalls.push(grantRoleInterface.encodeFunctionData("grantRole", [MINT_ROLE, account]));
             }
@@ -328,12 +361,22 @@
                 initCalls.push(capInterface.encodeFunctionData("updateSupplyCap", [capValue]));
             }
 
-            // Correct ABI for createB20 function on the factory
             const factoryInterface = new ethers.Interface([
                 "function createB20(uint8 variant, bytes32 salt, bytes params, bytes[] initCalls) returns (address)"
             ]);
 
             const data = factoryInterface.encodeFunctionData("createB20", [variant, salt, params, initCalls]);
+
+            console.log("Deploying with:", {
+                variant,
+                name,
+                symbol,
+                decimals,
+                currency: deployType === 'stable' ? currency : 'N/A',
+                cap,
+                mintRole,
+                account
+            });
 
             const feeData = await provider.getFeeData();
             const tx = await signer.sendTransaction({
@@ -342,7 +385,7 @@
                 gasPrice: feeData.gasPrice
             });
 
-            statusEl.innerText = "Confirming...";
+            statusEl.innerText = "Confirming transaction...";
             const receipt = await tx.wait();
 
             // Find token address from logs
@@ -356,14 +399,17 @@
             
         } catch (err) {
             console.error("Full error:", err);
-            // Show more detailed error
             let errorMsg = err.message;
             if (err.data) {
-                // If revert with data, try to decode it
+                // Try to decode the error
                 try {
-                    const iface = new ethers.Interface(["function Error(string)"]);
-                    const decoded = iface.decodeFunctionData("Error", err.data);
-                    errorMsg = decoded[0];
+                    if (err.data.startsWith("0x")) {
+                        const hexStr = err.data.slice(2);
+                        const decoded = new TextDecoder().decode(
+                            new Uint8Array(hexStr.match(/.{1,2}/g).map(byte => parseInt(byte, 16)))
+                        );
+                        if (decoded) errorMsg = decoded;
+                    }
                 } catch {
                     errorMsg = err.data;
                 }
