@@ -322,51 +322,51 @@
         try {
             const B20_FACTORY = "0xB20f000000000000000000000000000000000000";
             
+            // ASSET = 0, STABLECOIN = 1
             const variant = deployType === 'stable' ? 1 : 0;
             const salt = ethers.keccak256(ethers.toUtf8Bytes(name + symbol + Date.now()));
 
-            // ULTIMATE FIX: Use the exact encoding from base-std
-            // The params should be encoded as: (string name, string symbol, address admin, uint8 decimals)
-            // BUT we need to encode it as a struct with version byte
+            // CRITICAL FIX: Using the correct params structure from Chainstack docs
+            // For Asset: tuple(uint8,string,string,address,uint8) - version byte 1
+            // For Stablecoin: tuple(uint8,string,string,address,string) - version byte 1
             const abiCoder = ethers.AbiCoder.defaultAbiCoder();
             
-            // First encode the struct
-            let structData;
+            let params;
             if (deployType === 'stable') {
-                structData = abiCoder.encode(
-                    ["string", "string", "address", "string"],
-                    [name, symbol, account, currency.toUpperCase().slice(0, 3)]
+                // Stablecoin params: (version, name, symbol, admin, currency)
+                const paramsStruct = [
+                    1,  // version byte
+                    name,
+                    symbol,
+                    account,
+                    currency.toUpperCase().slice(0, 3)
+                ];
+                params = abiCoder.encode(
+                    ["tuple(uint8,string,string,address,string)"],
+                    [paramsStruct]
                 );
             } else {
-                structData = abiCoder.encode(
-                    ["string", "string", "address", "uint8"],
-                    [name, symbol, account, decimals]
+                // Asset params: (version, name, symbol, admin, decimals)
+                const paramsStruct = [
+                    1,  // version byte
+                    name,
+                    symbol,
+                    account,
+                    decimals
+                ];
+                params = abiCoder.encode(
+                    ["tuple(uint8,string,string,address,uint8)"],
+                    [paramsStruct]
                 );
             }
-            
-            // Remove 0x prefix and convert to bytes
-            const structBytes = ethers.getBytes(structData);
-            
-            // Prepend version byte (0x00) as a single byte
-            const versionByte = new Uint8Array([0x00]);
-            
-            // Combine version byte + struct data
-            const combinedBytes = new Uint8Array(versionByte.length + structBytes.length);
-            combinedBytes.set(versionByte, 0);
-            combinedBytes.set(structBytes, versionByte.length);
-            
-            // Convert back to hex string
-            const params = ethers.hexlify(combinedBytes);
 
-            console.log("=== ULTIMATE DEBUG ===");
+            console.log("=== DEPLOYMENT DEBUG ===");
+            console.log("Type:", deployType);
             console.log("Name:", name);
             console.log("Symbol:", symbol);
             console.log("Account:", account);
             console.log("Decimals:", decimals);
-            console.log("Struct data:", structData);
-            console.log("Struct bytes length:", structBytes.length);
-            console.log("Combined params:", params);
-            console.log("Combined params length:", params.length);
+            console.log("Params encoded:", params);
 
             const initCalls = [];
             
@@ -395,11 +395,14 @@
             const data = factoryInterface.encodeFunctionData("createB20", [
                 variant, 
                 salt, 
-                params,  // Pass as hex string
+                params, 
                 initCalls
             ]);
 
-            console.log("Final data:", data);
+            console.log("Final transaction data:", {
+                to: B20_FACTORY,
+                data: data
+            });
 
             const feeData = await provider.getFeeData();
             const tx = await signer.sendTransaction({
