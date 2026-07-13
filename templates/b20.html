@@ -320,40 +320,38 @@
         document.getElementById("deploy-btn").disabled = true;
 
         try {
-            const B20_FACTORY = "0xB20F000000000000000000000000000000000000";
+            const B20_FACTORY = "0xB20f000000000000000000000000000000000000";
             
             const variant = deployType === 'stable' ? 1 : 0;
             const salt = ethers.keccak256(ethers.toUtf8Bytes(name + symbol + Date.now()));
 
-            // Build params with version byte (0x00 for version 0)
-            // According to docs: params is ABI-encoded, variant-specific creation struct (versioned by leading byte)
+            // CRITICAL FIX: Use the exact encoding from base-std
+            // For Asset: encodeAssetCreateParams(name, symbol, admin, decimals)
+            // This is (string, string, address, uint8) - NO version byte!
+            const coder = ethers.AbiCoder.defaultAbiCoder();
             
-            // First encode the struct without version
-            let structData;
+            let params;
             if (deployType === 'stable') {
-                // For STABLECOIN: (string name, string symbol, address admin, string isoCode)
-                structData = ethers.AbiCoder.defaultAbiCoder().encode(
+                // Stablecoin: (string, string, address, string) - iso currency code
+                params = coder.encode(
                     ["string", "string", "address", "string"],
                     [name, symbol, account, currency.toUpperCase().slice(0, 3)]
                 );
             } else {
-                // For ASSET: (string name, string symbol, address admin, uint8 decimals)
-                structData = ethers.AbiCoder.defaultAbiCoder().encode(
+                // Asset: (string, string, address, uint8)
+                params = coder.encode(
                     ["string", "string", "address", "uint8"],
                     [name, symbol, account, decimals]
                 );
             }
-            
-            // Prepend version byte (0x00) to the encoded data
-            // Remove the "0x" prefix, prepend "00", add back "0x"
-            const versionByte = "00";
-            const params = "0x" + versionByte + structData.slice(2);
 
-            console.log("Params with version:", {
-                version: "0x00",
-                structData: structData,
-                params: params
-            });
+            console.log("=== ENCODING DEBUG ===");
+            console.log("Name:", name);
+            console.log("Symbol:", symbol);
+            console.log("Account:", account);
+            console.log("Decimals:", decimals);
+            console.log("Params hex:", params);
+            console.log("Params length:", params.length);
 
             const initCalls = [];
             
@@ -381,13 +379,7 @@
 
             const data = factoryInterface.encodeFunctionData("createB20", [variant, salt, params, initCalls]);
 
-            console.log("Transaction data:", {
-                to: B20_FACTORY,
-                variant: variant,
-                salt: salt,
-                paramsLength: params.length,
-                initCalls: initCalls.length
-            });
+            console.log("Final data:", data);
 
             const feeData = await provider.getFeeData();
             const tx = await signer.sendTransaction({
