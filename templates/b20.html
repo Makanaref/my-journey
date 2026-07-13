@@ -325,37 +325,34 @@
             const variant = deployType === 'stable' ? 1 : 0;
             const salt = ethers.keccak256(ethers.toUtf8Bytes(name + symbol + Date.now()));
 
-            // Build params manually - encode each string with its length prefix
-            const nameBytes = ethers.toUtf8Bytes(name);
-            const symbolBytes = ethers.toUtf8Bytes(symbol);
-            const adminBytes = ethers.getBytes(account);
+            // Build params with version byte (0x00 for version 0)
+            // According to docs: params is ABI-encoded, variant-specific creation struct (versioned by leading byte)
             
-            // For Solidity string encoding: length (uint256) + bytes
-            const nameLen = ethers.zeroPadValue(ethers.toBeHex(nameBytes.length, 32), 32);
-            const symbolLen = ethers.zeroPadValue(ethers.toBeHex(symbolBytes.length, 32), 32);
+            // First encode the struct without version
+            let structData;
+            if (deployType === 'stable') {
+                // For STABLECOIN: (string name, string symbol, address admin, string isoCode)
+                structData = ethers.AbiCoder.defaultAbiCoder().encode(
+                    ["string", "string", "address", "string"],
+                    [name, symbol, account, currency.toUpperCase().slice(0, 3)]
+                );
+            } else {
+                // For ASSET: (string name, string symbol, address admin, uint8 decimals)
+                structData = ethers.AbiCoder.defaultAbiCoder().encode(
+                    ["string", "string", "address", "uint8"],
+                    [name, symbol, account, decimals]
+                );
+            }
             
-            const namePadded = ethers.zeroPadValue(nameBytes, 32);
-            const symbolPadded = ethers.zeroPadValue(symbolBytes, 32);
-            const adminPadded = ethers.zeroPadValue(adminBytes, 32);
-            const decimalsPadded = ethers.zeroPadValue(ethers.toBeHex(decimals, 32), 32);
+            // Prepend version byte (0x00) to the encoded data
+            // Remove the "0x" prefix, prepend "00", add back "0x"
+            const versionByte = "00";
+            const params = "0x" + versionByte + structData.slice(2);
 
-            // Combine all parts
-            const params = ethers.concat([
-                nameLen,
-                namePadded,
-                symbolLen,
-                symbolPadded,
-                adminPadded,
-                decimalsPadded
-            ]);
-
-            console.log("Manual params:", {
-                name,
-                symbol,
-                account,
-                decimals,
-                params: params,
-                length: params.length
+            console.log("Params with version:", {
+                version: "0x00",
+                structData: structData,
+                params: params
             });
 
             const initCalls = [];
@@ -369,7 +366,7 @@
             ]);
 
             if (mintRole) {
-                const MINT_ROLE = ethers.keccak256(ethers.toUtf8Bytes("MINTER_ROLE"));
+                const MINT_ROLE = ethers.keccak256(ethers.toUtf8Bytes("MINT_ROLE"));
                 initCalls.push(grantRoleInterface.encodeFunctionData("grantRole", [MINT_ROLE, account]));
             }
 
@@ -389,8 +386,7 @@
                 variant: variant,
                 salt: salt,
                 paramsLength: params.length,
-                initCalls: initCalls.length,
-                data: data
+                initCalls: initCalls.length
             });
 
             const feeData = await provider.getFeeData();
