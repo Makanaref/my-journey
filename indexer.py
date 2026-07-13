@@ -222,45 +222,40 @@ def scan_nfts_via_rpc(net_key, account):
             return results
         w3 = Web3(Web3.HTTPProvider(RPC_URLS[net_key], request_kwargs={"timeout": 8}))
         factory = w3.eth.contract(address=Web3.to_checksum_address(factory_addr), abi=NFT_FACTORY_ABI)
-        latest = w3.eth.block_number
-        chunk = 2000
-        max_blocks = 200000
-        all_events = []
-        to_block = latest
-        while to_block > max(0, latest - max_blocks):
-            from_block = max(0, to_block - chunk)
+        collections = factory.functions.getMyCollections(Web3.to_checksum_address(account)).call()
+        for collection_addr in collections:
             try:
-                events = factory.events.CollectionCreated().get_logs(from_block=from_block, to_block=to_block)
-                all_events.extend(events)
-            except Exception:
-                pass
-            to_block = from_block - 1
-        for ev in all_events:
-            try:
-                collection_addr = ev["args"]["collectionAddress"]
-                creator = ev["args"]["creator"]
                 collection = w3.eth.contract(address=collection_addr, abi=NFT_COLLECTION_ABI)
-                balance = collection.functions.balanceOf(Web3.to_checksum_address(account)).call()
-                is_creator = creator.lower() == account.lower()
-                if balance == 0 and not is_creator:
-                    continue
-                name = ev["args"]["name"]
+                name = collection.functions.name().call()
                 image = ""
                 try:
                     uri = collection.functions.metadataURI().call()
-                    with urllib.request.urlopen(uri, timeout=4) as resp:
-                        meta = json.loads(resp.read().decode())
-                        name = meta.get("name", name)
-                        image = meta.get("image", "")
+                    if uri:
+                        meta_res = requests.get(uri, timeout=4)
+                        if meta_res.ok:
+                            meta_json = meta_res.json()
+                            image = meta_json.get("image", "")
+                            name = meta_json.get("name", name)
                 except Exception:
-                    pass
+                    try:
+                        token_uri_abi = [{"constant":True,"inputs":[{"name":"tokenId","type":"uint256"}],"name":"tokenURI","outputs":[{"name":"","type":"string"}],"type":"function"}]
+                        c2 = w3.eth.contract(address=collection_addr, abi=token_uri_abi)
+                        uri = c2.functions.tokenURI(1).call()
+                        if uri:
+                            meta_res = requests.get(uri, timeout=4)
+                            if meta_res.ok:
+                                meta_json = meta_res.json()
+                                image = meta_json.get("image", "")
+                                name = meta_json.get("name", name)
+                    except Exception:
+                        pass
                 results.append({
                     "network": net_key,
                     "network_label": NETWORK_LABELS[net_key],
                     "collection": collection_addr,
                     "name": name,
                     "image": image,
-                    "is_creator": is_creator
+                    "is_creator": True
                 })
             except Exception:
                 pass
