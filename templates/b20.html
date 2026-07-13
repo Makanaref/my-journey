@@ -1,435 +1,136 @@
-{% extends "base.html" %}
-{% block title %}B20 Tokens{% endblock %}
-{% block content %}
-<style>
-    .b20-wrap { max-width: 560px; margin: 0 auto; }
-    .b20-header { text-align: center; margin-bottom: 32px; }
-    .b20-title { font-size: 2em; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
-    .b20-sub { color: #666; font-size: 0.9em; }
-    .section-label { font-size: 0.72em; color: #666; text-transform: uppercase; letter-spacing: 1.5px; margin: 24px 0 10px; text-align: left; }
-    .wallet-pill { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 9px 18px; border-radius: 30px; font-size: 0.85em; color: #bbb; font-family: monospace; }
-    .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; }
-    .card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 20px; margin-top: 16px; }
-    .b20-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #fff; font-size: 0.9em; margin-bottom: 10px; box-sizing: border-box; font-family: monospace; }
-    .b20-input:focus { outline: none; border-color: rgba(233,69,96,0.5); }
-    .b20-input:disabled { opacity: 0.5; cursor: not-allowed; }
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-    .info-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 14px; }
-    .info-box .lbl { color: #666; font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.5px; }
-    .info-box .val { color: #fff; font-size: 1.1em; font-weight: 600; margin-top: 4px; word-break: break-all; }
-    .status-msg { min-height: 20px; color: #777; font-size: 0.85em; margin-top: 10px; }
-    .tab-row { display: flex; gap: 8px; margin-bottom: 16px; }
-    .tab { padding: 8px 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #888; cursor: pointer; font-size: 0.85em; transition: all 0.2s; }
-    .tab.active { border-color: #e94560; color: #e94560; background: rgba(233,69,96,0.07); }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    .code-block { background: #0a0a14; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 16px; font-family: monospace; font-size: 0.8em; color: #4ade80; line-height: 1.8; overflow-x: auto; position: relative; }
-    .copy-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #888; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75em; }
-    .copy-btn:hover { color: #fff; }
-    .badge { display: inline-block; background: rgba(233,69,96,0.15); border: 1px solid rgba(233,69,96,0.3); color: #e94560; padding: 3px 10px; border-radius: 20px; font-size: 0.75em; margin-left: 8px; vertical-align: middle; }
-    .hidden { display: none; }
-</style>
+async function deployB20() {
+    const name = document.getElementById("deploy-name").value.trim();
+    const symbol = document.getElementById("deploy-symbol").value.trim();
+    const decimals = parseInt(document.getElementById("deploy-decimals").value);
+    const cap = document.getElementById("deploy-cap").value.trim();
+    const mintRole = document.getElementById("deploy-mint-role").checked;
+    const statusEl = document.getElementById("deploy-status");
+    const currency = document.getElementById("deploy-currency")?.value.trim() || "USD";
 
-<div class="b20-wrap">
-    <div class="b20-header">
-        <h1 class="b20-title">B20 Tokens <span class="badge">Base</span></h1>
-        <p class="b20-sub">Native token standard on Base — cheaper, faster, built-in compliance.</p>
-    </div>
-
-    <div id="connect-section" style="text-align:center;">
-        <button class="btn" onclick="connectWallet()" style="padding:12px 32px;">Connect wallet</button>
-    </div>
-
-    <div id="wallet-info" style="display:none;text-align:center;">
-        <span class="wallet-pill"><span class="dot"></span><span id="wallet-addr"></span></span>
-    </div>
-
-    <div id="main-section" style="display:none;">
-        <div class="tab-row">
-            <button class="tab active" onclick="switchTab('interact')">Interact</button>
-            <button class="tab" onclick="switchTab('deploy')">Deploy</button>
-        </div>
-
-        <div class="tab-content active" id="tab-interact">
-            <div class="card">
-                <p class="section-label">Token Address</p>
-                <input class="b20-input" id="token-addr" placeholder="0x... (B20 token address on Base)">
-                <button class="btn" onclick="loadToken()" style="width:100%;padding:12px;">Load Token</button>
-                <div id="token-info" style="display:none;">
-                    <div class="info-grid">
-                        <div class="info-box"><div class="lbl">Name</div><div class="val" id="token-name">—</div></div>
-                        <div class="info-box"><div class="lbl">Symbol</div><div class="val" id="token-symbol">—</div></div>
-                        <div class="info-box"><div class="lbl">Decimals</div><div class="val" id="token-decimals">—</div></div>
-                        <div class="info-box"><div class="lbl">Your Balance</div><div class="val" id="token-balance">—</div></div>
-                    </div>
-                </div>
-                <p class="status-msg" id="load-status"></p>
-            </div>
-
-            <div class="card" id="transfer-card" style="display:none;">
-                <p class="section-label">Transfer</p>
-                <input class="b20-input" id="transfer-to" placeholder="Recipient address (0x...)">
-                <input class="b20-input" id="transfer-amount" type="number" placeholder="Amount">
-                <button class="btn" onclick="transfer()" style="width:100%;padding:12px;">Transfer</button>
-                <p class="status-msg" id="transfer-status"></p>
-            </div>
-
-            <div class="card" id="mint-card" style="display:none;">
-                <p class="section-label">Mint <span style="color:#666;font-size:0.85em;">(requires minter role)</span></p>
-                <input class="b20-input" id="mint-to" placeholder="Mint to address (0x...)">
-                <input class="b20-input" id="mint-amount" type="number" placeholder="Amount">
-                <button class="btn" onclick="mint()" style="width:100%;padding:12px;">Mint</button>
-                <p class="status-msg" id="mint-status"></p>
-            </div>
-
-            <div class="card" id="burn-card" style="display:none;">
-                <p class="section-label">Burn</p>
-                <input class="b20-input" id="burn-amount" type="number" placeholder="Amount to burn">
-                <button class="btn" onclick="burn()" style="width:100%;padding:12px;background:rgba(233,69,96,0.3);">Burn</button>
-                <p class="status-msg" id="burn-status"></p>
-            </div>
-        </div>
-
-        <div class="tab-content" id="tab-deploy">
-            <div class="card">
-                <p style="color:#aaa;font-size:0.9em;line-height:1.7;">Deploy a B20 token directly on Base using your wallet — no CLI needed.</p>
-            </div>
-
-            <div class="card">
-                <p class="section-label">Token Type</p>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-                    <div id="type-asset" onclick="selectType('asset')" style="border:1px solid #e94560;border-radius:10px;padding:14px;cursor:pointer;background:rgba(233,69,96,0.07);">
-                        <div style="font-weight:600;color:#fff;">ASSET</div>
-                        <div style="font-size:0.75em;color:#777;margin-top:4px;">General purpose, 6-18 decimals</div>
-                    </div>
-                    <div id="type-stable" onclick="selectType('stable')" style="border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:14px;cursor:pointer;">
-                        <div style="font-weight:600;color:#fff;">STABLECOIN</div>
-                        <div style="font-size:0.75em;color:#777;margin-top:4px;">Fixed 6 decimals, fiat-backed</div>
-                    </div>
-                </div>
-
-                <p class="section-label">Token Name</p>
-                <input class="b20-input" id="deploy-name" placeholder="e.g. My Token">
-
-                <p class="section-label">Symbol</p>
-                <input class="b20-input" id="deploy-symbol" placeholder="e.g. MTK">
-
-                <p class="section-label">Decimals (6-18)</p>
-                <input class="b20-input" id="deploy-decimals" type="number" value="18" min="6" max="18">
-
-                <div id="stable-currency-field" class="hidden">
-                    <p class="section-label">ISO Currency Code</p>
-                    <input class="b20-input" id="deploy-currency" placeholder="e.g. USD, EUR, GBP" value="USD">
-                </div>
-
-                <p class="section-label">Supply Cap (0 = unlimited)</p>
-                <input class="b20-input" id="deploy-cap" type="number" placeholder="e.g. 1000000" value="0">
-
-                <label style="display:flex;align-items:center;gap:8px;color:#aaa;font-size:0.85em;margin-bottom:14px;cursor:pointer;">
-                    <input type="checkbox" id="deploy-mint-role" checked style="width:16px;height:16px;"> Grant myself MINT_ROLE
-                </label>
-
-                <button class="btn" id="deploy-btn" onclick="deployB20()" style="width:100%;padding:14px;font-size:1em;">Deploy B20 Token</button>
-                <p class="status-msg" id="deploy-status"></p>
-
-                <div id="deploy-result" style="display:none;margin-top:14px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:16px;">
-                    <p style="color:#4ade80;font-weight:600;margin-bottom:8px;">Token deployed! ✅</p>
-                    <p style="font-size:0.8em;color:#aaa;">Address: <span id="deploy-address" style="font-family:monospace;color:#fff;"></span></p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
-<script>
-    let provider, signer, account, tokenContract, tokenDecimals;
-
-    const BASE_CHAIN_ID = "0x" + (8453).toString(16);
-    const ERC20_ABI = [
-        "function name() view returns (string)",
-        "function symbol() view returns (string)",
-        "function decimals() view returns (uint8)",
-        "function balanceOf(address) view returns (uint256)",
-        "function transfer(address to, uint256 amount) returns (bool)",
-        "function mint(address to, uint256 amount) public",
-        "function burn(uint256 amount) public"
-    ];
-
-    function switchTab(tab) {
-        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-        document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
-        document.getElementById("tab-" + tab).classList.add("active");
-        event.target.classList.add("active");
+    if (!name || !symbol) { 
+        statusEl.innerText = "Please fill name and symbol."; 
+        return; 
     }
-
-    async function connectWallet() {
-        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-        try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-
-            await window.ethereum.request({
-                method: "wallet_addEthereumChain",
-                params: [{ chainId: BASE_CHAIN_ID, chainName: "Base", rpcUrls: ["https://mainnet.base.org"], nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://basescan.org"] }]
-            });
-
-            provider = new ethers.BrowserProvider(window.ethereum);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-
-            document.getElementById("connect-section").style.display = "none";
-            document.getElementById("wallet-info").style.display = "block";
-            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
-            document.getElementById("main-section").style.display = "block";
-        } catch (err) { alert("Failed: " + err.message); }
-    }
-
-    async function loadToken() {
-        const addr = document.getElementById("token-addr").value.trim();
-        if (!addr) { alert("Enter a token address!"); return; }
-        document.getElementById("load-status").innerText = "Loading...";
-        try {
-            tokenContract = new ethers.Contract(addr, ERC20_ABI, signer);
-            const [name, symbol, decimals, balance] = await Promise.all([
-                tokenContract.name(),
-                tokenContract.symbol(),
-                tokenContract.decimals(),
-                tokenContract.balanceOf(account)
-            ]);
-            tokenDecimals = Number(decimals);
-            document.getElementById("token-name").innerText = name;
-            document.getElementById("token-symbol").innerText = symbol;
-            document.getElementById("token-decimals").innerText = decimals.toString();
-            document.getElementById("token-balance").innerText = ethers.formatUnits(balance, tokenDecimals) + " " + symbol;
-            document.getElementById("token-info").style.display = "block";
-            document.getElementById("transfer-card").style.display = "block";
-            document.getElementById("mint-card").style.display = "block";
-            document.getElementById("burn-card").style.display = "block";
-            document.getElementById("load-status").innerText = "Token loaded ✅";
-        } catch (err) {
-            document.getElementById("load-status").innerText = "Failed: " + err.message;
-        }
-    }
-
-    async function transfer() {
-        const to = document.getElementById("transfer-to").value.trim();
-        const amount = document.getElementById("transfer-amount").value;
-        if (!to || !amount) { alert("Fill all fields!"); return; }
-        document.getElementById("transfer-status").innerText = "Sending...";
-        try {
-            const feeData = await provider.getFeeData();
-            const tx = await tokenContract.transfer(to, ethers.parseUnits(amount, tokenDecimals), { gasPrice: feeData.gasPrice });
-            await tx.wait();
-            document.getElementById("transfer-status").innerText = "Transfer confirmed ✅";
-            await loadToken();
-        } catch (err) {
-            document.getElementById("transfer-status").innerText = "Failed: " + (err.reason || err.message);
-        }
-    }
-
-    async function mint() {
-        const to = document.getElementById("mint-to").value.trim();
-        const amount = document.getElementById("mint-amount").value;
-        if (!to || !amount) { alert("Fill all fields!"); return; }
-        document.getElementById("mint-status").innerText = "Minting...";
-        try {
-            const feeData = await provider.getFeeData();
-            const tx = await tokenContract.mint(to, ethers.parseUnits(amount, tokenDecimals), { gasPrice: feeData.gasPrice });
-            await tx.wait();
-            document.getElementById("mint-status").innerText = "Minted ✅";
-            await loadToken();
-        } catch (err) {
-            document.getElementById("mint-status").innerText = "Failed: " + (err.reason || err.message);
-        }
-    }
-
-    async function burn() {
-        const amount = document.getElementById("burn-amount").value;
-        if (!amount) { alert("Enter amount!"); return; }
-        document.getElementById("burn-status").innerText = "Burning...";
-        try {
-            const feeData = await provider.getFeeData();
-            const tx = await tokenContract.burn(ethers.parseUnits(amount, tokenDecimals), { gasPrice: feeData.gasPrice });
-            await tx.wait();
-            document.getElementById("burn-status").innerText = "Burned ✅";
-            await loadToken();
-        } catch (err) {
-            document.getElementById("burn-status").innerText = "Failed: " + (err.reason || err.message);
-        }
-    }
-
-    function copyCode(id) {
-        const el = document.getElementById(id);
-        const text = el.innerText.replace(/Copy\n/, "").trim();
-        navigator.clipboard.writeText(text);
-        el.querySelector(".copy-btn").innerText = "Copied!";
-        setTimeout(() => el.querySelector(".copy-btn").innerText = "Copy", 2000);
-    }
-
-    let deployType = 'asset';
-
-    function selectType(t) {
-        deployType = t;
-        document.getElementById("type-asset").style.borderColor = t === 'asset' ? '#e94560' : 'rgba(255,255,255,0.1)';
-        document.getElementById("type-asset").style.background = t === 'asset' ? 'rgba(233,69,96,0.07)' : 'transparent';
-        document.getElementById("type-stable").style.borderColor = t === 'stable' ? '#e94560' : 'rgba(255,255,255,0.1)';
-        document.getElementById("type-stable").style.background = t === 'stable' ? 'rgba(233,69,96,0.07)' : 'transparent';
-        
-        if (t === 'stable') {
-            document.getElementById("deploy-decimals").disabled = true;
-            document.getElementById("deploy-decimals").value = 6;
-            document.getElementById("stable-currency-field").classList.remove("hidden");
-        } else {
-            document.getElementById("deploy-decimals").disabled = false;
-            document.getElementById("stable-currency-field").classList.add("hidden");
-        }
-    }
-
-    async function deployB20() {
-        const name = document.getElementById("deploy-name").value.trim();
-        const symbol = document.getElementById("deploy-symbol").value.trim();
-        const decimals = parseInt(document.getElementById("deploy-decimals").value);
-        const cap = document.getElementById("deploy-cap").value.trim();
-        const mintRole = document.getElementById("deploy-mint-role").checked;
-        const statusEl = document.getElementById("deploy-status");
-        const currency = document.getElementById("deploy-currency")?.value.trim() || "USD";
-
-        if (!name || !symbol) { 
-            statusEl.innerText = "Please fill name and symbol."; 
+    
+    if (deployType === 'stable') {
+        if (decimals !== 6) { 
+            statusEl.innerText = "Stablecoin decimals must be 6."; 
             return; 
         }
-        
-        if (deployType === 'stable') {
-            if (decimals !== 6) { 
-                statusEl.innerText = "Stablecoin decimals must be 6."; 
-                return; 
-            }
-            if (!currency || currency.length !== 3) {
-                statusEl.innerText = "Please enter a valid 3-letter ISO currency code (e.g. USD)."; 
-                return;
-            }
-        } else {
-            if (decimals < 6 || decimals > 18) { 
-                statusEl.innerText = "Decimals must be between 6 and 18."; 
-                return; 
-            }
+        if (!currency || currency.length !== 3) {
+            statusEl.innerText = "Please enter a valid 3-letter ISO currency code (e.g. USD)."; 
+            return;
         }
-
-        statusEl.innerText = "Preparing transaction...";
-        document.getElementById("deploy-btn").disabled = true;
-
-        try {
-            // FIXED: Correct factory address with uppercase F
-            const B20_FACTORY = "0xB20F000000000000000000000000000000000000";
-            
-            // ASSET = 0, STABLECOIN = 1
-            const variant = deployType === 'stable' ? 1 : 0;
-            const salt = ethers.keccak256(ethers.toUtf8Bytes(name + symbol + Date.now()));
-
-            // Using the correct params structure from Chainstack docs
-            const abiCoder = ethers.AbiCoder.defaultAbiCoder();
-            
-            let params;
-            if (deployType === 'stable') {
-                const paramsStruct = [
-                    1,  // version byte
-                    name,
-                    symbol,
-                    account,
-                    currency.toUpperCase().slice(0, 3)
-                ];
-                params = abiCoder.encode(
-                    ["tuple(uint8,string,string,address,string)"],
-                    [paramsStruct]
-                );
-            } else {
-                const paramsStruct = [
-                    1,  // version byte
-                    name,
-                    symbol,
-                    account,
-                    decimals
-                ];
-                params = abiCoder.encode(
-                    ["tuple(uint8,string,string,address,uint8)"],
-                    [paramsStruct]
-                );
-            }
-
-            console.log("=== DEPLOYMENT DEBUG ===");
-            console.log("Type:", deployType);
-            console.log("Factory:", B20_FACTORY);
-            console.log("Params encoded:", params);
-
-            const initCalls = [];
-            
-            const grantRoleInterface = new ethers.Interface([
-                "function grantRole(bytes32 role, address account)"
-            ]);
-            
-            const capInterface = new ethers.Interface([
-                "function updateSupplyCap(uint256 cap)"
-            ]);
-
-            if (mintRole) {
-                const MINT_ROLE = ethers.keccak256(ethers.toUtf8Bytes("MINT_ROLE"));
-                initCalls.push(grantRoleInterface.encodeFunctionData("grantRole", [MINT_ROLE, account]));
-            }
-
-            if (cap && Number(cap) > 0) {
-                const capValue = ethers.parseUnits(cap, decimals);
-                initCalls.push(capInterface.encodeFunctionData("updateSupplyCap", [capValue]));
-            }
-
-            const factoryInterface = new ethers.Interface([
-                "function createB20(uint8 variant, bytes32 salt, bytes params, bytes[] initCalls) returns (address)"
-            ]);
-
-            const data = factoryInterface.encodeFunctionData("createB20", [
-                variant, 
-                salt, 
-                params, 
-                initCalls
-            ]);
-
-            const feeData = await provider.getFeeData();
-            const tx = await signer.sendTransaction({
-                to: B20_FACTORY,
-                data: data,
-                gasPrice: feeData.gasPrice
-            });
-
-            statusEl.innerText = "Confirming transaction...";
-            const receipt = await tx.wait();
-
-            // Find token address from logs - should start with 0xB20
-            const tokenAddress = receipt.logs.find(log => 
-                log.address.toLowerCase().startsWith("0xb20")
-            )?.address || "Check explorer";
-
-            document.getElementById("deploy-address").innerText = tokenAddress;
-            document.getElementById("deploy-result").style.display = "block";
-            statusEl.innerText = "Deployed successfully! ✅";
-            
-        } catch (err) {
-            console.error("Full error:", err);
-            let errorMsg = err.message;
-            if (err.data) {
-                try {
-                    if (err.data.startsWith("0x")) {
-                        const hexStr = err.data.slice(2);
-                        const bytes = new Uint8Array(hexStr.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-                        const decoded = new TextDecoder().decode(bytes);
-                        if (decoded) errorMsg = decoded;
-                    }
-                } catch {
-                    errorMsg = err.data;
-                }
-            }
-            statusEl.innerText = "Failed: " + (err.reason || errorMsg || "Unknown error");
+    } else {
+        if (decimals < 6 || decimals > 18) { 
+            statusEl.innerText = "Decimals must be between 6 and 18."; 
+            return; 
         }
-        document.getElementById("deploy-btn").disabled = false;
     }
-</script>
-{% endblock %}
+
+    statusEl.innerText = "Preparing transaction...";
+    document.getElementById("deploy-btn").disabled = true;
+
+    try {
+        const B20_FACTORY = "0xB20F000000000000000000000000000000000000";
+        const variant = deployType === 'stable' ? 1 : 0;
+        const salt = ethers.keccak256(ethers.toUtf8Bytes(name + symbol + Date.now()));
+
+        const abiCoder = ethers.AbiCoder.defaultAbiCoder();
+        
+        let params;
+        if (deployType === 'stable') {
+            const paramsStruct = [1, name, symbol, account, currency.toUpperCase().slice(0, 3)];
+            params = abiCoder.encode(["tuple(uint8,string,string,address,string)"], [paramsStruct]);
+        } else {
+            const paramsStruct = [1, name, symbol, account, decimals];
+            params = abiCoder.encode(["tuple(uint8,string,string,address,uint8)"], [paramsStruct]);
+        }
+
+        // === بهینه‌سازی initCalls ===
+        const initCalls = [];
+        
+        const grantRoleInterface = new ethers.Interface([
+            "function grantRole(bytes32 role, address account)"
+        ]);
+        const capInterface = new ethers.Interface([
+            "function updateSupplyCap(uint256 cap)"
+        ]);
+
+        // فقط در صورت نیاز اضافه کن
+        if (mintRole) {
+            const MINT_ROLE = ethers.keccak256(ethers.toUtf8Bytes("MINT_ROLE"));
+            initCalls.push(grantRoleInterface.encodeFunctionData("grantRole", [MINT_ROLE, account]));
+        }
+
+        if (cap && Number(cap) > 0) {
+            const capValue = ethers.parseUnits(cap, decimals);
+            initCalls.push(capInterface.encodeFunctionData("updateSupplyCap", [capValue]));
+        }
+
+        const factoryInterface = new ethers.Interface([
+            "function createB20(uint8 variant, bytes32 salt, bytes params, bytes[] initCalls) returns (address)"
+        ]);
+
+        const data = factoryInterface.encodeFunctionData("createB20", [variant, salt, params, initCalls]);
+
+        // === بهینه‌سازی گس ===
+        // ۱. تخمین گس
+        const estimatedGas = await provider.estimateGas({
+            to: B20_FACTORY,
+            data: data,
+            from: account
+        });
+        
+        // ۲. قیمت گس با تخفیف (۹۰٪ قیمت پیش‌فرض)
+        const feeData = await provider.getFeeData();
+        const maxGasPrice = feeData.gasPrice * 90n / 100n;
+        
+        // ۳. گس با ۵٪ حاشیه اطمینان (به جای ۱۰٪)
+        const gasLimit = estimatedGas * 105n / 100n;
+
+        console.log("Gas optimization:", {
+            estimatedGas: estimatedGas.toString(),
+            gasLimit: gasLimit.toString(),
+            maxGasPrice: maxGasPrice.toString(),
+            originalPrice: feeData.gasPrice.toString()
+        });
+
+        // ۴. ارسال تراکنش با تنظیمات بهینه
+        const tx = await signer.sendTransaction({
+            to: B20_FACTORY,
+            data: data,
+            gasPrice: maxGasPrice,
+            gasLimit: gasLimit
+        });
+
+        statusEl.innerText = "Confirming transaction...";
+        const receipt = await tx.wait();
+
+        const tokenAddress = receipt.logs.find(log => 
+            log.address.toLowerCase().startsWith("0xb20")
+        )?.address || "Check explorer";
+
+        document.getElementById("deploy-address").innerText = tokenAddress;
+        document.getElementById("deploy-result").style.display = "block";
+        statusEl.innerText = "Deployed successfully! ✅";
+        
+    } catch (err) {
+        console.error("Full error:", err);
+        let errorMsg = err.message;
+        if (err.data) {
+            try {
+                if (err.data.startsWith("0x")) {
+                    const hexStr = err.data.slice(2);
+                    const bytes = new Uint8Array(hexStr.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                    const decoded = new TextDecoder().decode(bytes);
+                    if (decoded) errorMsg = decoded;
+                }
+            } catch {
+                errorMsg = err.data;
+            }
+        }
+        statusEl.innerText = "Failed: " + (err.reason || errorMsg || "Unknown error");
+    }
+    document.getElementById("deploy-btn").disabled = false;
+}
