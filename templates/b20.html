@@ -113,7 +113,7 @@
                 <input class="b20-input" id="deploy-symbol" placeholder="e.g. MTK">
 
                 <p class="section-label">Decimals (6-18)</p>
-                <input class="b20-input" id="deploy-decimals" type="number" value="18" min="6" max="18" id="deploy-stable" style="">
+                <input class="b20-input" id="deploy-decimals" type="number" value="18" min="6" max="18" style="">
 
                 <p class="section-label">Supply Cap (0 = unlimited)</p>
                 <input class="b20-input" id="deploy-cap" type="number" placeholder="e.g. 1000000" value="0">
@@ -259,7 +259,8 @@
         el.querySelector(".copy-btn").innerText = "Copied!";
         setTimeout(() => el.querySelector(".copy-btn").innerText = "Copy", 2000);
     }
-let deployType = 'asset';
+
+    let deployType = 'asset';
 
     function selectType(t) {
         deployType = t;
@@ -286,36 +287,53 @@ let deployType = 'asset';
         document.getElementById("deploy-btn").disabled = true;
 
         try {
-            const B20_FACTORY = "0xB20f000000000000000000000000000000000000";
-
-            const nameHex = ethers.hexlify(ethers.toUtf8Bytes(name));
-            const symbolHex = ethers.hexlify(ethers.toUtf8Bytes(symbol));
+            // Correct factory address (with uppercase letters)
+            const B20_FACTORY = "0xB20F000000000000000000000000000000000000";
+            
+            // Use correct enum for variant (as numeric)
+            // ASSET = 0, STABLECOIN = 1 according to docs
+            const variant = deployType === 'stable' ? 1 : 0;
+            
             const salt = ethers.keccak256(ethers.toUtf8Bytes(name + symbol + Date.now()));
-            const capValue = cap && Number(cap) > 0 ? ethers.parseUnits(cap, decimals) : ethers.MaxUint256;
-            const grantMint = mintRole ? 1 : 0;
 
-            const iface = new ethers.Interface([
-                "function createB20(string variant, bytes32 salt, bytes params, bytes[] initCalls) returns (address)"
-            ]);
-
+            // Build params using AbiCoder (with correct order)
+            // For ASSET: (string name, string symbol, address initialAdmin, uint8 decimals)
             const params = ethers.AbiCoder.defaultAbiCoder().encode(
                 ["string", "string", "address", "uint8"],
                 [name, symbol, account, decimals]
             );
 
+            // Build initCalls with correct ABIs
             const initCalls = [];
+            
+            // grantRole function on B20 token
+            const grantRoleInterface = new ethers.Interface([
+                "function grantRole(bytes32 role, address account)"
+            ]);
+            
+            // updateSupplyCap function on B20 token
+            const capInterface = new ethers.Interface([
+                "function updateSupplyCap(uint256 cap)"
+            ]);
+
             if (mintRole) {
-                const MINT_ROLE = ethers.keccak256(ethers.toUtf8Bytes("MINT_ROLE"));
-                const grantIface = new ethers.Interface(["function grantRole(bytes32 role, address account)"]);
-                initCalls.push(grantIface.encodeFunctionData("grantRole", [MINT_ROLE, account]));
-            }
-            if (cap && Number(cap) > 0) {
-                const capIface = new ethers.Interface(["function updateSupplyCap(uint256 cap)"]);
-                initCalls.push(capIface.encodeFunctionData("updateSupplyCap", [capValue]));
+                // MINT_ROLE hash - based on base-std docs
+                // B20 uses "MINTER_ROLE"
+                const MINT_ROLE = ethers.keccak256(ethers.toUtf8Bytes("MINTER_ROLE"));
+                initCalls.push(grantRoleInterface.encodeFunctionData("grantRole", [MINT_ROLE, account]));
             }
 
-            const variant = deployType === 'stable' ? 'B20_STABLECOIN' : 'B20_ASSET';
-            const data = iface.encodeFunctionData("createB20", [variant, salt, params, initCalls]);
+            if (cap && Number(cap) > 0) {
+                const capValue = ethers.parseUnits(cap, decimals);
+                initCalls.push(capInterface.encodeFunctionData("updateSupplyCap", [capValue]));
+            }
+
+            // Correct ABI for createB20 function on the factory
+            const factoryInterface = new ethers.Interface([
+                "function createB20(uint8 variant, bytes32 salt, bytes params, bytes[] initCalls) returns (address)"
+            ]);
+
+            const data = factoryInterface.encodeFunctionData("createB20", [variant, salt, params, initCalls]);
 
             const feeData = await provider.getFeeData();
             const tx = await signer.sendTransaction({
@@ -327,12 +345,30 @@ let deployType = 'asset';
             statusEl.innerText = "Confirming...";
             const receipt = await tx.wait();
 
-            const newAddr = receipt.logs[0]?.address || "Check explorer";
-            document.getElementById("deploy-address").innerText = newAddr;
+            // Find token address from logs
+            const tokenAddress = receipt.logs.find(log => 
+                log.address.toLowerCase().startsWith("0xb200")
+            )?.address || "Check explorer";
+
+            document.getElementById("deploy-address").innerText = tokenAddress;
             document.getElementById("deploy-result").style.display = "block";
-            statusEl.innerText = "";
+            statusEl.innerText = "Deployed successfully! ✅";
+            
         } catch (err) {
-            statusEl.innerText = "Failed: " + (err.reason || err.message);
+            console.error("Full error:", err);
+            // Show more detailed error
+            let errorMsg = err.message;
+            if (err.data) {
+                // If revert with data, try to decode it
+                try {
+                    const iface = new ethers.Interface(["function Error(string)"]);
+                    const decoded = iface.decodeFunctionData("Error", err.data);
+                    errorMsg = decoded[0];
+                } catch {
+                    errorMsg = err.data;
+                }
+            }
+            statusEl.innerText = "Failed: " + (err.reason || errorMsg || "Unknown error");
         }
         document.getElementById("deploy-btn").disabled = false;
     }
