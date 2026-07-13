@@ -58,12 +58,18 @@ ORACLE_ADDRESSES = {
 }
 
 NFT_FACTORY_ADDRESSES = {
-    "lamina1": "0x02fFD8C9D9c6ea769cdFd530625eE9154a719786",
-    "avax":    "0x01d85BF4fb62c2Ba5746e4BC9821E6a7E05d68f4",
+    "lamina1":   "0x02fFD8C9D9c6ea769cdFd530625eE9154a719786",
+    "nexus":     "0x802BeAeC89A61a5e0da9EE05476AC45E40daE13c",
+    "ink":       "0x63837Ed21c882ad2d3Ba8678d66020804A2DD6dA",
+    "base":      "0x5f550fe601d9610B1D1977E5b3b5491347ED0418",
+    "robinhood": "0x620145Db1914c1F9c327FA282BD95b9039647Bc6",
+    "avax":      "0x01d85BF4fb62c2Ba5746e4BC9821E6a7E05d68f4",
+    "plume":     "0x9791cDBf9a6AF15C313B49d80299769fB8Bd608D",
+    "zetachain": "0xF988CAc77e456e915aFbDC22BBc8c114fbd4Cd96"
 }
 
-NFT_FACTORY_ABI = [{"anonymous":False,"inputs":[{"indexed":True,"name":"collectionAddress","type":"address"},{"indexed":True,"name":"creator","type":"address"},{"indexed":False,"name":"name","type":"string"},{"indexed":False,"name":"symbol","type":"string"},{"indexed":False,"name":"maxSupply","type":"uint256"},{"indexed":False,"name":"mintPrice","type":"uint256"}],"name":"CollectionCreated","type":"event"}]
-NFT_COLLECTION_ABI = [{"constant":True,"inputs":[{"name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":True,"inputs":[],"name":"totalMinted","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":True,"inputs":[],"name":"metadataURI","outputs":[{"name":"","type":"string"}],"type":"function"}]
+NFT_FACTORY_ABI = [{"inputs":[{"name":"creator","type":"address"}],"name":"getMyCollections","outputs":[{"name":"","type":"address[]"}],"type":"function","stateMutability":"view"}]
+NFT_COLLECTION_ABI = [{"constant":True,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"type":"function"},{"constant":True,"inputs":[],"name":"metadataURI","outputs":[{"name":"","type":"string"}],"type":"function"},{"constant":True,"inputs":[],"name":"totalMinted","outputs":[{"name":"","type":"uint256"}],"type":"function"}]
 
 
 def rpc_call(url, method, params):
