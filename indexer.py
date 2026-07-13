@@ -169,12 +169,29 @@ def scan_nfts_via_explorer(net_key, account):
                     except Exception:
                         meta = {}
                 attrs = {a.get("trait_type"): a.get("value") for a in meta.get("attributes", []) if a.get("trait_type")}
-                collection_addr = attrs.get("Collection Address") or (item.get("token") or {}).get("address") or ""
+                collection_addr = attrs.get("Collection Address") or ""
                 if not collection_addr or collection_addr in seen:
                     continue
                 seen.add(collection_addr)
-                name = attrs.get("Collection Name") or (item.get("token") or {}).get("name") or item.get("name") or "Unknown"
-                image = item.get("image_url") or meta.get("image") or ""
+                name = attrs.get("Collection Name") or "Unknown"
+                image = ""
+                try:
+                    rpc_url = RPC_URLS[net_key]
+                    from Crypto.Hash import keccak
+                    k = keccak.new(digest_bits=256)
+                    k.update(b"metadataURI()")
+                    selector = k.hexdigest()[:8]
+                    result = rpc_call(rpc_url, "eth_call", [{"to": collection_addr, "data": "0x" + selector}, "latest"])
+                    if result and result != "0x":
+                        uri = decode_string(result)
+                        if uri:
+                            meta_res = requests.get(uri, timeout=4)
+                            if meta_res.ok:
+                                meta_json = meta_res.json()
+                                image = meta_json.get("image", "")
+                                name = meta_json.get("name", name)
+                except Exception:
+                    pass
                 results.append({
                     "network": net_key,
                     "network_label": NETWORK_LABELS[net_key],
