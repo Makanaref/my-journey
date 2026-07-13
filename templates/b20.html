@@ -325,39 +325,48 @@
             const variant = deployType === 'stable' ? 1 : 0;
             const salt = ethers.keccak256(ethers.toUtf8Bytes(name + symbol + Date.now()));
 
-            // FINAL FIX: Encode params correctly for B20
-            // The factory expects: (string name, string symbol, address admin, uint8 decimals)
-            // But we need to encode it as bytes
+            // ULTIMATE FIX: Use the exact encoding from base-std
+            // The params should be encoded as: (string name, string symbol, address admin, uint8 decimals)
+            // BUT we need to encode it as a struct with version byte
             const abiCoder = ethers.AbiCoder.defaultAbiCoder();
             
-            let params;
+            // First encode the struct
+            let structData;
             if (deployType === 'stable') {
-                params = abiCoder.encode(
+                structData = abiCoder.encode(
                     ["string", "string", "address", "string"],
                     [name, symbol, account, currency.toUpperCase().slice(0, 3)]
                 );
             } else {
-                // For Asset: encode as (string, string, address, uint8)
-                params = abiCoder.encode(
+                structData = abiCoder.encode(
                     ["string", "string", "address", "uint8"],
                     [name, symbol, account, decimals]
                 );
             }
             
-            // Remove the 0x prefix for concatenation
-            const paramsHex = params.slice(2);
+            // Remove 0x prefix and convert to bytes
+            const structBytes = ethers.getBytes(structData);
             
-            // The params should be passed as bytes, not string
-            // Convert hex to bytes
-            const paramsBytes = ethers.getBytes(params);
+            // Prepend version byte (0x00) as a single byte
+            const versionByte = new Uint8Array([0x00]);
+            
+            // Combine version byte + struct data
+            const combinedBytes = new Uint8Array(versionByte.length + structBytes.length);
+            combinedBytes.set(versionByte, 0);
+            combinedBytes.set(structBytes, versionByte.length);
+            
+            // Convert back to hex string
+            const params = ethers.hexlify(combinedBytes);
 
-            console.log("=== FINAL DEBUG ===");
+            console.log("=== ULTIMATE DEBUG ===");
             console.log("Name:", name);
             console.log("Symbol:", symbol);
             console.log("Account:", account);
             console.log("Decimals:", decimals);
-            console.log("Params hex:", params);
-            console.log("Params bytes:", paramsBytes);
+            console.log("Struct data:", structData);
+            console.log("Struct bytes length:", structBytes.length);
+            console.log("Combined params:", params);
+            console.log("Combined params length:", params.length);
 
             const initCalls = [];
             
@@ -386,11 +395,11 @@
             const data = factoryInterface.encodeFunctionData("createB20", [
                 variant, 
                 salt, 
-                paramsBytes,  // Pass as bytes, not hex string
+                params,  // Pass as hex string
                 initCalls
             ]);
 
-            console.log("Final data length:", data.length);
+            console.log("Final data:", data);
 
             const feeData = await provider.getFeeData();
             const tx = await signer.sendTransaction({
