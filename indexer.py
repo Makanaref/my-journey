@@ -159,22 +159,22 @@ def scan_nfts_via_explorer(net_key, account):
             return results
         data = res.json()
         items = data if isinstance(data, list) else data.get("items", [])
+        seen = set()
         for item in items:
             try:
-                collection_addr = (item.get("token") or {}).get("address") or item.get("address", "")
-                name = (item.get("token") or {}).get("name") or item.get("name") or "Unknown"
-                image = ""
-                try:
-                    meta_str = item.get("metadata")
-                    if meta_str:
-                        meta = json.loads(meta_str)
-                        image = meta.get("image", "")
-                except Exception:
-                    pass
-                if not image:
-                    image = item.get("image_url", "")
-                if not collection_addr:
+                meta = item.get("metadata") or {}
+                if isinstance(meta, str):
+                    try:
+                        meta = json.loads(meta)
+                    except Exception:
+                        meta = {}
+                attrs = {a.get("trait_type"): a.get("value") for a in meta.get("attributes", []) if a.get("trait_type")}
+                collection_addr = attrs.get("Collection Address") or (item.get("token") or {}).get("address") or ""
+                if not collection_addr or collection_addr in seen:
                     continue
+                seen.add(collection_addr)
+                name = attrs.get("Collection Name") or (item.get("token") or {}).get("name") or item.get("name") or "Unknown"
+                image = item.get("image_url") or meta.get("image") or ""
                 results.append({
                     "network": net_key,
                     "network_label": NETWORK_LABELS[net_key],
