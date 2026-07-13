@@ -345,9 +345,6 @@ def scan_all(account):
         tasks.append(("nft_api", net_key))
         tasks.append(("token_api", net_key))
 
-    for net_key in NFT_FACTORY_ADDRESSES:
-        tasks.append(("nft_rpc", net_key))
-
     for net_key in RPC_URLS:
         tasks.append(("rank", net_key))
 
@@ -364,7 +361,7 @@ def scan_all(account):
 
     with ThreadPoolExecutor(max_workers=20) as executor:
         futures = [executor.submit(run_task, t) for t in tasks]
-        for future in as_completed(futures, timeout=15):
+        for future in as_completed(futures, timeout=25):
             try:
                 kind, data = future.result()
                 if kind == "nft":
