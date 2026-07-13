@@ -325,21 +325,38 @@
             const variant = deployType === 'stable' ? 1 : 0;
             const salt = ethers.keccak256(ethers.toUtf8Bytes(name + symbol + Date.now()));
 
-            let params;
-            if (deployType === 'stable') {
-                const isoCode = currency.toUpperCase().slice(0, 3);
-                params = ethers.AbiCoder.defaultAbiCoder().encode(
-                    ["string", "string", "address", "string"],
-                    [name, symbol, account, isoCode]
-                );
-                console.log("Stablecoin params:", { name, symbol, account, isoCode });
-            } else {
-                params = ethers.AbiCoder.defaultAbiCoder().encode(
-                    ["string", "string", "address", "uint8"],
-                    [name, symbol, account, decimals]
-                );
-                console.log("Asset params:", { name, symbol, account, decimals });
-            }
+            // Build params manually - encode each string with its length prefix
+            const nameBytes = ethers.toUtf8Bytes(name);
+            const symbolBytes = ethers.toUtf8Bytes(symbol);
+            const adminBytes = ethers.getBytes(account);
+            
+            // For Solidity string encoding: length (uint256) + bytes
+            const nameLen = ethers.zeroPadValue(ethers.toBeHex(nameBytes.length, 32), 32);
+            const symbolLen = ethers.zeroPadValue(ethers.toBeHex(symbolBytes.length, 32), 32);
+            
+            const namePadded = ethers.zeroPadValue(nameBytes, 32);
+            const symbolPadded = ethers.zeroPadValue(symbolBytes, 32);
+            const adminPadded = ethers.zeroPadValue(adminBytes, 32);
+            const decimalsPadded = ethers.zeroPadValue(ethers.toBeHex(decimals, 32), 32);
+
+            // Combine all parts
+            const params = ethers.concat([
+                nameLen,
+                namePadded,
+                symbolLen,
+                symbolPadded,
+                adminPadded,
+                decimalsPadded
+            ]);
+
+            console.log("Manual params:", {
+                name,
+                symbol,
+                account,
+                decimals,
+                params: params,
+                length: params.length
+            });
 
             const initCalls = [];
             
@@ -371,8 +388,9 @@
                 to: B20_FACTORY,
                 variant: variant,
                 salt: salt,
-                params: params,
-                initCalls: initCalls
+                paramsLength: params.length,
+                initCalls: initCalls.length,
+                data: data
             });
 
             const feeData = await provider.getFeeData();
