@@ -320,20 +320,18 @@
         document.getElementById("deploy-btn").disabled = true;
 
         try {
-            const B20_FACTORY = "0xB20f000000000000000000000000000000000000";
+            // FIXED: Correct factory address with uppercase F
+            const B20_FACTORY = "0xB20F000000000000000000000000000000000000";
             
             // ASSET = 0, STABLECOIN = 1
             const variant = deployType === 'stable' ? 1 : 0;
             const salt = ethers.keccak256(ethers.toUtf8Bytes(name + symbol + Date.now()));
 
-            // CRITICAL FIX: Using the correct params structure from Chainstack docs
-            // For Asset: tuple(uint8,string,string,address,uint8) - version byte 1
-            // For Stablecoin: tuple(uint8,string,string,address,string) - version byte 1
+            // Using the correct params structure from Chainstack docs
             const abiCoder = ethers.AbiCoder.defaultAbiCoder();
             
             let params;
             if (deployType === 'stable') {
-                // Stablecoin params: (version, name, symbol, admin, currency)
                 const paramsStruct = [
                     1,  // version byte
                     name,
@@ -346,7 +344,6 @@
                     [paramsStruct]
                 );
             } else {
-                // Asset params: (version, name, symbol, admin, decimals)
                 const paramsStruct = [
                     1,  // version byte
                     name,
@@ -362,10 +359,7 @@
 
             console.log("=== DEPLOYMENT DEBUG ===");
             console.log("Type:", deployType);
-            console.log("Name:", name);
-            console.log("Symbol:", symbol);
-            console.log("Account:", account);
-            console.log("Decimals:", decimals);
+            console.log("Factory:", B20_FACTORY);
             console.log("Params encoded:", params);
 
             const initCalls = [];
@@ -399,11 +393,6 @@
                 initCalls
             ]);
 
-            console.log("Final transaction data:", {
-                to: B20_FACTORY,
-                data: data
-            });
-
             const feeData = await provider.getFeeData();
             const tx = await signer.sendTransaction({
                 to: B20_FACTORY,
@@ -414,8 +403,9 @@
             statusEl.innerText = "Confirming transaction...";
             const receipt = await tx.wait();
 
+            // Find token address from logs - should start with 0xB20
             const tokenAddress = receipt.logs.find(log => 
-                log.address.toLowerCase().startsWith("0xb200")
+                log.address.toLowerCase().startsWith("0xb20")
             )?.address || "Check explorer";
 
             document.getElementById("deploy-address").innerText = tokenAddress;
