@@ -14,6 +14,8 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
     .swap-header h1 {
@@ -477,6 +479,18 @@
         font-size: 7px;
     }
 
+    .chain-indicator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: #4ade80;
+        background: rgba(74,222,128,0.06);
+        padding: 4px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(74,222,128,0.08);
+    }
+
     @media (max-width: 480px) {
         .swap-wrapper {
             padding: 0 12px;
@@ -501,8 +515,9 @@
             <span>Cross-Chain</span>
             <span class="member-badge" id="memberBadge" style="display:none;">⭐ Member</span>
         </h1>
-        <div style="font-size:12px; color:#666;">
-            <span id="discountDisplay"></span>
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span class="chain-indicator" id="chainIndicator">⛓️ Base</span>
+            <span id="discountDisplay" style="font-size:12px; color:#666;"></span>
         </div>
     </div>
 
@@ -612,18 +627,17 @@
     // CONFIGURATION
     // ============================================================
     const NETWORKS = [
-        { id: "8453",  name: "Base",      logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/base.svg" },
-        { id: "57073", name: "Ink",       logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/ink.svg" },
-        { id: "43114", name: "Avalanche", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/avax.svg" },
-        { id: "1",     name: "Ethereum",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/eth.svg" },
-        { id: "137",   name: "Polygon",   logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/pol.svg" },
-        { id: "42161", name: "Arbitrum",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/arb.svg" },
-        { id: "10",    name: "Optimism",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/opt.svg" },
-        { id: "7000",  name: "ZetaChain", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/zetachain.svg" },
-        { id: "999",   name: "Robinhood", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/robinhood.svg" },
+        { id: "8453",  name: "Base",      chainId: "0x2105", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/base.svg" },
+        { id: "57073", name: "Ink",       chainId: "0xdfe1", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/ink.svg" },
+        { id: "43114", name: "Avalanche", chainId: "0xa86a", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/avax.svg" },
+        { id: "1",     name: "Ethereum",  chainId: "0x1",    logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/eth.svg" },
+        { id: "137",   name: "Polygon",   chainId: "0x89",   logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/pol.svg" },
+        { id: "42161", name: "Arbitrum",  chainId: "0xa4b1", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/arb.svg" },
+        { id: "10",    name: "Optimism",  chainId: "0xa",    logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/opt.svg" },
+        { id: "7000",  name: "ZetaChain", chainId: "0x1b58", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/zetachain.svg" },
+        { id: "999",   name: "Robinhood", chainId: "0x3e7",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/robinhood.svg" },
     ];
 
-    // Token logos using reliable CDN
     const TOKEN_LOGO_MAP = {
         "ETH": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
         "USDC": "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png?1547042389",
@@ -631,9 +645,9 @@
         "DAI": "https://assets.coingecko.com/coins/images/9956/small/4943.png?1636636734",
         "AVAX": "https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png?1670992574",
         "POL": "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912",
-        "ZETA": "https://assets.coingecko.com/coins/images/31427/small/ZetaChain.png?1712903544",
-        "HOOD": "https://assets.coingecko.com/coins/images/32593/small/robinhood.png?1700000000",
         "WBTC": "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png?1547042743",
+        "HOOD": "https://cryptologos.cc/logos/robinhood-hoo-logo.png",  // جایگزین
+        "ZETA": "https://cryptologos.cc/logos/zetachain-zeta-logo.png", // جایگزین
     };
 
     const TOKENS = {
@@ -693,6 +707,7 @@
     let activePickerSide = null;
     let isMember = false;
     let isConnecting = false;
+    let balanceInterval = null;
 
     // ============================================================
     // DOM REFS
@@ -726,6 +741,7 @@
     const networkList = $('networkList');
     const memberBadge = $('memberBadge');
     const discountDisplay = $('discountDisplay');
+    const chainIndicator = $('chainIndicator');
 
     // ============================================================
     // HELPERS
@@ -734,22 +750,58 @@
         return TOKEN_LOGO_MAP[symbol] || '';
     }
 
-    function getNetworkLogo(chainId) {
-        const network = NETWORKS.find(n => n.id === chainId);
-        return network ? network.logo : '';
+    function getNetworkByChainId(chainId) {
+        return NETWORKS.find(n => n.id === chainId);
     }
 
-    function getTokenPlaceholder(symbol) {
-        return symbol ? symbol.slice(0, 3).toUpperCase() : '---';
+    function getNetworkByHex(hexChainId) {
+        return NETWORKS.find(n => n.chainId.toLowerCase() === hexChainId.toLowerCase());
+    }
+
+    function getNetworkName(chainId) {
+        const net = getNetworkByChainId(chainId);
+        return net ? net.name : chainId;
     }
 
     function setTokenImage(el, symbol) {
         const logo = getTokenLogo(symbol);
         if (logo) {
-            el.innerHTML = `<img src="${logo}" alt="${symbol}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+            el.innerHTML = `<img src="${logo}" alt="${symbol}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.className='token-img-placeholder';this.parentElement.textContent='${symbol.slice(0,3)}'">`;
         } else {
             el.className = 'token-img-placeholder';
-            el.textContent = getTokenPlaceholder(symbol);
+            el.textContent = symbol.slice(0, 3).toUpperCase();
+        }
+    }
+
+    // ============================================================
+    // CHAIN CHANGE DETECTION
+    // ============================================================
+    function setupChainChangeListener() {
+        if (window.ethereum) {
+            window.ethereum.on('chainChanged', (chainId) => {
+                const network = getNetworkByHex(chainId);
+                if (network) {
+                    selectedChain = network.id;
+                    selectNetwork(selectedChain);
+                    chainIndicator.innerHTML = `⛓️ ${network.name}`;
+                    statusMsg.innerText = `🔄 Switched to ${network.name}`;
+                    statusMsg.className = 'status-msg success';
+                }
+            });
+
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length > 0) {
+                    account = accounts[0];
+                    statusMsg.innerText = '✅ Account changed: ' + account.slice(0,6) + '...' + account.slice(-4);
+                    statusMsg.className = 'status-msg success';
+                    loadBalances();
+                } else {
+                    account = null;
+                    statusMsg.innerText = '👋 Wallet disconnected';
+                    statusMsg.className = 'status-msg';
+                    swapBtn.innerHTML = 'Connect Wallet';
+                }
+            });
         }
     }
 
@@ -761,7 +813,9 @@
         selectNetwork('8453');
         checkMemberStatus();
         renderTokenPicker();
+        setupChainChangeListener();
 
+        // Auto-connect if already connected
         if (window.ethereum && window.ethereum.selectedAddress) {
             connectWallet();
         }
@@ -770,6 +824,11 @@
         fromAmount.addEventListener('focus', () => {
             if (!account) statusMsg.innerText = 'Connect wallet first';
         });
+
+        // Refresh balance every 30 seconds
+        balanceInterval = setInterval(() => {
+            if (account) loadBalances();
+        }, 30000);
     }
 
     // ============================================================
@@ -781,10 +840,7 @@
             const btn = document.createElement('div');
             btn.className = 'network-btn';
             btn.dataset.chainId = n.id;
-            const logo = getNetworkLogo(n.id);
-            btn.innerHTML = logo 
-                ? `<img src="${logo}" alt="${n.name}" onerror="this.style.display='none'"><span>${n.name}</span>`
-                : `<span>${n.name}</span>`;
+            btn.innerHTML = `<img src="${n.logo}" alt="${n.name}" onerror="this.style.display='none'"><span>${n.name}</span>`;
             btn.onclick = () => selectNetwork(n.id);
             networkList.appendChild(btn);
         });
@@ -795,6 +851,11 @@
         document.querySelectorAll('.network-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.chainId === chainId);
         });
+
+        const network = getNetworkByChainId(chainId);
+        if (network) {
+            chainIndicator.innerHTML = `⛓️ ${network.name}`;
+        }
 
         const tokens = TOKENS[chainId] || [];
         fromToken = tokens[0] || null;
@@ -819,7 +880,7 @@
             const logo = getTokenLogo(t.symbol);
             btn.innerHTML = logo 
                 ? `<img src="${logo}" alt="${t.symbol}" onerror="this.style.display='none'"><span>${t.symbol}</span>`
-                : `<span class="token-img-placeholder" style="width:18px;height:18px;font-size:8px;">${getTokenPlaceholder(t.symbol)}</span><span>${t.symbol}</span>`;
+                : `<span class="token-img-placeholder" style="width:18px;height:18px;font-size:8px;">${t.symbol.slice(0,3)}</span><span>${t.symbol}</span>`;
             btn.onclick = () => selectToken(t, activePickerSide);
             if (activePickerSide === 'from' && fromToken && fromToken.symbol === t.symbol) {
                 btn.classList.add('active');
@@ -901,24 +962,14 @@
             signer = await provider.getSigner();
             account = await signer.getAddress();
 
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0x2105' }],
-                });
-            } catch (switchError) {
-                if (switchError.code === 4902) {
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: '0x2105',
-                            chainName: 'Base',
-                            rpcUrls: ['https://mainnet.base.org'],
-                            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-                            blockExplorerUrls: ['https://basescan.org'],
-                        }],
-                    });
-                }
+            // Get current chain
+            const network = await provider.getNetwork();
+            const chainIdHex = '0x' + network.chainId.toString(16);
+            const currentNetwork = getNetworkByHex(chainIdHex);
+            if (currentNetwork) {
+                selectedChain = currentNetwork.id;
+                selectNetwork(selectedChain);
+                chainIndicator.innerHTML = `⛓️ ${currentNetwork.name}`;
             }
 
             statusMsg.innerText = '✅ Connected: ' + account.slice(0,6) + '...' + account.slice(-4);
@@ -959,35 +1010,31 @@
     // BALANCES - FIXED
     // ============================================================
     async function loadBalances() {
-        if (!account || !fromToken) return;
+        if (!account || !provider) return;
         
         try {
             // Load from token balance
-            if (fromToken.addr === '0x0000000000000000000000000000000000000000') {
-                const bal = await provider.getBalance(account);
-                const balFormatted = parseFloat(ethers.formatEther(bal));
-                fromBalance.textContent = balFormatted > 0.0001 ? balFormatted.toFixed(4) : '< 0.0001';
-            } else {
-                try {
-                    const contract = new ethers.Contract(fromToken.addr, [
-                        'function balanceOf(address) view returns (uint256)'
-                    ], provider);
-                    const bal = await contract.balanceOf(account);
-                    const balFormatted = parseFloat(ethers.formatUnits(bal, fromToken.decimals));
-                    fromBalance.textContent = balFormatted > 0.000001 ? balFormatted.toFixed(4) : '< 0.000001';
-                } catch (e) {
-                    fromBalance.textContent = '—';
-                    console.warn('Balance fetch error:', e.message);
+            if (fromToken) {
+                if (fromToken.addr === '0x0000000000000000000000000000000000000000') {
+                    const bal = await provider.getBalance(account);
+                    const balFormatted = parseFloat(ethers.formatEther(bal));
+                    fromBalance.textContent = balFormatted > 0.0001 ? balFormatted.toFixed(4) : '< 0.0001';
+                } else {
+                    try {
+                        const contract = new ethers.Contract(fromToken.addr, [
+                            'function balanceOf(address) view returns (uint256)'
+                        ], provider);
+                        const bal = await contract.balanceOf(account);
+                        const balFormatted = parseFloat(ethers.formatUnits(bal, fromToken.decimals));
+                        fromBalance.textContent = balFormatted > 0.000001 ? balFormatted.toFixed(4) : '< 0.000001';
+                    } catch (e) {
+                        fromBalance.textContent = '—';
+                    }
                 }
             }
-        } catch (e) {
-            fromBalance.textContent = '—';
-            console.warn('Balance fetch error:', e.message);
-        }
 
-        // Load to token balance
-        if (toToken) {
-            try {
+            // Load to token balance
+            if (toToken) {
                 if (toToken.addr === '0x0000000000000000000000000000000000000000') {
                     const bal = await provider.getBalance(account);
                     const balFormatted = parseFloat(ethers.formatEther(bal));
@@ -1004,9 +1051,9 @@
                         toBalance.textContent = '—';
                     }
                 }
-            } catch (e) {
-                toBalance.textContent = '—';
             }
+        } catch (e) {
+            console.warn('Balance fetch error:', e.message);
         }
     }
 
@@ -1162,5 +1209,14 @@
     // START
     // ============================================================
     document.addEventListener('DOMContentLoaded', init);
+
+    // Clean up on page unload
+    window.addEventListener('beforeunload', () => {
+        if (balanceInterval) clearInterval(balanceInterval);
+        if (window.ethereum) {
+            window.ethereum.removeAllListeners('chainChanged');
+            window.ethereum.removeAllListeners('accountsChanged');
+        }
+    });
 </script>
 {% endblock %}
