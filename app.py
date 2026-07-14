@@ -412,9 +412,6 @@ def networks():
 def not_found(e):
     return render_template("404.html"), 404
 
-@app.route('/swap')
-def swap():
-    return render_template('swap.html')
 
 @app.errorhandler(429)
 def rate_limit_exceeded(e):
