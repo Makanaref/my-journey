@@ -22,6 +22,7 @@ csp = {
     'img-src': ["'self'", "data:", "https:"],
     'font-src': ["'self'", "https:"],
     'connect-src': ["'self'", "https:"],
+    'frame-src': ["https://transferto.xyz", "https://li.fi"],
 }
 Talisman(app, content_security_policy=csp, force_https=False)
 
