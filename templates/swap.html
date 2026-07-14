@@ -1,20 +1,359 @@
 {% extends "base.html" %}
 {% block title %}Swap{% endblock %}
+
 {% block content %}
-<div style="max-width:480px; margin:40px auto; padding:0 20px;">
-    <p style="font-size:13px; color:#666; margin-bottom:4px;">Swap</p>
-    <h1 style="font-size:22px; font-weight:500; margin-bottom:24px; color:#fff;">🔄 Cross-Chain Swap</h1>
-    <div style="border-radius:16px; overflow:hidden; border:0.5px solid rgba(233,69,96,0.15);">
-        <iframe
-            src="https://transferto.xyz/swap?theme=dark&integrator=sgm-app"
-            width="100%"
-            height="680"
-            frameborder="0"
-            style="display:block;">
-        </iframe>
+<style>
+    .swap-container {
+        background: #14141e;
+        border-radius: 24px;
+        padding: 32px;
+        max-width: 480px;
+        width: 100%;
+        border: 1px solid #2a2a3a;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        margin: 40px auto;
+    }
+    .swap-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+    .swap-header h1 {
+        font-size: 24px; font-weight: 600;
+        background: linear-gradient(135deg, #e0e0e0, #a0a0b0);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .network-selector {
+        background: #1e1e2e; border: 1px solid #2e2e42; border-radius: 12px;
+        padding: 6px 12px; color: #c0c0d0; font-size: 14px; cursor: pointer; outline: none;
+    }
+    .swap-box { background: #0e0e16; border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid #222233; transition: border 0.2s; }
+    .swap-box:focus-within { border-color: #4a6cf7; }
+    .swap-box-label { display: flex; justify-content: space-between; font-size: 14px; color: #8888a0; margin-bottom: 8px; }
+    .swap-box-input { display: flex; align-items: center; gap: 12px; }
+    .swap-box-input input {
+        background: transparent; border: none; color: #e0e0f0; font-size: 24px; font-weight: 500;
+        width: 100%; outline: none; padding: 4px 0;
+    }
+    .swap-box-input input::placeholder { color: #44445a; }
+    .token-badge {
+        background: #1a1a2a; border: 1px solid #2a2a3e; border-radius: 30px;
+        padding: 6px 14px; display: flex; align-items: center; gap: 8px;
+        white-space: nowrap; font-size: 14px; font-weight: 600; color: #d0d0e0; flex-shrink: 0;
+    }
+    .swap-arrow {
+        display: flex; justify-content: center; margin: 8px 0; color: #444460;
+        font-size: 20px; cursor: pointer; transition: all 0.2s; padding: 4px;
+    }
+    .swap-arrow:hover { color: #6a6a8a; transform: scale(1.1) rotate(180deg); }
+    .swap-info { display: flex; justify-content: space-between; font-size: 13px; color: #666680; padding: 8px 4px; margin-top: 8px; border-top: 1px solid #1a1a28; }
+    .swap-info .value { color: #a0a0b8; }
+    .swap-button {
+        background: linear-gradient(135deg, #4a6cf7, #6a4af7); border: none; color: white;
+        font-size: 18px; font-weight: 600; padding: 16px; border-radius: 30px; width: 100%;
+        cursor: pointer; transition: all 0.2s; margin-top: 16px; box-shadow: 0 4px 20px rgba(74, 108, 247, 0.25);
+    }
+    .swap-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(74, 108, 247, 0.35); }
+    .swap-button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .supported-networks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; justify-content: center; }
+    .network-badge { background: #1a1a2a; border: 1px solid #2a2a3e; border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #8888a0; }
+    .network-badge.active { border-color: #4a6cf7; color: #b0b0d0; background: #1a1a3a; }
+    .network-badge.soon { opacity: 0.4; }
+    .status-msg { text-align: center; font-size: 13px; color: #8888a0; margin-top: 12px; min-height: 18px; }
+    .status-msg.error { color: #f77a7a; }
+    .status-msg.success { color: #7af7a0; }
+</style>
+
+<div class="swap-container">
+    <div class="swap-header">
+        <h1>🔄 Swap</h1>
+        <span class="token-badge">Base</span>
     </div>
-    <p style="font-size:12px; color:#555; text-align:center; margin-top:12px;">
-        Powered by <a href="https://li.fi" target="_blank" style="color:#e94560;">LI.FI</a> — cross-chain swap aggregator
-    </p>
+
+    <div class="swap-box">
+        <div class="swap-box-label">
+            <span>From</span>
+            <span>Balance: <span id="fromBalance">—</span></span>
+        </div>
+        <div class="swap-box-input">
+            <input type="number" id="fromAmount" placeholder="0.0">
+            <span class="token-badge" id="fromTokenBadge">ETH</span>
+        </div>
+    </div>
+
+    <div class="swap-arrow" id="swapArrow">⇅</div>
+
+    <div class="swap-box">
+        <div class="swap-box-label">
+            <span>To (estimated)</span>
+            <span>Balance: <span id="toBalance">—</span></span>
+        </div>
+        <div class="swap-box-input">
+            <input type="number" id="toAmount" placeholder="0.0" disabled>
+            <span class="token-badge" id="toTokenBadge">USDC</span>
+        </div>
+    </div>
+
+    <div class="swap-info">
+        <span>Rate</span>
+        <span class="value" id="rateDisplay">—</span>
+    </div>
+    <div class="swap-info">
+        <span>Route</span>
+        <span class="value">Uniswap V3 on Base</span>
+    </div>
+
+    <button class="swap-button" id="swapButton">Connect Wallet</button>
+    <p class="status-msg" id="statusMsg"></p>
+
+    <div class="supported-networks">
+        <span class="network-badge active">Base</span>
+        <span class="network-badge soon">Ink (soon)</span>
+        <span class="network-badge soon">Robinhood (soon)</span>
+        <span class="network-badge soon">Avalanche (soon)</span>
+        <span class="network-badge soon">Plume (soon)</span>
+        <span class="network-badge soon">ZetaChain (soon)</span>
+        <span class="network-badge soon">Nexus (soon)</span>
+        <span class="network-badge soon">Lamina1 (soon)</span>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+<script>
+    const BASE_CHAIN_ID_HEX = "0x" + (8453).toString(16);
+    const WETH = "0x4200000000000000000000000000000000000006";
+    const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+    const SWAP_ROUTER = "0x2626664c2603336E57B271c5C0b26F421741e481";
+    const QUOTER = "0x3d4e44Eb1374240CE5F1B871ab261CD16335B76a";
+    const FEE_TIERS = [500, 3000, 10000];
+
+    const SWAP_ROUTER_ABI = [
+        "function exactInputSingle((address tokenIn,address tokenOut,uint24 fee,address recipient,uint256 amountIn,uint256 amountOutMinimum,uint160 sqrtPriceLimitX96)) external payable returns (uint256 amountOut)",
+        "function multicall(bytes[] calldata data) external payable returns (bytes[] memory results)",
+        "function unwrapWETH9(uint256 amountMinimum, address recipient) external payable"
+    ];
+    const QUOTER_ABI = [
+        "function quoteExactInputSingle((address tokenIn,address tokenOut,uint256 amountIn,uint24 fee,uint160 sqrtPriceLimitX96)) external returns (uint256 amountOut,uint160 sqrtPriceX96After,uint32 initializedTicksCrossed,uint256 gasEstimate)"
+    ];
+    const ERC20_ABI = [
+        "function balanceOf(address) view returns (uint256)",
+        "function approve(address,uint256) returns (bool)",
+        "function allowance(address,address) view returns (uint256)"
+    ];
+
+    let provider, signer, account;
+    let direction = "ethToUsdc"; // or "usdcToEth"
+    let quotedAmountOut = 0n;
+    let bestFee = 500;
+
+    const fromAmountEl = document.getElementById("fromAmount");
+    const toAmountEl = document.getElementById("toAmount");
+    const fromBadgeEl = document.getElementById("fromTokenBadge");
+    const toBadgeEl = document.getElementById("toTokenBadge");
+    const fromBalanceEl = document.getElementById("fromBalance");
+    const toBalanceEl = document.getElementById("toBalance");
+    const rateEl = document.getElementById("rateDisplay");
+    const statusEl = document.getElementById("statusMsg");
+    const swapButton = document.getElementById("swapButton");
+
+    function setStatus(msg, cls) {
+        statusEl.innerText = msg || "";
+        statusEl.className = "status-msg" + (cls ? " " + cls : "");
+    }
+
+    async function connectWallet() {
+        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
+        try {
+            provider = new ethers.BrowserProvider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+
+            try {
+                await window.ethereum.request({
+                    method: "wallet_switchEthereumChain",
+                    params: [{ chainId: BASE_CHAIN_ID_HEX }]
+                });
+            } catch (switchErr) {
+                if (switchErr.code === 4902) {
+                    await window.ethereum.request({
+                        method: "wallet_addEthereumChain",
+                        params: [{
+                            chainId: BASE_CHAIN_ID_HEX, chainName: "Base",
+                            rpcUrls: ["https://mainnet.base.org"],
+                            nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+                            blockExplorerUrls: ["https://basescan.org"]
+                        }]
+                    });
+                } else { throw switchErr; }
+            }
+
+            provider = new ethers.BrowserProvider(window.ethereum);
+            signer = await provider.getSigner();
+            account = await signer.getAddress();
+
+            swapButton.innerText = "Enter an amount";
+            swapButton.disabled = true;
+            await refreshBalances();
+            setStatus("");
+        } catch (err) {
+            setStatus("Connection failed: " + err.message, "error");
+        }
+    }
+
+    async function refreshBalances() {
+        if (!account) return;
+        const ethBal = await provider.getBalance(account);
+        const usdc = new ethers.Contract(USDC, ERC20_ABI, provider);
+        const usdcBal = await usdc.balanceOf(account);
+
+        if (direction === "ethToUsdc") {
+            fromBalanceEl.innerText = Number(ethers.formatEther(ethBal)).toFixed(4);
+            toBalanceEl.innerText = Number(ethers.formatUnits(usdcBal, 6)).toFixed(2);
+        } else {
+            fromBalanceEl.innerText = Number(ethers.formatUnits(usdcBal, 6)).toFixed(2);
+            toBalanceEl.innerText = Number(ethers.formatEther(ethBal)).toFixed(4);
+        }
+    }
+
+    function flipDirection() {
+        direction = direction === "ethToUsdc" ? "usdcToEth" : "ethToUsdc";
+        const fromText = direction === "ethToUsdc" ? "ETH" : "USDC";
+        const toText = direction === "ethToUsdc" ? "USDC" : "ETH";
+        fromBadgeEl.innerText = fromText;
+        toBadgeEl.innerText = toText;
+        fromAmountEl.value = "";
+        toAmountEl.value = "";
+        rateEl.innerText = "—";
+        if (account) refreshBalances();
+    }
+
+    async function getQuote(amountIn) {
+        const quoter = new ethers.Contract(QUOTER, QUOTER_ABI, provider);
+        const tokenIn = direction === "ethToUsdc" ? WETH : USDC;
+        const tokenOut = direction === "ethToUsdc" ? USDC : WETH;
+
+        for (const fee of FEE_TIERS) {
+            try {
+                const result = await quoter.quoteExactInputSingle.staticCall({
+                    tokenIn, tokenOut, amountIn, fee, sqrtPriceLimitX96: 0
+                });
+                if (result[0] > 0n) {
+                    return { amountOut: result[0], fee };
+                }
+            } catch (e) {}
+        }
+        return null;
+    }
+
+    let quoteTimer = null;
+    fromAmountEl.addEventListener("input", () => {
+        clearTimeout(quoteTimer);
+        quoteTimer = setTimeout(updateQuote, 400);
+    });
+
+    async function updateQuote() {
+        const val = fromAmountEl.value.trim();
+        if (!account) { return; }
+        if (!val || Number(val) <= 0) {
+            toAmountEl.value = "";
+            rateEl.innerText = "—";
+            swapButton.innerText = "Enter an amount";
+            swapButton.disabled = true;
+            return;
+        }
+
+        setStatus("Fetching quote...");
+        try {
+            const decimalsIn = direction === "ethToUsdc" ? 18 : 6;
+            const decimalsOut = direction === "ethToUsdc" ? 6 : 18;
+            const amountIn = ethers.parseUnits(val, decimalsIn);
+
+            const quote = await getQuote(amountIn);
+            if (!quote) {
+                toAmountEl.value = "";
+                rateEl.innerText = "No liquidity found";
+                swapButton.innerText = "Insufficient liquidity";
+                swapButton.disabled = true;
+                setStatus("");
+                return;
+            }
+
+            quotedAmountOut = quote.amountOut;
+            bestFee = quote.fee;
+            const outFormatted = ethers.formatUnits(quote.amountOut, decimalsOut);
+            toAmountEl.value = Number(outFormatted).toFixed(6);
+
+            const fromSym = direction === "ethToUsdc" ? "ETH" : "USDC";
+            const toSym = direction === "ethToUsdc" ? "USDC" : "ETH";
+            const rate = Number(outFormatted) / Number(val);
+            rateEl.innerText = `1 ${fromSym} ≈ ${rate.toFixed(4)} ${toSym} (fee tier ${bestFee / 10000}%)`;
+
+            swapButton.innerText = "Swap";
+            swapButton.disabled = false;
+            setStatus("");
+        } catch (err) {
+            setStatus("Failed to fetch quote: " + err.message, "error");
+        }
+    }
+
+    async function doSwap() {
+        if (!account || quotedAmountOut === 0n) return;
+        swapButton.disabled = true;
+        setStatus("Preparing transaction...");
+
+        try {
+            const decimalsIn = direction === "ethToUsdc" ? 18 : 6;
+            const amountIn = ethers.parseUnits(fromAmountEl.value.trim(), decimalsIn);
+            const amountOutMinimum = quotedAmountOut * 97n / 100n; // 3% slippage tolerance
+
+            const router = new ethers.Contract(SWAP_ROUTER, SWAP_ROUTER_ABI, signer);
+
+            if (direction === "ethToUsdc") {
+                setStatus("Confirm in your wallet...");
+                const tx = await router.exactInputSingle(
+                    {
+                        tokenIn: WETH, tokenOut: USDC, fee: bestFee,
+                        recipient: account, amountIn, amountOutMinimum, sqrtPriceLimitX96: 0
+                    },
+                    { value: amountIn }
+                );
+                setStatus("Confirming...");
+                await tx.wait();
+            } else {
+                const usdc = new ethers.Contract(USDC, ERC20_ABI, signer);
+                const allowance = await usdc.allowance(account, SWAP_ROUTER);
+                if (allowance < amountIn) {
+                    setStatus("Approving USDC...");
+                    const approveTx = await usdc.approve(SWAP_ROUTER, amountIn);
+                    await approveTx.wait();
+                }
+
+                const routerIface = new ethers.Interface(SWAP_ROUTER_ABI);
+                const swapCalldata = routerIface.encodeFunctionData("exactInputSingle", [{
+                    tokenIn: USDC, tokenOut: WETH, fee: bestFee,
+                    recipient: SWAP_ROUTER, amountIn, amountOutMinimum, sqrtPriceLimitX96: 0
+                }]);
+                const unwrapCalldata = routerIface.encodeFunctionData("unwrapWETH9", [amountOutMinimum, account]);
+
+                setStatus("Confirm in your wallet...");
+                const tx = await router.multicall([swapCalldata, unwrapCalldata]);
+                setStatus("Confirming...");
+                await tx.wait();
+            }
+
+            setStatus("Swap successful ✅", "success");
+            fromAmountEl.value = "";
+            toAmountEl.value = "";
+            rateEl.innerText = "—";
+            swapButton.innerText = "Enter an amount";
+            swapButton.disabled = true;
+            await refreshBalances();
+        } catch (err) {
+            setStatus("Swap failed: " + (err.reason || err.message || "unknown error"), "error");
+            swapButton.disabled = false;
+            swapButton.innerText = "Swap";
+        }
+    }
+
+    document.getElementById("swapArrow").addEventListener("click", flipDirection);
+    swapButton.addEventListener("click", () => {
+        if (!account) { connectWallet(); return; }
+        doSwap();
+    });
+</script>
 {% endblock %}
