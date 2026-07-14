@@ -85,7 +85,7 @@
             <div class="card" id="burn-card" style="display:none;">
                 <p class="section-label">Burn</p>
                 <input class="b20-input" id="burn-amount" type="number" placeholder="Amount to burn">
-                <button class="btn" onclick="burn()" style="width:100%;padding:12px;background:rgba(233,69,96,0.3);">Burn</button>
+                <button class="btn" id="burn-btn" onclick="burn()" style="width:100%;padding:12px;background:rgba(233,69,96,0.3);">Burn</button>
                 <p class="status-msg" id="burn-status"></p>
             </div>
         </div>
@@ -153,7 +153,8 @@
         "function balanceOf(address) view returns (uint256)",
         "function transfer(address to, uint256 amount) returns (bool)",
         "function mint(address to, uint256 amount) public",
-        "function burn(uint256 amount) public"
+        "function burn(uint256 amount) public",
+        "function hasRole(bytes32 role, address account) view returns (bool)"
     ];
 
     function switchTab(tab) {
@@ -246,17 +247,87 @@
 
     async function burn() {
         const amount = document.getElementById("burn-amount").value;
-        if (!amount) { alert("Enter amount!"); return; }
-        document.getElementById("burn-status").innerText = "Burning...";
-        try {
-            const feeData = await provider.getFeeData();
-            const tx = await tokenContract.burn(ethers.parseUnits(amount, tokenDecimals), { gasPrice: feeData.gasPrice });
-            await tx.wait();
-            document.getElementById("burn-status").innerText = "Burned ✅";
-            await loadToken();
-        } catch (err) {
-            document.getElementById("burn-status").innerText = "Failed: " + (err.reason || err.message);
+        if (!amount) {
+            document.getElementById("burn-status").innerText = "Please enter amount!";
+            return;
         }
+
+        document.getElementById("burn-status").innerText = "Burning...";
+        const burnBtn = document.getElementById("burn-btn");
+        burnBtn.disabled = true;
+
+        try {
+            const burnAmount = ethers.parseUnits(amount, tokenDecimals);
+
+            // 1. Check if user has BURN_ROLE
+            const BURN_ROLE = ethers.keccak256(ethers.toUtf8Bytes("BURN_ROLE"));
+            let hasBurnRole = false;
+            try {
+                hasBurnRole = await tokenContract.hasRole(BURN_ROLE, account);
+            } catch (e) {
+                console.warn("hasRole not available, attempting burn directly...");
+            }
+
+            if (!hasBurnRole) {
+                // Check if they are DEFAULT_ADMIN
+                try {
+                    const DEFAULT_ADMIN_ROLE = "0x0000000000000000000000000000000000000000000000000000000000000000";
+                    const isAdmin = await tokenContract.hasRole(DEFAULT_ADMIN_ROLE, account);
+                    if (!isAdmin) {
+                        document.getElementById("burn-status").innerHTML = "❌ <b>You don't have BURN_ROLE!</b><br><small>Only accounts with BURN_ROLE can burn tokens.</small>";
+                        burnBtn.disabled = false;
+                        return;
+                    }
+                } catch (e) {
+                    document.getElementById("burn-status").innerHTML = "❌ <b>You don't have BURN_ROLE!</b><br><small>Only accounts with BURN_ROLE can burn tokens.</small>";
+                    burnBtn.disabled = false;
+                    return;
+                }
+            }
+
+            // 2. Check balance
+            const balance = await tokenContract.balanceOf(account);
+            if (balance < burnAmount) {
+                document.getElementById("burn-status").innerText = "❌ Insufficient balance!";
+                burnBtn.disabled = false;
+                return;
+            }
+
+            // 3. Execute burn
+            const feeData = await provider.getFeeData();
+            const tx = await tokenContract.burn(burnAmount, {
+                gasPrice: feeData.gasPrice || undefined
+            });
+
+            document.getElementById("burn-status").innerText = "⏳ Waiting for confirmation...";
+            await tx.wait();
+
+            document.getElementById("burn-status").innerText = "✅ Burned successfully!";
+            await loadToken();
+
+        } catch (err) {
+            console.error("Burn error:", err);
+            let errorMsg = err.reason || err.message || "Unknown error";
+
+            // Try to decode error
+            if (err.data) {
+                try {
+                    if (err.data.startsWith("0x08c379a0")) {
+                        const reason = ethers.AbiCoder.defaultAbiCoder().decode(["string"], "0x" + err.data.slice(10));
+                        errorMsg = reason[0];
+                    }
+                } catch {}
+            }
+
+            if (errorMsg.includes("BURN_ROLE") || errorMsg.toLowerCase().includes("role")) {
+                document.getElementById("burn-status").innerHTML = "❌ <b>You don't have BURN_ROLE!</b><br><small>Only accounts with BURN_ROLE can burn tokens.</small>";
+            } else if (errorMsg.includes("balance") || errorMsg.toLowerCase().includes("insufficient")) {
+                document.getElementById("burn-status").innerText = "❌ Insufficient balance to burn!";
+            } else {
+                document.getElementById("burn-status").innerText = "❌ Failed: " + errorMsg;
+            }
+        }
+        burnBtn.disabled = false;
     }
 
     function copyCode(id) {
@@ -275,7 +346,7 @@
         document.getElementById("type-asset").style.background = t === 'asset' ? 'rgba(233,69,96,0.07)' : 'transparent';
         document.getElementById("type-stable").style.borderColor = t === 'stable' ? '#e94560' : 'rgba(255,255,255,0.1)';
         document.getElementById("type-stable").style.background = t === 'stable' ? 'rgba(233,69,96,0.07)' : 'transparent';
-        
+
         if (t === 'stable') {
             document.getElementById("deploy-decimals").disabled = true;
             document.getElementById("deploy-decimals").value = 6;
@@ -295,24 +366,24 @@
         const statusEl = document.getElementById("deploy-status");
         const currency = document.getElementById("deploy-currency")?.value.trim() || "USD";
 
-        if (!name || !symbol) { 
-            statusEl.innerText = "Please fill name and symbol."; 
-            return; 
+        if (!name || !symbol) {
+            statusEl.innerText = "Please fill name and symbol.";
+            return;
         }
-        
+
         if (deployType === 'stable') {
-            if (decimals !== 6) { 
-                statusEl.innerText = "Stablecoin decimals must be 6."; 
-                return; 
+            if (decimals !== 6) {
+                statusEl.innerText = "Stablecoin decimals must be 6.";
+                return;
             }
             if (!currency || currency.length !== 3) {
-                statusEl.innerText = "Please enter a valid 3-letter ISO currency code (e.g. USD)."; 
+                statusEl.innerText = "Please enter a valid 3-letter ISO currency code (e.g. USD).";
                 return;
             }
         } else {
-            if (decimals < 6 || decimals > 18) { 
-                statusEl.innerText = "Decimals must be between 6 and 18."; 
-                return; 
+            if (decimals < 6 || decimals > 18) {
+                statusEl.innerText = "Decimals must be between 6 and 18.";
+                return;
             }
         }
 
@@ -320,20 +391,17 @@
         document.getElementById("deploy-btn").disabled = true;
 
         try {
-            // FIXED: Correct factory address with uppercase F
             const B20_FACTORY = "0xB20F000000000000000000000000000000000000";
-            
-            // ASSET = 0, STABLECOIN = 1
+
             const variant = deployType === 'stable' ? 1 : 0;
             const salt = ethers.keccak256(ethers.toUtf8Bytes(name + symbol + Date.now()));
 
-            // Using the correct params structure from Chainstack docs
             const abiCoder = ethers.AbiCoder.defaultAbiCoder();
-            
+
             let params;
             if (deployType === 'stable') {
                 const paramsStruct = [
-                    1,  // version byte
+                    1,
                     name,
                     symbol,
                     account,
@@ -345,7 +413,7 @@
                 );
             } else {
                 const paramsStruct = [
-                    1,  // version byte
+                    1,
                     name,
                     symbol,
                     account,
@@ -363,11 +431,11 @@
             console.log("Params encoded:", params);
 
             const initCalls = [];
-            
+
             const grantRoleInterface = new ethers.Interface([
                 "function grantRole(bytes32 role, address account)"
             ]);
-            
+
             const capInterface = new ethers.Interface([
                 "function updateSupplyCap(uint256 cap)"
             ]);
@@ -387,9 +455,9 @@
             ]);
 
             const data = factoryInterface.encodeFunctionData("createB20", [
-                variant, 
-                salt, 
-                params, 
+                variant,
+                salt,
+                params,
                 initCalls
             ]);
 
@@ -403,15 +471,14 @@
             statusEl.innerText = "Confirming transaction...";
             const receipt = await tx.wait();
 
-            // Find token address from logs - should start with 0xB20
-            const tokenAddress = receipt.logs.find(log => 
+            const tokenAddress = receipt.logs.find(log =>
                 log.address.toLowerCase().startsWith("0xb20")
             )?.address || "Check explorer";
 
             document.getElementById("deploy-address").innerText = tokenAddress;
             document.getElementById("deploy-result").style.display = "block";
             statusEl.innerText = "Deployed successfully! ✅";
-            
+
         } catch (err) {
             console.error("Full error:", err);
             let errorMsg = err.message;
