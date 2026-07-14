@@ -35,6 +35,28 @@
         font-weight: 400;
     }
 
+    .member-badge {
+        display: inline-block;
+        background: rgba(74,222,128,0.12);
+        color: #4ade80;
+        font-size: 10px;
+        padding: 2px 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(74,222,128,0.15);
+        margin-left: 8px;
+        font-weight: 400;
+    }
+
+    .discount-badge {
+        display: inline-block;
+        background: rgba(74,222,128,0.08);
+        color: #4ade80;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 6px;
+    }
+
     .swap-box {
         background: #16213e;
         border-radius: 16px;
@@ -175,7 +197,6 @@
         transform: scale(1.1);
     }
 
-    /* Token Picker */
     .token-picker {
         display: none;
         background: #0a0a1a;
@@ -239,7 +260,6 @@
         color: #fff;
     }
 
-    /* Networks */
     .network-section {
         margin-bottom: 16px;
     }
@@ -288,7 +308,6 @@
         border-radius: 50%;
     }
 
-    /* Route Info */
     .route-info {
         display: none;
         background: rgba(255,255,255,0.02);
@@ -324,7 +343,6 @@
         margin: 8px 0;
     }
 
-    /* Fees Breakdown */
     .fees-breakdown {
         display: none;
         margin-top: 8px;
@@ -425,30 +443,6 @@
         color: #ff6b81;
     }
 
-    /* Member badge */
-    .member-badge {
-        display: inline-block;
-        background: rgba(74,222,128,0.12);
-        color: #4ade80;
-        font-size: 10px;
-        padding: 2px 10px;
-        border-radius: 12px;
-        border: 1px solid rgba(74,222,128,0.15);
-        margin-left: 8px;
-        font-weight: 400;
-    }
-
-    .discount-badge {
-        display: inline-block;
-        background: rgba(74,222,128,0.08);
-        color: #4ade80;
-        font-size: 11px;
-        padding: 2px 8px;
-        border-radius: 10px;
-        margin-left: 6px;
-    }
-
-    /* Responsive */
     @media (max-width: 480px) {
         .swap-wrapper {
             padding: 0 12px;
@@ -462,22 +456,6 @@
         }
         .swap-header h1 {
             font-size: 20px;
-        }
-    }
-
-    @media (max-width: 400px) {
-        .swap-input-group {
-            flex-wrap: wrap;
-        }
-        .swap-input-group input {
-            font-size: 20px;
-            min-width: 120px;
-        }
-        .token-btn {
-            padding: 6px 10px;
-        }
-        .token-btn .symbol {
-            font-size: 12px;
         }
     }
 </style>
@@ -590,7 +568,7 @@
     </div>
 
     <div class="powered-by">
-        Powered by <a href="https://relay.link" target="_blank">Relay</a> — optimized for members
+        Powered by <a href="https://li.fi" target="_blank">LI.FI</a> — optimized for members
     </div>
 </div>
 
@@ -653,15 +631,14 @@
         ],
     };
 
-    const RELAY_API = "https://api.relay.link";
-    const MEMBER_DISCOUNT = 10; // 10% discount for members
+    const LIFI_API = "https://li.quest/v1";
+    const MEMBER_DISCOUNT = 10;
 
     // ============================================================
     // STATE
     // ============================================================
     let provider, signer, account;
-    let selectedFromChain = "8453";
-    let selectedToChain = "8453";
+    let selectedChain = "8453";
     let fromToken = null;
     let toToken = null;
     let currentQuote = null;
@@ -708,17 +685,14 @@
     // ============================================================
     function init() {
         renderNetworks();
-        selectNetwork('8453', 'from');
-        selectNetwork('8453', 'to');
+        selectNetwork('8453');
         checkMemberStatus();
         renderTokenPicker();
 
-        // Auto-connect if already connected
         if (window.ethereum && window.ethereum.selectedAddress) {
             connectWallet();
         }
 
-        // Input events
         fromAmount.addEventListener('input', getQuote);
         fromAmount.addEventListener('focus', () => {
             if (!account) statusMsg.innerText = 'Connect wallet first';
@@ -735,32 +709,20 @@
             btn.className = 'network-btn';
             btn.dataset.chainId = n.id;
             btn.innerHTML = `<img src="${n.logo}" onerror="this.style.display='none'"><span>${n.name}</span>`;
-            btn.onclick = () => {
-                // Toggle between from/to selection - simple: set both to same for now
-                // In a full implementation, you'd have separate from/to network selectors
-                selectNetwork(n.id, 'from');
-                selectNetwork(n.id, 'to');
-            };
+            btn.onclick = () => selectNetwork(n.id);
             networkList.appendChild(btn);
         });
     }
 
-    function selectNetwork(chainId, side) {
-        if (side === 'from') {
-            selectedFromChain = chainId;
-            const tokens = TOKENS[chainId] || [];
-            fromToken = tokens[0] || null;
-        } else {
-            selectedToChain = chainId;
-            const tokens = TOKENS[chainId] || [];
-            toToken = tokens[1] || tokens[0] || null;
-        }
-
-        // Update network buttons
+    function selectNetwork(chainId) {
+        selectedChain = chainId;
         document.querySelectorAll('.network-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.chainId === chainId);
         });
 
+        const tokens = TOKENS[chainId] || [];
+        fromToken = tokens[0] || null;
+        toToken = tokens[1] || tokens[0] || null;
         updateTokenUI();
         fromAmount.value = '';
         toAmount.value = '';
@@ -774,7 +736,7 @@
     // ============================================================
     function renderTokenPicker() {
         tokenList.innerHTML = '';
-        const tokens = TOKENS[selectedFromChain] || [];
+        const tokens = TOKENS[selectedChain] || [];
         tokens.forEach(t => {
             const btn = document.createElement('div');
             btn.className = 'token-option';
@@ -794,7 +756,6 @@
         activePickerSide = side;
         renderTokenPicker();
         tokenPicker.classList.toggle('open');
-        // Update arrow direction
         document.querySelectorAll('.token-btn .arrow').forEach(a => a.classList.remove('open'));
         if (tokenPicker.classList.contains('open')) {
             const arrow = side === 'from' ? $('fromArrow') : $('toArrow');
@@ -803,11 +764,8 @@
     }
 
     function selectToken(token, side) {
-        if (side === 'from') {
-            fromToken = token;
-        } else {
-            toToken = token;
-        }
+        if (side === 'from') fromToken = token;
+        else toToken = token;
         updateTokenUI();
         tokenPicker.classList.remove('open');
         document.querySelectorAll('.token-btn .arrow').forEach(a => a.classList.remove('open'));
@@ -827,7 +785,6 @@
             toTokenSymbol.textContent = toToken.symbol;
             toTokenLogo.src = toToken.logo;
         }
-        // Update token picker
         renderTokenPicker();
     }
 
@@ -865,11 +822,10 @@
             signer = await provider.getSigner();
             account = await signer.getAddress();
 
-            // Switch to Base network
             try {
                 await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0x2105' }], // 8453 in hex
+                    params: [{ chainId: '0x2105' }],
                 });
             } catch (switchError) {
                 if (switchError.code === 4902) {
@@ -905,12 +861,10 @@
     }
 
     // ============================================================
-    // MEMBER STATUS (mock - replace with real backend check)
+    // MEMBER STATUS
     // ============================================================
     function checkMemberStatus() {
-        // In production, you'd call your backend to check if the user is a member
-        // For demo, we'll check if the user has a specific token or NFT
-        // For now, let's pretend all connected users are members for demo
+        // TODO: Replace with real backend check
         if (account) {
             isMember = true;
             memberBadge.style.display = 'inline-block';
@@ -946,7 +900,7 @@
     }
 
     // ============================================================
-    // QUOTE (Relay API)
+    // QUOTE (LI.FI API)
     // ============================================================
     async function getQuote() {
         clearTimeout(quoteTimer);
@@ -961,12 +915,6 @@
             return;
         }
 
-        if (selectedFromChain !== selectedToChain) {
-            // Cross-chain
-            // For simplicity in this demo, we'll keep chains same
-            // But you can extend to support cross-chain
-        }
-
         const amountWei = ethers.parseUnits(amount, fromToken.decimals).toString();
 
         quoteTimer = setTimeout(async () => {
@@ -976,8 +924,7 @@
             swapBtn.disabled = true;
 
             try {
-                const discountParam = isMember ? `&discount=${MEMBER_DISCOUNT}` : '';
-                const url = `${RELAY_API}/quote?fromChain=${selectedFromChain}&toChain=${selectedToChain}&fromToken=${fromToken.addr}&toToken=${toToken.addr}&fromAmount=${amountWei}&fromAddress=${account}${discountParam}&slippage=0.5`;
+                const url = `${LIFI_API}/quote?fromChain=${selectedChain}&toChain=${selectedChain}&fromToken=${fromToken.addr}&toToken=${toToken.addr}&fromAmount=${amountWei}&fromAddress=${account}`;
 
                 const res = await fetch(url);
                 const data = await res.json();
@@ -985,22 +932,16 @@
                 if (data.estimate) {
                     currentQuote = data;
 
-                    // Update to amount
                     const toAmountValue = parseFloat(data.estimate.toAmount) / 10 ** toToken.decimals;
                     toAmount.value = toAmountValue.toFixed(6);
 
-                    // Rate
                     const rate = (toAmountValue / parseFloat(amount)).toFixed(4);
                     rateDisplay.textContent = `1 ${fromToken.symbol} ≈ ${rate} ${toToken.symbol}`;
 
-                    // Route
-                    routeDisplay.textContent = data.toolDetails?.name || data.tool || 'Relay';
-
-                    // Time
+                    routeDisplay.textContent = data.toolDetails?.name || data.tool || 'LI.FI';
                     const duration = data.estimate.executionDuration || 30;
                     timeDisplay.textContent = Math.ceil(duration / 60) + ' min';
 
-                    // Fees
                     const fee = data.estimate.fee || {};
                     const gasCost = data.estimate.gasCost || 0;
                     const protocolFee = data.estimate.protocolFee || 0;
@@ -1011,22 +952,17 @@
                     feeDisplay.textContent = feeUsd ? `$${parseFloat(feeUsd).toFixed(2)}` : '—';
                     totalCostDisplay.textContent = totalUsd ? `≈ $${parseFloat(totalUsd).toFixed(2)}` : '—';
 
-                    // Breakdown
                     gasDisplay.textContent = gasCost ? `$${parseFloat(gasCost).toFixed(2)}` : '—';
                     protocolFeeDisplay.textContent = protocolFee ? `$${parseFloat(protocolFee).toFixed(2)}` : '—';
 
-                    // Discount row
-                    if (isMember && data.discount) {
-                        discountRow.style.display = 'flex';
-                        discountAmountDisplay.textContent = `-${data.discount}%`;
-                    } else if (isMember) {
+                    // Member discount
+                    if (isMember) {
                         discountRow.style.display = 'flex';
                         discountAmountDisplay.textContent = `-${MEMBER_DISCOUNT}%`;
                     } else {
                         discountRow.style.display = 'none';
                     }
 
-                    // USD values
                     const fromUsdValue = data.estimate.fromAmountUSD || 0;
                     fromUsd.textContent = fromUsdValue ? `≈ $${parseFloat(fromUsdValue).toFixed(2)}` : '';
 
@@ -1077,30 +1013,25 @@
 
         try {
             const tx = currentQuote.transactionRequest;
-
-            // Ensure we have a valid transaction object
             const txRequest = {
                 to: tx.to,
                 data: tx.data,
                 value: tx.value ? BigInt(tx.value) : 0n,
             };
-
             if (tx.gasLimit) {
                 txRequest.gasLimit = BigInt(tx.gasLimit);
             }
 
             const txResponse = await signer.sendTransaction(txRequest);
-
             statusMsg.innerText = '⏳ Transaction sent, waiting...';
             swapBtn.innerHTML = '<span class="loader"></span> Processing...';
 
-            const receipt = await txResponse.wait();
+            await txResponse.wait();
 
             statusMsg.innerText = '✅ Swap completed successfully!';
             statusMsg.className = 'status-msg success';
             swapBtn.innerHTML = 'Swap';
 
-            // Reset
             fromAmount.value = '';
             toAmount.value = '';
             routeInfo.classList.remove('open');
