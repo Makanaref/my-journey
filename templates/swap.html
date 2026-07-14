@@ -7,61 +7,57 @@
 
     <div style="background:#16213e; border-radius:14px; border:0.5px solid rgba(233,69,96,0.15); padding:24px;">
 
-        <!-- Network selector -->
-        <div style="margin-bottom:20px;">
-            <label style="font-size:12px; color:#666; display:block; margin-bottom:6px;">Network</label>
-            <select id="network" onchange="onNetworkChange()" style="width:100%; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px;">
-                <option value="8453">Base</option>
-                <option value="57073">Ink</option>
-                <option value="43114">Avalanche</option>
-                <option value="1">Ethereum</option>
-                <option value="137">Polygon</option>
-                <option value="42161">Arbitrum</option>
-                <option value="10">Optimism</option>
-            </select>
-        </div>
-
         <!-- From -->
-        <div style="background:#0f3460; border-radius:10px; padding:16px; margin-bottom:8px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                <label style="font-size:12px; color:#666;">From</label>
+        <div style="background:#0f3460; border-radius:12px; padding:16px; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span style="font-size:12px; color:#666;">Sell</span>
                 <span style="font-size:12px; color:#666;">Balance: <span id="from-balance">—</span></span>
             </div>
-            <div style="display:flex; gap:10px; align-items:center;">
-                <input type="number" id="from-amount" placeholder="0.0" oninput="getQuote()" style="flex:1; background:none; border:none; color:#fff; font-size:22px; font-weight:500; outline:none;">
-                <select id="from-token" onchange="getQuote()" style="padding:8px 12px; border-radius:20px; border:0.5px solid rgba(255,255,255,0.15); background:#16213e; color:#fff; font-size:13px; font-weight:600;">
-                    <option value="ETH">ETH</option>
-                    <option value="USDC">USDC</option>
-                    <option value="USDT">USDT</option>
-                    <option value="DAI">DAI</option>
-                    <option value="WBTC">WBTC</option>
-                </select>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <input type="number" id="from-amount" placeholder="0" oninput="getQuote()" style="flex:1; background:none; border:none; color:#fff; font-size:28px; font-weight:600; outline:none; min-width:0; width:100%;">
+                <div id="from-token-btn" onclick="toggleTokenList('from')" style="display:flex; align-items:center; gap:8px; background:#1a1a3e; border:0.5px solid rgba(255,255,255,0.1); border-radius:30px; padding:8px 14px; cursor:pointer; white-space:nowrap;">
+                    <img id="from-token-logo" src="" style="width:22px; height:22px; border-radius:50%; background:#333;">
+                    <span id="from-token-name" style="font-size:14px; font-weight:600; color:#fff;">ETH</span>
+                    <span style="color:#666; font-size:11px;">▾</span>
+                </div>
             </div>
+            <div style="font-size:12px; color:#555; margin-top:6px;" id="from-usd">≈ $0.00</div>
         </div>
 
         <!-- Arrow -->
-        <div style="text-align:center; margin:4px 0; cursor:pointer; color:#666; font-size:18px;" onclick="swapTokens()">⇅</div>
+        <div onclick="swapTokens()" style="text-align:center; cursor:pointer; padding:4px; color:#666; font-size:20px; transition:color 0.2s;" onmouseover="this.style.color='#e94560'" onmouseout="this.style.color='#666'">⇅</div>
 
         <!-- To -->
-        <div style="background:#0f3460; border-radius:10px; padding:16px; margin-bottom:16px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                <label style="font-size:12px; color:#666;">To (estimated)</label>
+        <div style="background:#0f3460; border-radius:12px; padding:16px; margin-top:8px; margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span style="font-size:12px; color:#666;">Buy</span>
                 <span style="font-size:12px; color:#666;">Balance: <span id="to-balance">—</span></span>
             </div>
-            <div style="display:flex; gap:10px; align-items:center;">
-                <input type="number" id="to-amount" placeholder="0.0" readonly style="flex:1; background:none; border:none; color:#e94560; font-size:22px; font-weight:500; outline:none;">
-                <select id="to-token" onchange="getQuote()" style="padding:8px 12px; border-radius:20px; border:0.5px solid rgba(255,255,255,0.15); background:#16213e; color:#fff; font-size:13px; font-weight:600;">
-                    <option value="USDC">USDC</option>
-                    <option value="ETH">ETH</option>
-                    <option value="USDT">USDT</option>
-                    <option value="DAI">DAI</option>
-                    <option value="WBTC">WBTC</option>
-                </select>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <input type="number" id="to-amount" placeholder="0" readonly style="flex:1; background:none; border:none; color:#e94560; font-size:28px; font-weight:600; outline:none; min-width:0; width:100%;">
+                <div id="to-token-btn" onclick="toggleTokenList('to')" style="display:flex; align-items:center; gap:8px; background:#1a1a3e; border:0.5px solid rgba(255,255,255,0.1); border-radius:30px; padding:8px 14px; cursor:pointer; white-space:nowrap;">
+                    <img id="to-token-logo" src="" style="width:22px; height:22px; border-radius:50%; background:#333;">
+                    <span id="to-token-name" style="font-size:14px; font-weight:600; color:#fff;">USDC</span>
+                    <span style="color:#666; font-size:11px;">▾</span>
+                </div>
             </div>
+            <div style="font-size:12px; color:#555; margin-top:6px;" id="to-usd">≈ $0.00</div>
+        </div>
+
+        <!-- Token picker -->
+        <div id="token-picker" style="display:none; background:#0a0a1a; border-radius:12px; padding:12px; margin-bottom:16px; border:0.5px solid rgba(255,255,255,0.08);">
+            <p style="font-size:12px; color:#666; margin-bottom:8px;">Select token</p>
+            <div id="token-list" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+        </div>
+
+        <!-- Network -->
+        <div style="margin-bottom:16px;">
+            <label style="font-size:12px; color:#666; display:block; margin-bottom:8px;">Network</label>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;" id="network-list"></div>
         </div>
 
         <!-- Route info -->
-        <div id="route-info" style="display:none; background:rgba(233,69,96,0.05); border:0.5px solid rgba(233,69,96,0.15); border-radius:8px; padding:12px; margin-bottom:16px; font-size:12px; color:#666;">
+        <div id="route-info" style="display:none; background:rgba(255,255,255,0.03); border-radius:8px; padding:12px; margin-bottom:16px; font-size:12px; color:#666;">
             <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                 <span>Rate</span><span id="rate-display" style="color:#ccc;">—</span>
             </div>
@@ -75,7 +71,7 @@
 
         <div id="status-msg" style="font-size:12px; color:#666; text-align:center; margin-bottom:12px; min-height:16px;"></div>
 
-        <button id="swap-btn" onclick="handleSwap()" style="width:100%; padding:14px; background:#e94560; color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer;">
+        <button id="swap-btn" onclick="handleSwap()" style="width:100%; padding:14px; background:#e94560; color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; transition:background 0.2s;">
             Connect Wallet
         </button>
     </div>
@@ -87,96 +83,174 @@
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script>
-let provider, signer, account;
-let currentQuote = null;
-let quoteTimer = null;
+let provider, signer, account, currentQuote = null, quoteTimer = null, activeTokenSide = null;
+let selectedChain = "8453";
 
-const TOKEN_ADDRESSES = {
-    "8453":  { ETH: "0x0000000000000000000000000000000000000000", USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", USDT: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", DAI: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb", WBTC: "0x0555E30da8f98308EdB960aa94C0Db47230d2B9" },
-    "57073": { ETH: "0x0000000000000000000000000000000000000000", USDC: "0x6900000000000000000000000000000000000001", USDT: "0x0000000000000000000000000000000000000000", DAI: "0x0000000000000000000000000000000000000000", WBTC: "0x0000000000000000000000000000000000000000" },
-    "43114": { ETH: "0x0000000000000000000000000000000000000000", USDC: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E", USDT: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7", DAI: "0xd586E7F844cEa2F87f50152665BCbc2C279D8d70", WBTC: "0x50b7545627a5162F82A992c33b87aDc75187B218" },
-    "1":     { ETH: "0x0000000000000000000000000000000000000000", USDC: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7", DAI: "0x6B175474E89094C44Da98b954EedeAC495271d0F", WBTC: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599" },
-    "137":   { ETH: "0x0000000000000000000000000000000000000000", USDC: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", USDT: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", DAI: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063", WBTC: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6" },
-    "42161": { ETH: "0x0000000000000000000000000000000000000000", USDC: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", USDT: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9", DAI: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1", WBTC: "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f" },
-    "10":    { ETH: "0x0000000000000000000000000000000000000000", USDC: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85", USDT: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58", DAI: "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1", WBTC: "0x68f180fcCe6836688e9084f035309E29Bf0A2095" },
+const NETWORKS = [
+    { id: "8453",  name: "Base",      logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/base.svg" },
+    { id: "57073", name: "Ink",       logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/ink.svg" },
+    { id: "43114", name: "Avalanche", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/avax.svg" },
+    { id: "1",     name: "Ethereum",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/eth.svg" },
+    { id: "137",   name: "Polygon",   logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/pol.svg" },
+    { id: "42161", name: "Arbitrum",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/arb.svg" },
+    { id: "10",    name: "Optimism",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/opt.svg" },
+];
+
+const TOKENS = {
+    "8453":  [
+        { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
+        { symbol: "USDC", addr: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+        { symbol: "USDT", addr: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
+        { symbol: "DAI",  addr: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/dai.svg",  decimals: 18 },
+    ],
+    "57073": [
+        { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
+        { symbol: "USDC", addr: "0x6900000000000000000000000000000000000001", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+    ],
+    "43114": [
+        { symbol: "AVAX", addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/avax.svg", decimals: 18 },
+        { symbol: "USDC", addr: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+        { symbol: "USDT", addr: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
+    ],
+    "1": [
+        { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
+        { symbol: "USDC", addr: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+        { symbol: "USDT", addr: "0xdAC17F958D2ee523a2206206994597C13D831ec7", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
+        { symbol: "DAI",  addr: "0x6B175474E89094C44Da98b954EedeAC495271d0F", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/dai.svg",  decimals: 18 },
+        { symbol: "WBTC", addr: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/wbtc.svg", decimals: 8 },
+    ],
+    "137": [
+        { symbol: "POL",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/pol.svg", decimals: 18 },
+        { symbol: "USDC", addr: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+        { symbol: "USDT", addr: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
+    ],
+    "42161": [
+        { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
+        { symbol: "USDC", addr: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+        { symbol: "USDT", addr: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
+    ],
+    "10": [
+        { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
+        { symbol: "USDC", addr: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+        { symbol: "USDT", addr: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
+    ],
 };
 
-async function connectWallet() {
-    if (!window.ethereum) { alert("Please install MetaMask!"); return false; }
-    provider = new ethers.BrowserProvider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    signer = await provider.getSigner();
-    account = await signer.getAddress();
-    document.getElementById("swap-btn").innerText = "Get Quote";
-    document.getElementById("status-msg").innerText = "✅ " + account.slice(0,6) + "..." + account.slice(-4);
-    await loadBalances();
-    return true;
+let fromToken = null, toToken = null;
+
+function init() {
+    const netList = document.getElementById("network-list");
+    NETWORKS.forEach(n => {
+        const btn = document.createElement("div");
+        btn.id = "net-" + n.id;
+        btn.onclick = () => selectNetwork(n.id);
+        btn.style.cssText = "display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;border:0.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);cursor:pointer;font-size:12px;color:#999;transition:all 0.2s;";
+        btn.innerHTML = `<img src="${n.logo}" style="width:16px;height:16px;border-radius:50%;" onerror="this.style.display='none'"><span>${n.name}</span>`;
+        netList.appendChild(btn);
+    });
+    selectNetwork("8453");
 }
 
-async function loadBalances() {
-    if (!account) return;
-    const chainId = document.getElementById("network").value;
-    const fromToken = document.getElementById("from-token").value;
-    const toToken = document.getElementById("to-token").value;
-    try {
-        if (fromToken === "ETH") {
-            const bal = await provider.getBalance(account);
-            document.getElementById("from-balance").innerText = parseFloat(ethers.formatEther(bal)).toFixed(4) + " ETH";
-        }
-    } catch(e) {}
-}
-
-async function onNetworkChange() {
-    currentQuote = null;
-    document.getElementById("to-amount").value = "";
-    document.getElementById("route-info").style.display = "none";
-    await loadBalances();
-}
-
-function swapTokens() {
-    const ft = document.getElementById("from-token").value;
-    const tt = document.getElementById("to-token").value;
-    document.getElementById("from-token").value = tt;
-    document.getElementById("to-token").value = ft;
+function selectNetwork(chainId) {
+    selectedChain = chainId;
+    document.querySelectorAll("[id^='net-']").forEach(b => {
+        b.style.borderColor = "rgba(255,255,255,0.1)";
+        b.style.background = "rgba(255,255,255,0.03)";
+        b.style.color = "#999";
+    });
+    const btn = document.getElementById("net-" + chainId);
+    if (btn) {
+        btn.style.borderColor = "#e94560";
+        btn.style.background = "rgba(233,69,96,0.1)";
+        btn.style.color = "#fff";
+    }
+    const tokens = TOKENS[chainId] || [];
+    fromToken = tokens[0] || null;
+    toToken = tokens[1] || tokens[0] || null;
+    updateTokenButtons();
     document.getElementById("from-amount").value = "";
     document.getElementById("to-amount").value = "";
     document.getElementById("route-info").style.display = "none";
+    document.getElementById("token-picker").style.display = "none";
     currentQuote = null;
+    if (account) loadBalances();
+}
+
+function updateTokenButtons() {
+    if (fromToken) {
+        document.getElementById("from-token-logo").src = fromToken.logo;
+        document.getElementById("from-token-name").innerText = fromToken.symbol;
+    }
+    if (toToken) {
+        document.getElementById("to-token-logo").src = toToken.logo;
+        document.getElementById("to-token-name").innerText = toToken.symbol;
+    }
+}
+
+function toggleTokenList(side) {
+    activeTokenSide = side;
+    const picker = document.getElementById("token-picker");
+    const list = document.getElementById("token-list");
+    list.innerHTML = "";
+    const tokens = TOKENS[selectedChain] || [];
+    tokens.forEach(t => {
+        const btn = document.createElement("div");
+        btn.onclick = () => selectToken(t);
+        btn.style.cssText = "display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:20px;border:0.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);cursor:pointer;font-size:13px;color:#ccc;";
+        btn.innerHTML = `<img src="${t.logo}" style="width:18px;height:18px;border-radius:50%;" onerror="this.style.display='none'"><span>${t.symbol}</span>`;
+        list.appendChild(btn);
+    });
+    picker.style.display = picker.style.display === "none" ? "block" : "none";
+}
+
+function selectToken(token) {
+    if (activeTokenSide === "from") fromToken = token;
+    else toToken = token;
+    updateTokenButtons();
+    document.getElementById("token-picker").style.display = "none";
+    getQuote();
+}
+
+function swapTokens() {
+    const tmp = fromToken;
+    fromToken = toToken;
+    toToken = tmp;
+    updateTokenButtons();
+    const fa = document.getElementById("from-amount").value;
+    const ta = document.getElementById("to-amount").value;
+    document.getElementById("from-amount").value = ta;
+    document.getElementById("to-amount").value = fa;
+    getQuote();
+}
+
+async function loadBalances() {
+    if (!account || !fromToken) return;
+    try {
+        if (fromToken.addr === "0x0000000000000000000000000000000000000000") {
+            const bal = await provider.getBalance(account);
+            document.getElementById("from-balance").innerText = parseFloat(ethers.formatEther(bal)).toFixed(4);
+        }
+    } catch(e) {}
 }
 
 async function getQuote() {
     clearTimeout(quoteTimer);
     quoteTimer = setTimeout(async () => {
         const amount = document.getElementById("from-amount").value;
-        if (!amount || parseFloat(amount) <= 0) return;
-        const chainId = document.getElementById("network").value;
-        const fromToken = document.getElementById("from-token").value;
-        const toToken = document.getElementById("to-token").value;
-        if (fromToken === toToken) return;
-
-        const fromAddr = TOKEN_ADDRESSES[chainId]?.[fromToken];
-        const toAddr = TOKEN_ADDRESSES[chainId]?.[toToken];
-        if (!fromAddr || !toAddr || toAddr === "0x0000000000000000000000000000000000000000") {
-            document.getElementById("status-msg").innerText = "⚠️ Token not available on this network";
-            return;
-        }
-
-        const decimals = fromToken === "ETH" ? 18 : fromToken === "WBTC" ? 8 : 6;
-        const amountWei = BigInt(Math.floor(parseFloat(amount) * 10**decimals)).toString();
+        if (!amount || parseFloat(amount) <= 0 || !fromToken || !toToken || fromToken.symbol === toToken.symbol) return;
+        const amountWei = BigInt(Math.floor(parseFloat(amount) * 10**fromToken.decimals)).toString();
         const fromAddress = account || "0x0000000000000000000000000000000000000001";
-
-        document.getElementById("status-msg").innerText = "🔍 Getting quote...";
+        document.getElementById("status-msg").innerText = "🔍 Getting best quote...";
         try {
-            const url = `https://li.quest/v1/quote?fromChain=${chainId}&toChain=${chainId}&fromToken=${fromAddr}&toToken=${toAddr}&fromAmount=${amountWei}&fromAddress=${fromAddress}`;
+            const url = `https://li.quest/v1/quote?fromChain=${selectedChain}&toChain=${selectedChain}&fromToken=${fromToken.addr}&toToken=${toToken.addr}&fromAmount=${amountWei}&fromAddress=${fromAddress}`;
             const res = await fetch(url);
             const data = await res.json();
-            if (data.action && data.estimate) {
+            if (data.estimate) {
                 currentQuote = data;
-                const toDecimals = toToken === "ETH" ? 18 : toToken === "WBTC" ? 8 : 6;
-                const toAmount = parseFloat(data.estimate.toAmount) / 10**toDecimals;
+                const toAmount = parseFloat(data.estimate.toAmount) / 10**toToken.decimals;
                 document.getElementById("to-amount").value = toAmount.toFixed(6);
                 const rate = (toAmount / parseFloat(amount)).toFixed(4);
-                document.getElementById("rate-display").innerText = `1 ${fromToken} ≈ ${rate} ${toToken}`;
+                document.getElementById("rate-display").innerText = `1 ${fromToken.symbol} ≈ ${rate} ${toToken.symbol}`;
                 document.getElementById("route-display").innerText = data.toolDetails?.name || data.tool || "—";
                 document.getElementById("time-display").innerText = Math.ceil((data.estimate.executionDuration || 30) / 60) + " min";
                 document.getElementById("route-info").style.display = "block";
@@ -195,39 +269,42 @@ async function getQuote() {
 async function handleSwap() {
     const btn = document.getElementById("swap-btn");
     if (!account) {
-        await connectWallet();
+        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
+        provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        btn.innerText = "Get Quote";
+        document.getElementById("status-msg").innerText = "✅ " + account.slice(0,6) + "..." + account.slice(-4);
+        await loadBalances();
         return;
     }
-    if (!currentQuote) {
-        document.getElementById("status-msg").innerText = "⚠️ Enter an amount first";
-        return;
-    }
+    if (!currentQuote) { document.getElementById("status-msg").innerText = "⚠️ Enter an amount first"; return; }
     btn.disabled = true;
-    btn.innerText = "Swapping...";
-    document.getElementById("status-msg").innerText = "⏳ Confirm in MetaMask...";
+    btn.innerText = "Confirm in MetaMask...";
     try {
         const tx = currentQuote.transactionRequest;
         const txResponse = await signer.sendTransaction({
-            to: tx.to,
-            data: tx.data,
+            to: tx.to, data: tx.data,
             value: tx.value ? BigInt(tx.value) : 0n,
             gasLimit: tx.gasLimit ? BigInt(tx.gasLimit) : undefined,
         });
-        document.getElementById("status-msg").innerText = "⏳ Waiting for confirmation...";
+        btn.innerText = "Waiting...";
         await txResponse.wait();
         document.getElementById("status-msg").innerText = "✅ Swap successful!";
-        btn.innerText = "Swap";
         document.getElementById("from-amount").value = "";
         document.getElementById("to-amount").value = "";
-        currentQuote = null;
         document.getElementById("route-info").style.display = "none";
+        currentQuote = null;
+        btn.innerText = "Swap";
         await loadBalances();
     } catch(e) {
-        const msg = e.reason || e.message || "Unknown error";
-        document.getElementById("status-msg").innerText = "❌ " + msg.slice(0,60);
+        document.getElementById("status-msg").innerText = "❌ " + (e.reason || e.message || "").slice(0,60);
         btn.innerText = "Swap";
     }
     btn.disabled = false;
 }
+
+init();
 </script>
 {% endblock %}
