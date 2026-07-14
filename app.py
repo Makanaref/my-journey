@@ -400,6 +400,11 @@ def generic_page(page):
         except:
             abort(404)
     abort(404)
+
+
+@app.route("/swap")
+def swap():
+    return render_template("swap.html")
 @app.route("/networks")
 def networks():
     return render_template("networks.html")
