@@ -252,7 +252,7 @@
             return;
         }
 
-        document.getElementById("burn-status").innerText = "Burning...";
+        document.getElementById("burn-status").innerText = "Checking permissions...";
         const burnBtn = document.getElementById("burn-btn");
         burnBtn.disabled = true;
 
@@ -265,27 +265,35 @@
             try {
                 hasBurnRole = await tokenContract.hasRole(BURN_ROLE, account);
             } catch (e) {
-                console.warn("hasRole not available, attempting burn directly...");
+                console.warn("hasRole not available, assuming admin...");
             }
 
+            // 2. If doesn't have BURN_ROLE, try to grant it (if admin)
             if (!hasBurnRole) {
-                // Check if they are DEFAULT_ADMIN
+                document.getElementById("burn-status").innerText = "Granting BURN_ROLE...";
                 try {
-                    const DEFAULT_ADMIN_ROLE = "0x0000000000000000000000000000000000000000000000000000000000000000";
-                    const isAdmin = await tokenContract.hasRole(DEFAULT_ADMIN_ROLE, account);
-                    if (!isAdmin) {
-                        document.getElementById("burn-status").innerHTML = "❌ <b>You don't have BURN_ROLE!</b><br><small>Only accounts with BURN_ROLE can burn tokens.</small>";
-                        burnBtn.disabled = false;
-                        return;
-                    }
-                } catch (e) {
-                    document.getElementById("burn-status").innerHTML = "❌ <b>You don't have BURN_ROLE!</b><br><small>Only accounts with BURN_ROLE can burn tokens.</small>";
+                    const grantRoleInterface = new ethers.Interface([
+                        "function grantRole(bytes32 role, address account)"
+                    ]);
+                    const data = grantRoleInterface.encodeFunctionData("grantRole", [BURN_ROLE, account]);
+                    
+                    const feeData = await provider.getFeeData();
+                    const grantTx = await signer.sendTransaction({
+                        to: tokenContract.target,
+                        data: data,
+                        gasPrice: feeData.gasPrice
+                    });
+                    await grantTx.wait();
+                    document.getElementById("burn-status").innerText = "BURN_ROLE granted! ✅";
+                } catch (grantErr) {
+                    console.error("Grant error:", grantErr);
+                    document.getElementById("burn-status").innerHTML = "❌ <b>Cannot grant BURN_ROLE!</b><br><small>You need to be DEFAULT_ADMIN to grant roles.</small>";
                     burnBtn.disabled = false;
                     return;
                 }
             }
 
-            // 2. Check balance
+            // 3. Check balance
             const balance = await tokenContract.balanceOf(account);
             if (balance < burnAmount) {
                 document.getElementById("burn-status").innerText = "❌ Insufficient balance!";
@@ -293,7 +301,8 @@
                 return;
             }
 
-            // 3. Execute burn
+            // 4. Execute burn
+            document.getElementById("burn-status").innerText = "Burning...";
             const feeData = await provider.getFeeData();
             const tx = await tokenContract.burn(burnAmount, {
                 gasPrice: feeData.gasPrice || undefined
@@ -309,20 +318,14 @@
             console.error("Burn error:", err);
             let errorMsg = err.reason || err.message || "Unknown error";
 
-            // Try to decode error
+            // Check for specific B20 error codes
             if (err.data) {
-                try {
-                    if (err.data.startsWith("0x08c379a0")) {
-                        const reason = ethers.AbiCoder.defaultAbiCoder().decode(["string"], "0x" + err.data.slice(10));
-                        errorMsg = reason[0];
-                    }
-                } catch {}
-            }
-
-            if (errorMsg.includes("BURN_ROLE") || errorMsg.toLowerCase().includes("role")) {
-                document.getElementById("burn-status").innerHTML = "❌ <b>You don't have BURN_ROLE!</b><br><small>Only accounts with BURN_ROLE can burn tokens.</small>";
-            } else if (errorMsg.includes("balance") || errorMsg.toLowerCase().includes("insufficient")) {
-                document.getElementById("burn-status").innerText = "❌ Insufficient balance to burn!";
+                // 0xe2517d3f is "MissingRole" error in B20
+                if (err.data.includes("0xe2517d3f")) {
+                    document.getElementById("burn-status").innerHTML = "❌ <b>You don't have BURN_ROLE!</b><br><small>Try granting the role first.</small>";
+                } else {
+                    document.getElementById("burn-status").innerText = "❌ Failed: " + errorMsg;
+                }
             } else {
                 document.getElementById("burn-status").innerText = "❌ Failed: " + errorMsg;
             }
