@@ -1,310 +1,1125 @@
 {% extends "base.html" %}
-{% block title %}Swap{% endblock %}
+{% block title %}Cross-Chain Swap{% endblock %}
+
 {% block content %}
-<div style="max-width:480px; margin:40px auto; padding:0 20px;">
-    <p style="font-size:13px; color:#666; margin-bottom:4px;">Swap</p>
-    <h1 style="font-size:22px; font-weight:500; margin-bottom:24px; color:#fff;">🔄 Cross-Chain Swap</h1>
+<style>
+    .swap-wrapper {
+        max-width: 480px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
 
-    <div style="background:#16213e; border-radius:14px; border:0.5px solid rgba(233,69,96,0.15); padding:24px;">
+    .swap-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
 
+    .swap-header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .swap-header h1 span {
+        background: rgba(233,69,96,0.15);
+        color: #e94560;
+        font-size: 11px;
+        padding: 2px 10px;
+        border-radius: 20px;
+        border: 1px solid rgba(233,69,96,0.2);
+        font-weight: 400;
+    }
+
+    .swap-box {
+        background: #16213e;
+        border-radius: 16px;
+        border: 1px solid rgba(233,69,96,0.12);
+        padding: 24px;
+        transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .swap-box:hover {
+        border-color: rgba(233,69,96,0.3);
+        transform: translateY(-2px);
+    }
+
+    .swap-row {
+        background: #0f3460;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 8px;
+        transition: border-color 0.2s;
+        border: 1px solid transparent;
+    }
+
+    .swap-row:focus-within {
+        border-color: rgba(233,69,96,0.4);
+        box-shadow: 0 0 0 3px rgba(233,69,96,0.05);
+    }
+
+    .swap-row .label-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .swap-row .label-row span {
+        font-size: 12px;
+        color: #888;
+        font-weight: 500;
+    }
+
+    .swap-row .label-row .balance {
+        color: #666;
+        font-size: 11px;
+    }
+
+    .swap-input-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .swap-input-group input {
+        flex: 1;
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 28px;
+        font-weight: 600;
+        outline: none;
+        min-width: 0;
+        width: 100%;
+        font-family: inherit;
+    }
+
+    .swap-input-group input::placeholder {
+        color: #444;
+        font-weight: 400;
+    }
+
+    .swap-input-group input:read-only {
+        color: #e94560;
+        cursor: default;
+    }
+
+    .token-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #1a1a3e;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 30px;
+        padding: 8px 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .token-btn:hover {
+        border-color: rgba(233,69,96,0.3);
+        background: #1e1e4a;
+    }
+
+    .token-btn img {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #333;
+    }
+
+    .token-btn .symbol {
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .token-btn .arrow {
+        color: #666;
+        font-size: 11px;
+        transition: transform 0.2s;
+    }
+
+    .token-btn .arrow.open {
+        transform: rotate(180deg);
+    }
+
+    .usd-value {
+        font-size: 12px;
+        color: #555;
+        margin-top: 6px;
+        min-height: 18px;
+    }
+
+    .swap-arrow-btn {
+        text-align: center;
+        cursor: pointer;
+        padding: 4px;
+        color: #666;
+        font-size: 20px;
+        transition: all 0.3s;
+        background: none;
+        border: none;
+        width: 100%;
+        display: block;
+    }
+
+    .swap-arrow-btn:hover {
+        color: #e94560;
+        transform: scale(1.1);
+    }
+
+    /* Token Picker */
+    .token-picker {
+        display: none;
+        background: #0a0a1a;
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 16px;
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .token-picker.open {
+        display: block;
+        animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .token-picker .title {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 8px;
+    }
+
+    .token-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .token-option {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.02);
+        cursor: pointer;
+        font-size: 13px;
+        color: #ccc;
+        transition: all 0.2s;
+    }
+
+    .token-option:hover {
+        border-color: rgba(233,69,96,0.3);
+        background: rgba(233,69,96,0.05);
+        color: #fff;
+    }
+
+    .token-option img {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+    }
+
+    .token-option.active {
+        border-color: #e94560;
+        background: rgba(233,69,96,0.1);
+        color: #fff;
+    }
+
+    /* Networks */
+    .network-section {
+        margin-bottom: 16px;
+    }
+
+    .network-section .label {
+        font-size: 12px;
+        color: #666;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .network-list {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .network-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.02);
+        cursor: pointer;
+        font-size: 12px;
+        color: #888;
+        transition: all 0.2s;
+    }
+
+    .network-btn:hover {
+        border-color: rgba(255,255,255,0.15);
+        color: #ccc;
+    }
+
+    .network-btn.active {
+        border-color: #e94560;
+        background: rgba(233,69,96,0.08);
+        color: #fff;
+    }
+
+    .network-btn img {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+    }
+
+    /* Route Info */
+    .route-info {
+        display: none;
+        background: rgba(255,255,255,0.02);
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 16px;
+        border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .route-info.open {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .route-info .row {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        font-size: 12px;
+        color: #666;
+    }
+
+    .route-info .row .value {
+        color: #ccc;
+    }
+
+    .route-info .row .value.green {
+        color: #4ade80;
+    }
+
+    .route-info .divider {
+        border-top: 1px solid rgba(255,255,255,0.04);
+        margin: 8px 0;
+    }
+
+    /* Fees Breakdown */
+    .fees-breakdown {
+        display: none;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .fees-breakdown.open {
+        display: block;
+    }
+
+    .fees-breakdown .row {
+        font-size: 11px;
+        color: #555;
+        padding: 2px 0;
+    }
+
+    .fees-breakdown .row .value {
+        color: #888;
+    }
+
+    .status-msg {
+        font-size: 12px;
+        color: #666;
+        text-align: center;
+        min-height: 20px;
+        padding: 6px 0;
+    }
+
+    .status-msg.success {
+        color: #4ade80;
+    }
+
+    .status-msg.error {
+        color: #e94560;
+    }
+
+    .status-msg.loading {
+        color: #fbbf24;
+    }
+
+    .swap-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #e94560, #c73652);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .swap-btn:hover:not(:disabled) {
+        transform: scale(1.02);
+        box-shadow: 0 4px 20px rgba(233,69,96,0.25);
+    }
+
+    .swap-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .swap-btn .loader {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.2);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        vertical-align: middle;
+        margin-right: 8px;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .powered-by {
+        font-size: 11px;
+        color: #444;
+        text-align: center;
+        margin-top: 14px;
+    }
+
+    .powered-by a {
+        color: #e94560;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .powered-by a:hover {
+        color: #ff6b81;
+    }
+
+    /* Member badge */
+    .member-badge {
+        display: inline-block;
+        background: rgba(74,222,128,0.12);
+        color: #4ade80;
+        font-size: 10px;
+        padding: 2px 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(74,222,128,0.15);
+        margin-left: 8px;
+        font-weight: 400;
+    }
+
+    .discount-badge {
+        display: inline-block;
+        background: rgba(74,222,128,0.08);
+        color: #4ade80;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 6px;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+        .swap-wrapper {
+            padding: 0 12px;
+            margin: 20px auto;
+        }
+        .swap-box {
+            padding: 16px;
+        }
+        .swap-input-group input {
+            font-size: 22px;
+        }
+        .swap-header h1 {
+            font-size: 20px;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .swap-input-group {
+            flex-wrap: wrap;
+        }
+        .swap-input-group input {
+            font-size: 20px;
+            min-width: 120px;
+        }
+        .token-btn {
+            padding: 6px 10px;
+        }
+        .token-btn .symbol {
+            font-size: 12px;
+        }
+    }
+</style>
+
+<div class="swap-wrapper">
+    <div class="swap-header">
+        <h1>
+            🔄 Swap
+            <span>Cross-Chain</span>
+            <span class="member-badge" id="memberBadge" style="display:none;">⭐ Member</span>
+        </h1>
+        <div style="font-size:12px; color:#666;">
+            <span id="discountDisplay"></span>
+        </div>
+    </div>
+
+    <div class="swap-box">
         <!-- From -->
-        <div style="background:#0f3460; border-radius:12px; padding:16px; margin-bottom:8px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <span style="font-size:12px; color:#666;">Sell</span>
-                <span style="font-size:12px; color:#666;">Balance: <span id="from-balance">—</span></span>
+        <div class="swap-row">
+            <div class="label-row">
+                <span>From</span>
+                <span class="balance">Balance: <span id="fromBalance">—</span></span>
             </div>
-            <div style="display:flex; align-items:center; gap:12px;">
-                <input type="number" id="from-amount" placeholder="0" oninput="getQuote()" style="flex:1; background:none; border:none; color:#fff; font-size:28px; font-weight:600; outline:none; min-width:0; width:100%;">
-                <div id="from-token-btn" onclick="toggleTokenList('from')" style="display:flex; align-items:center; gap:8px; background:#1a1a3e; border:0.5px solid rgba(255,255,255,0.1); border-radius:30px; padding:8px 14px; cursor:pointer; white-space:nowrap;">
-                    <img id="from-token-logo" src="" style="width:22px; height:22px; border-radius:50%; background:#333;">
-                    <span id="from-token-name" style="font-size:14px; font-weight:600; color:#fff;">ETH</span>
-                    <span style="color:#666; font-size:11px;">▾</span>
+            <div class="swap-input-group">
+                <input type="number" id="fromAmount" placeholder="0" step="any" oninput="getQuote()">
+                <div class="token-btn" onclick="toggleTokenPicker('from')" id="fromTokenBtn">
+                    <img id="fromTokenLogo" src="" alt="">
+                    <span class="symbol" id="fromTokenSymbol">ETH</span>
+                    <span class="arrow" id="fromArrow">▾</span>
                 </div>
             </div>
-            <div style="font-size:12px; color:#555; margin-top:6px;" id="from-usd">≈ $0.00</div>
+            <div class="usd-value" id="fromUsd">≈ $0.00</div>
         </div>
 
-        <!-- Arrow -->
-        <div onclick="swapTokens()" style="text-align:center; cursor:pointer; padding:4px; color:#666; font-size:20px; transition:color 0.2s;" onmouseover="this.style.color='#e94560'" onmouseout="this.style.color='#666'">⇅</div>
+        <!-- Swap Arrow -->
+        <button class="swap-arrow-btn" onclick="swapTokens()" aria-label="Swap tokens">
+            ⇅
+        </button>
 
         <!-- To -->
-        <div style="background:#0f3460; border-radius:12px; padding:16px; margin-top:8px; margin-bottom:16px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <span style="font-size:12px; color:#666;">Buy</span>
-                <span style="font-size:12px; color:#666;">Balance: <span id="to-balance">—</span></span>
+        <div class="swap-row">
+            <div class="label-row">
+                <span>To</span>
+                <span class="balance">Balance: <span id="toBalance">—</span></span>
             </div>
-            <div style="display:flex; align-items:center; gap:12px;">
-                <input type="number" id="to-amount" placeholder="0" readonly style="flex:1; background:none; border:none; color:#e94560; font-size:28px; font-weight:600; outline:none; min-width:0; width:100%;">
-                <div id="to-token-btn" onclick="toggleTokenList('to')" style="display:flex; align-items:center; gap:8px; background:#1a1a3e; border:0.5px solid rgba(255,255,255,0.1); border-radius:30px; padding:8px 14px; cursor:pointer; white-space:nowrap;">
-                    <img id="to-token-logo" src="" style="width:22px; height:22px; border-radius:50%; background:#333;">
-                    <span id="to-token-name" style="font-size:14px; font-weight:600; color:#fff;">USDC</span>
-                    <span style="color:#666; font-size:11px;">▾</span>
+            <div class="swap-input-group">
+                <input type="number" id="toAmount" placeholder="0" readonly>
+                <div class="token-btn" onclick="toggleTokenPicker('to')" id="toTokenBtn">
+                    <img id="toTokenLogo" src="" alt="">
+                    <span class="symbol" id="toTokenSymbol">USDC</span>
+                    <span class="arrow" id="toArrow">▾</span>
                 </div>
             </div>
-            <div style="font-size:12px; color:#555; margin-top:6px;" id="to-usd">≈ $0.00</div>
+            <div class="usd-value" id="toUsd">≈ $0.00</div>
         </div>
 
-        <!-- Token picker -->
-        <div id="token-picker" style="display:none; background:#0a0a1a; border-radius:12px; padding:12px; margin-bottom:16px; border:0.5px solid rgba(255,255,255,0.08);">
-            <p style="font-size:12px; color:#666; margin-bottom:8px;">Select token</p>
-            <div id="token-list" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+        <!-- Token Picker -->
+        <div class="token-picker" id="tokenPicker">
+            <div class="title">Select token</div>
+            <div class="token-list" id="tokenList"></div>
         </div>
 
-        <!-- Network -->
-        <div style="margin-bottom:16px;">
-            <label style="font-size:12px; color:#666; display:block; margin-bottom:8px;">Network</label>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;" id="network-list"></div>
+        <!-- Networks -->
+        <div class="network-section">
+            <span class="label">Network</span>
+            <div class="network-list" id="networkList"></div>
         </div>
 
-        <!-- Route info -->
-        <div id="route-info" style="display:none; background:rgba(255,255,255,0.03); border-radius:8px; padding:12px; margin-bottom:16px; font-size:12px; color:#666;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                <span>Rate</span><span id="rate-display" style="color:#ccc;">—</span>
+        <!-- Route Info -->
+        <div class="route-info" id="routeInfo">
+            <div class="row">
+                <span>Rate</span>
+                <span class="value" id="rateDisplay">—</span>
             </div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                <span>Route</span><span id="route-display" style="color:#ccc;">—</span>
+            <div class="row">
+                <span>Route</span>
+                <span class="value" id="routeDisplay">—</span>
             </div>
-            <div style="display:flex; justify-content:space-between;">
-                <span>Est. time</span><span id="time-display" style="color:#ccc;">—</span>
+            <div class="row">
+                <span>Est. time</span>
+                <span class="value" id="timeDisplay">—</span>
             </div>
+            <div class="divider"></div>
+            <div class="row">
+                <span>Network Fee</span>
+                <span class="value" id="feeDisplay">—</span>
+            </div>
+            <div class="row">
+                <span>Total Cost</span>
+                <span class="value green" id="totalCostDisplay">—</span>
+            </div>
+            <div class="fees-breakdown" id="feesBreakdown">
+                <div class="row"><span>Gas (est.)</span><span class="value" id="gasDisplay">—</span></div>
+                <div class="row"><span>Protocol fee</span><span class="value" id="protocolFeeDisplay">—</span></div>
+                <div class="row" id="discountRow" style="display:none;">
+                    <span>Member discount</span>
+                    <span class="value" style="color:#4ade80;" id="discountAmountDisplay">-10%</span>
+                </div>
+            </div>
+            <div style="margin-top:6px; font-size:10px; color:#444; text-align:center;" id="slippageDisplay">Slippage: 0.5%</div>
         </div>
 
-        <div id="status-msg" style="font-size:12px; color:#666; text-align:center; margin-bottom:12px; min-height:16px;"></div>
+        <!-- Status -->
+        <div class="status-msg" id="statusMsg">Connect wallet to start swapping</div>
 
-        <button id="swap-btn" onclick="handleSwap()" style="width:100%; padding:14px; background:#e94560; color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; transition:background 0.2s;">
+        <!-- Swap Button -->
+        <button class="swap-btn" id="swapBtn" onclick="handleSwap()">
             Connect Wallet
         </button>
     </div>
 
-    <p style="font-size:11px; color:#444; text-align:center; margin-top:12px;">
-        Powered by <a href="https://li.fi" target="_blank" style="color:#e94560;">LI.FI</a>
-    </p>
+    <div class="powered-by">
+        Powered by <a href="https://relay.link" target="_blank">Relay</a> — optimized for members
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script>
-let provider, signer, account, currentQuote = null, quoteTimer = null, activeTokenSide = null;
-let selectedChain = "8453";
+    // ============================================================
+    // CONFIGURATION
+    // ============================================================
+    const NETWORKS = [
+        { id: "8453",  name: "Base",      logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/base.svg" },
+        { id: "57073", name: "Ink",       logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/ink.svg" },
+        { id: "43114", name: "Avalanche", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/avax.svg" },
+        { id: "1",     name: "Ethereum",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/eth.svg" },
+        { id: "137",   name: "Polygon",   logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/pol.svg" },
+        { id: "42161", name: "Arbitrum",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/arb.svg" },
+        { id: "10",    name: "Optimism",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/opt.svg" },
+        { id: "7000",  name: "ZetaChain", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/zetachain.svg" },
+        { id: "999",   name: "Robinhood", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/robinhood.svg" },
+    ];
 
-const NETWORKS = [
-    { id: "8453",  name: "Base",      logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/base.svg" },
-    { id: "57073", name: "Ink",       logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/ink.svg" },
-    { id: "43114", name: "Avalanche", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/avax.svg" },
-    { id: "1",     name: "Ethereum",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/eth.svg" },
-    { id: "137",   name: "Polygon",   logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/pol.svg" },
-    { id: "42161", name: "Arbitrum",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/arb.svg" },
-    { id: "10",    name: "Optimism",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/opt.svg" },
-];
+    const TOKENS = {
+        "8453":  [
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
+            { symbol: "USDC", addr: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+            { symbol: "USDT", addr: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
+        ],
+        "57073": [
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
+            { symbol: "USDC", addr: "0x6900000000000000000000000000000000000001", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+        ],
+        "43114": [
+            { symbol: "AVAX", addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/avax.svg", decimals: 18 },
+            { symbol: "USDC", addr: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+            { symbol: "USDT", addr: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
+        ],
+        "1": [
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
+            { symbol: "USDC", addr: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+            { symbol: "USDT", addr: "0xdAC17F958D2ee523a2206206994597C13D831ec7", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
+        ],
+        "137": [
+            { symbol: "POL",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/pol.svg", decimals: 18 },
+            { symbol: "USDC", addr: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+        ],
+        "42161": [
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
+            { symbol: "USDC", addr: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+        ],
+        "10": [
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
+            { symbol: "USDC", addr: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+        ],
+        "7000": [
+            { symbol: "ZETA", addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/zetachain.svg", decimals: 18 },
+            { symbol: "USDC", addr: "0x0c6f6e5b0b4e5c5b0b0b0b0b0b0b0b0b0b0b0b0b", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+        ],
+        "999": [
+            { symbol: "HOOD", addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/robinhood.svg", decimals: 18 },
+            { symbol: "USDC", addr: "0x0c6f6e5b0b4e5c5b0b0b0b0b0b0b0b0b0b0b0b0b", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+        ],
+    };
 
-const TOKENS = {
-    "8453":  [
-        { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
-        { symbol: "USDC", addr: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
-        { symbol: "USDT", addr: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
-        { symbol: "DAI",  addr: "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/dai.svg",  decimals: 18 },
-    ],
-    "57073": [
-        { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
-        { symbol: "USDC", addr: "0x6900000000000000000000000000000000000001", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
-    ],
-    "43114": [
-        { symbol: "AVAX", addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/avax.svg", decimals: 18 },
-        { symbol: "USDC", addr: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
-        { symbol: "USDT", addr: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
-    ],
-    "1": [
-        { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
-        { symbol: "USDC", addr: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
-        { symbol: "USDT", addr: "0xdAC17F958D2ee523a2206206994597C13D831ec7", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
-        { symbol: "DAI",  addr: "0x6B175474E89094C44Da98b954EedeAC495271d0F", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/dai.svg",  decimals: 18 },
-        { symbol: "WBTC", addr: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/wbtc.svg", decimals: 8 },
-    ],
-    "137": [
-        { symbol: "POL",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/pol.svg", decimals: 18 },
-        { symbol: "USDC", addr: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
-        { symbol: "USDT", addr: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
-    ],
-    "42161": [
-        { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
-        { symbol: "USDC", addr: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
-        { symbol: "USDT", addr: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
-    ],
-    "10": [
-        { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
-        { symbol: "USDC", addr: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
-        { symbol: "USDT", addr: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
-    ],
-};
+    const RELAY_API = "https://api.relay.link";
+    const MEMBER_DISCOUNT = 10; // 10% discount for members
 
-let fromToken = null, toToken = null;
+    // ============================================================
+    // STATE
+    // ============================================================
+    let provider, signer, account;
+    let selectedFromChain = "8453";
+    let selectedToChain = "8453";
+    let fromToken = null;
+    let toToken = null;
+    let currentQuote = null;
+    let quoteTimer = null;
+    let activePickerSide = null;
+    let isMember = false;
+    let isConnecting = false;
 
-function init() {
-    const netList = document.getElementById("network-list");
-    NETWORKS.forEach(n => {
-        const btn = document.createElement("div");
-        btn.id = "net-" + n.id;
-        btn.onclick = () => selectNetwork(n.id);
-        btn.style.cssText = "display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;border:0.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);cursor:pointer;font-size:12px;color:#999;transition:all 0.2s;";
-        btn.innerHTML = `<img src="${n.logo}" style="width:16px;height:16px;border-radius:50%;" onerror="this.style.display='none'"><span>${n.name}</span>`;
-        netList.appendChild(btn);
-    });
-    selectNetwork("8453");
-}
+    // ============================================================
+    // DOM REFS
+    // ============================================================
+    const $ = id => document.getElementById(id);
+    const fromAmount = $('fromAmount');
+    const toAmount = $('toAmount');
+    const fromTokenSymbol = $('fromTokenSymbol');
+    const toTokenSymbol = $('toTokenSymbol');
+    const fromTokenLogo = $('fromTokenLogo');
+    const toTokenLogo = $('toTokenLogo');
+    const fromBalance = $('fromBalance');
+    const toBalance = $('toBalance');
+    const fromUsd = $('fromUsd');
+    const toUsd = $('toUsd');
+    const rateDisplay = $('rateDisplay');
+    const routeDisplay = $('routeDisplay');
+    const timeDisplay = $('timeDisplay');
+    const feeDisplay = $('feeDisplay');
+    const totalCostDisplay = $('totalCostDisplay');
+    const gasDisplay = $('gasDisplay');
+    const protocolFeeDisplay = $('protocolFeeDisplay');
+    const discountAmountDisplay = $('discountAmountDisplay');
+    const discountRow = $('discountRow');
+    const feesBreakdown = $('feesBreakdown');
+    const routeInfo = $('routeInfo');
+    const statusMsg = $('statusMsg');
+    const swapBtn = $('swapBtn');
+    const tokenPicker = $('tokenPicker');
+    const tokenList = $('tokenList');
+    const networkList = $('networkList');
+    const memberBadge = $('memberBadge');
+    const discountDisplay = $('discountDisplay');
 
-function selectNetwork(chainId) {
-    selectedChain = chainId;
-    document.querySelectorAll("[id^='net-']").forEach(b => {
-        b.style.borderColor = "rgba(255,255,255,0.1)";
-        b.style.background = "rgba(255,255,255,0.03)";
-        b.style.color = "#999";
-    });
-    const btn = document.getElementById("net-" + chainId);
-    if (btn) {
-        btn.style.borderColor = "#e94560";
-        btn.style.background = "rgba(233,69,96,0.1)";
-        btn.style.color = "#fff";
-    }
-    const tokens = TOKENS[chainId] || [];
-    fromToken = tokens[0] || null;
-    toToken = tokens[1] || tokens[0] || null;
-    updateTokenButtons();
-    document.getElementById("from-amount").value = "";
-    document.getElementById("to-amount").value = "";
-    document.getElementById("route-info").style.display = "none";
-    document.getElementById("token-picker").style.display = "none";
-    currentQuote = null;
-    if (account) loadBalances();
-}
+    // ============================================================
+    // INIT
+    // ============================================================
+    function init() {
+        renderNetworks();
+        selectNetwork('8453', 'from');
+        selectNetwork('8453', 'to');
+        checkMemberStatus();
+        renderTokenPicker();
 
-function updateTokenButtons() {
-    if (fromToken) {
-        document.getElementById("from-token-logo").src = fromToken.logo;
-        document.getElementById("from-token-name").innerText = fromToken.symbol;
-    }
-    if (toToken) {
-        document.getElementById("to-token-logo").src = toToken.logo;
-        document.getElementById("to-token-name").innerText = toToken.symbol;
-    }
-}
-
-function toggleTokenList(side) {
-    activeTokenSide = side;
-    const picker = document.getElementById("token-picker");
-    const list = document.getElementById("token-list");
-    list.innerHTML = "";
-    const tokens = TOKENS[selectedChain] || [];
-    tokens.forEach(t => {
-        const btn = document.createElement("div");
-        btn.onclick = () => selectToken(t);
-        btn.style.cssText = "display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:20px;border:0.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);cursor:pointer;font-size:13px;color:#ccc;";
-        btn.innerHTML = `<img src="${t.logo}" style="width:18px;height:18px;border-radius:50%;" onerror="this.style.display='none'"><span>${t.symbol}</span>`;
-        list.appendChild(btn);
-    });
-    picker.style.display = picker.style.display === "none" ? "block" : "none";
-}
-
-function selectToken(token) {
-    if (activeTokenSide === "from") fromToken = token;
-    else toToken = token;
-    updateTokenButtons();
-    document.getElementById("token-picker").style.display = "none";
-    getQuote();
-}
-
-function swapTokens() {
-    const tmp = fromToken;
-    fromToken = toToken;
-    toToken = tmp;
-    updateTokenButtons();
-    const fa = document.getElementById("from-amount").value;
-    const ta = document.getElementById("to-amount").value;
-    document.getElementById("from-amount").value = ta;
-    document.getElementById("to-amount").value = fa;
-    getQuote();
-}
-
-async function loadBalances() {
-    if (!account || !fromToken) return;
-    try {
-        if (fromToken.addr === "0x0000000000000000000000000000000000000000") {
-            const bal = await provider.getBalance(account);
-            document.getElementById("from-balance").innerText = parseFloat(ethers.formatEther(bal)).toFixed(4);
+        // Auto-connect if already connected
+        if (window.ethereum && window.ethereum.selectedAddress) {
+            connectWallet();
         }
-    } catch(e) {}
-}
 
-async function getQuote() {
-    clearTimeout(quoteTimer);
-    quoteTimer = setTimeout(async () => {
-        const amount = document.getElementById("from-amount").value;
-        if (!amount || parseFloat(amount) <= 0 || !fromToken || !toToken || fromToken.symbol === toToken.symbol) return;
-        const amountWei = BigInt(Math.floor(parseFloat(amount) * 10**fromToken.decimals)).toString();
-        const fromAddress = account || "0x0000000000000000000000000000000000000001";
-        document.getElementById("status-msg").innerText = "🔍 Getting best quote...";
-        try {
-            const url = `https://li.quest/v1/quote?fromChain=${selectedChain}&toChain=${selectedChain}&fromToken=${fromToken.addr}&toToken=${toToken.addr}&fromAmount=${amountWei}&fromAddress=${fromAddress}`;
-            const res = await fetch(url);
-            const data = await res.json();
-            if (data.estimate) {
-                currentQuote = data;
-                const toAmount = parseFloat(data.estimate.toAmount) / 10**toToken.decimals;
-                document.getElementById("to-amount").value = toAmount.toFixed(6);
-                const rate = (toAmount / parseFloat(amount)).toFixed(4);
-                document.getElementById("rate-display").innerText = `1 ${fromToken.symbol} ≈ ${rate} ${toToken.symbol}`;
-                document.getElementById("route-display").innerText = data.toolDetails?.name || data.tool || "—";
-                document.getElementById("time-display").innerText = Math.ceil((data.estimate.executionDuration || 30) / 60) + " min";
-                document.getElementById("route-info").style.display = "block";
-                document.getElementById("status-msg").innerText = "";
-                if (account) document.getElementById("swap-btn").innerText = "Swap";
-            } else {
-                document.getElementById("status-msg").innerText = "⚠️ " + (data.message || "No route found");
-                document.getElementById("route-info").style.display = "none";
-            }
-        } catch(e) {
-            document.getElementById("status-msg").innerText = "⚠️ Failed to get quote";
-        }
-    }, 600);
-}
-
-async function handleSwap() {
-    const btn = document.getElementById("swap-btn");
-    if (!account) {
-        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-        provider = new ethers.BrowserProvider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        signer = await provider.getSigner();
-        account = await signer.getAddress();
-        btn.innerText = "Get Quote";
-        document.getElementById("status-msg").innerText = "✅ " + account.slice(0,6) + "..." + account.slice(-4);
-        await loadBalances();
-        return;
-    }
-    if (!currentQuote) { document.getElementById("status-msg").innerText = "⚠️ Enter an amount first"; return; }
-    btn.disabled = true;
-    btn.innerText = "Confirm in MetaMask...";
-    try {
-        const tx = currentQuote.transactionRequest;
-        const txResponse = await signer.sendTransaction({
-            to: tx.to, data: tx.data,
-            value: tx.value ? BigInt(tx.value) : 0n,
-            gasLimit: tx.gasLimit ? BigInt(tx.gasLimit) : undefined,
+        // Input events
+        fromAmount.addEventListener('input', getQuote);
+        fromAmount.addEventListener('focus', () => {
+            if (!account) statusMsg.innerText = 'Connect wallet first';
         });
-        btn.innerText = "Waiting...";
-        await txResponse.wait();
-        document.getElementById("status-msg").innerText = "✅ Swap successful!";
-        document.getElementById("from-amount").value = "";
-        document.getElementById("to-amount").value = "";
-        document.getElementById("route-info").style.display = "none";
-        currentQuote = null;
-        btn.innerText = "Swap";
-        await loadBalances();
-    } catch(e) {
-        document.getElementById("status-msg").innerText = "❌ " + (e.reason || e.message || "").slice(0,60);
-        btn.innerText = "Swap";
     }
-    btn.disabled = false;
-}
 
-init();
+    // ============================================================
+    // NETWORKS
+    // ============================================================
+    function renderNetworks() {
+        networkList.innerHTML = '';
+        NETWORKS.forEach(n => {
+            const btn = document.createElement('div');
+            btn.className = 'network-btn';
+            btn.dataset.chainId = n.id;
+            btn.innerHTML = `<img src="${n.logo}" onerror="this.style.display='none'"><span>${n.name}</span>`;
+            btn.onclick = () => {
+                // Toggle between from/to selection - simple: set both to same for now
+                // In a full implementation, you'd have separate from/to network selectors
+                selectNetwork(n.id, 'from');
+                selectNetwork(n.id, 'to');
+            };
+            networkList.appendChild(btn);
+        });
+    }
+
+    function selectNetwork(chainId, side) {
+        if (side === 'from') {
+            selectedFromChain = chainId;
+            const tokens = TOKENS[chainId] || [];
+            fromToken = tokens[0] || null;
+        } else {
+            selectedToChain = chainId;
+            const tokens = TOKENS[chainId] || [];
+            toToken = tokens[1] || tokens[0] || null;
+        }
+
+        // Update network buttons
+        document.querySelectorAll('.network-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.chainId === chainId);
+        });
+
+        updateTokenUI();
+        fromAmount.value = '';
+        toAmount.value = '';
+        routeInfo.classList.remove('open');
+        currentQuote = null;
+        if (account) loadBalances();
+    }
+
+    // ============================================================
+    // TOKENS
+    // ============================================================
+    function renderTokenPicker() {
+        tokenList.innerHTML = '';
+        const tokens = TOKENS[selectedFromChain] || [];
+        tokens.forEach(t => {
+            const btn = document.createElement('div');
+            btn.className = 'token-option';
+            btn.innerHTML = `<img src="${t.logo}" onerror="this.style.display='none'"><span>${t.symbol}</span>`;
+            btn.onclick = () => selectToken(t, activePickerSide);
+            if (activePickerSide === 'from' && fromToken && fromToken.symbol === t.symbol) {
+                btn.classList.add('active');
+            }
+            if (activePickerSide === 'to' && toToken && toToken.symbol === t.symbol) {
+                btn.classList.add('active');
+            }
+            tokenList.appendChild(btn);
+        });
+    }
+
+    function toggleTokenPicker(side) {
+        activePickerSide = side;
+        renderTokenPicker();
+        tokenPicker.classList.toggle('open');
+        // Update arrow direction
+        document.querySelectorAll('.token-btn .arrow').forEach(a => a.classList.remove('open'));
+        if (tokenPicker.classList.contains('open')) {
+            const arrow = side === 'from' ? $('fromArrow') : $('toArrow');
+            if (arrow) arrow.classList.add('open');
+        }
+    }
+
+    function selectToken(token, side) {
+        if (side === 'from') {
+            fromToken = token;
+        } else {
+            toToken = token;
+        }
+        updateTokenUI();
+        tokenPicker.classList.remove('open');
+        document.querySelectorAll('.token-btn .arrow').forEach(a => a.classList.remove('open'));
+        fromAmount.value = '';
+        toAmount.value = '';
+        routeInfo.classList.remove('open');
+        currentQuote = null;
+        if (account) loadBalances();
+    }
+
+    function updateTokenUI() {
+        if (fromToken) {
+            fromTokenSymbol.textContent = fromToken.symbol;
+            fromTokenLogo.src = fromToken.logo;
+        }
+        if (toToken) {
+            toTokenSymbol.textContent = toToken.symbol;
+            toTokenLogo.src = toToken.logo;
+        }
+        // Update token picker
+        renderTokenPicker();
+    }
+
+    function swapTokens() {
+        const temp = fromToken;
+        fromToken = toToken;
+        toToken = temp;
+        updateTokenUI();
+        const fa = fromAmount.value;
+        const ta = toAmount.value;
+        fromAmount.value = ta;
+        toAmount.value = fa;
+        routeInfo.classList.remove('open');
+        currentQuote = null;
+        getQuote();
+    }
+
+    // ============================================================
+    // WALLET
+    // ============================================================
+    async function connectWallet() {
+        if (isConnecting) return;
+        if (!window.ethereum) {
+            statusMsg.innerText = '⚠️ Please install MetaMask!';
+            return;
+        }
+        isConnecting = true;
+        swapBtn.disabled = true;
+        swapBtn.innerHTML = '<span class="loader"></span> Connecting...';
+        statusMsg.innerText = '⏳ Connecting...';
+
+        try {
+            provider = new ethers.BrowserProvider(window.ethereum);
+            await provider.send('eth_requestAccounts', []);
+            signer = await provider.getSigner();
+            account = await signer.getAddress();
+
+            // Switch to Base network
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x2105' }], // 8453 in hex
+                });
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0x2105',
+                            chainName: 'Base',
+                            rpcUrls: ['https://mainnet.base.org'],
+                            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                            blockExplorerUrls: ['https://basescan.org'],
+                        }],
+                    });
+                }
+            }
+
+            statusMsg.innerText = '✅ Connected: ' + account.slice(0,6) + '...' + account.slice(-4);
+            statusMsg.className = 'status-msg success';
+            swapBtn.innerHTML = 'Get Quote';
+            swapBtn.disabled = false;
+            isConnecting = false;
+
+            checkMemberStatus();
+            await loadBalances();
+
+        } catch (err) {
+            statusMsg.innerText = '❌ ' + (err.message || 'Connection failed');
+            statusMsg.className = 'status-msg error';
+            swapBtn.innerHTML = 'Connect Wallet';
+            swapBtn.disabled = false;
+            isConnecting = false;
+        }
+    }
+
+    // ============================================================
+    // MEMBER STATUS (mock - replace with real backend check)
+    // ============================================================
+    function checkMemberStatus() {
+        // In production, you'd call your backend to check if the user is a member
+        // For demo, we'll check if the user has a specific token or NFT
+        // For now, let's pretend all connected users are members for demo
+        if (account) {
+            isMember = true;
+            memberBadge.style.display = 'inline-block';
+            discountDisplay.innerHTML = '<span class="discount-badge">🔻 -10%</span>';
+        } else {
+            isMember = false;
+            memberBadge.style.display = 'none';
+            discountDisplay.innerHTML = '';
+        }
+    }
+
+    // ============================================================
+    // BALANCES
+    // ============================================================
+    async function loadBalances() {
+        if (!account || !fromToken) return;
+        try {
+            if (fromToken.addr === '0x0000000000000000000000000000000000000000') {
+                const bal = await provider.getBalance(account);
+                fromBalance.textContent = parseFloat(ethers.formatEther(bal)).toFixed(4);
+            } else {
+                try {
+                    const contract = new ethers.Contract(fromToken.addr, [
+                        'function balanceOf(address) view returns (uint256)'
+                    ], provider);
+                    const bal = await contract.balanceOf(account);
+                    fromBalance.textContent = parseFloat(ethers.formatUnits(bal, fromToken.decimals)).toFixed(4);
+                } catch (e) {
+                    fromBalance.textContent = '—';
+                }
+            }
+        } catch (e) { fromBalance.textContent = '—'; }
+    }
+
+    // ============================================================
+    // QUOTE (Relay API)
+    // ============================================================
+    async function getQuote() {
+        clearTimeout(quoteTimer);
+        if (!account) {
+            statusMsg.innerText = 'Connect wallet first';
+            return;
+        }
+
+        const amount = fromAmount.value;
+        if (!amount || parseFloat(amount) <= 0 || !fromToken || !toToken || fromToken.symbol === toToken.symbol) {
+            routeInfo.classList.remove('open');
+            return;
+        }
+
+        if (selectedFromChain !== selectedToChain) {
+            // Cross-chain
+            // For simplicity in this demo, we'll keep chains same
+            // But you can extend to support cross-chain
+        }
+
+        const amountWei = ethers.parseUnits(amount, fromToken.decimals).toString();
+
+        quoteTimer = setTimeout(async () => {
+            statusMsg.innerText = '🔍 Getting best quote...';
+            statusMsg.className = 'status-msg loading';
+            swapBtn.innerHTML = 'Loading...';
+            swapBtn.disabled = true;
+
+            try {
+                const discountParam = isMember ? `&discount=${MEMBER_DISCOUNT}` : '';
+                const url = `${RELAY_API}/quote?fromChain=${selectedFromChain}&toChain=${selectedToChain}&fromToken=${fromToken.addr}&toToken=${toToken.addr}&fromAmount=${amountWei}&fromAddress=${account}${discountParam}&slippage=0.5`;
+
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.estimate) {
+                    currentQuote = data;
+
+                    // Update to amount
+                    const toAmountValue = parseFloat(data.estimate.toAmount) / 10 ** toToken.decimals;
+                    toAmount.value = toAmountValue.toFixed(6);
+
+                    // Rate
+                    const rate = (toAmountValue / parseFloat(amount)).toFixed(4);
+                    rateDisplay.textContent = `1 ${fromToken.symbol} ≈ ${rate} ${toToken.symbol}`;
+
+                    // Route
+                    routeDisplay.textContent = data.toolDetails?.name || data.tool || 'Relay';
+
+                    // Time
+                    const duration = data.estimate.executionDuration || 30;
+                    timeDisplay.textContent = Math.ceil(duration / 60) + ' min';
+
+                    // Fees
+                    const fee = data.estimate.fee || {};
+                    const gasCost = data.estimate.gasCost || 0;
+                    const protocolFee = data.estimate.protocolFee || 0;
+
+                    const feeUsd = fee.amountUSD || 0;
+                    const totalUsd = data.estimate.toAmountUSD || 0;
+
+                    feeDisplay.textContent = feeUsd ? `$${parseFloat(feeUsd).toFixed(2)}` : '—';
+                    totalCostDisplay.textContent = totalUsd ? `≈ $${parseFloat(totalUsd).toFixed(2)}` : '—';
+
+                    // Breakdown
+                    gasDisplay.textContent = gasCost ? `$${parseFloat(gasCost).toFixed(2)}` : '—';
+                    protocolFeeDisplay.textContent = protocolFee ? `$${parseFloat(protocolFee).toFixed(2)}` : '—';
+
+                    // Discount row
+                    if (isMember && data.discount) {
+                        discountRow.style.display = 'flex';
+                        discountAmountDisplay.textContent = `-${data.discount}%`;
+                    } else if (isMember) {
+                        discountRow.style.display = 'flex';
+                        discountAmountDisplay.textContent = `-${MEMBER_DISCOUNT}%`;
+                    } else {
+                        discountRow.style.display = 'none';
+                    }
+
+                    // USD values
+                    const fromUsdValue = data.estimate.fromAmountUSD || 0;
+                    fromUsd.textContent = fromUsdValue ? `≈ $${parseFloat(fromUsdValue).toFixed(2)}` : '';
+
+                    routeInfo.classList.add('open');
+                    feesBreakdown.classList.add('open');
+                    statusMsg.innerText = '';
+                    statusMsg.className = 'status-msg';
+                    swapBtn.innerHTML = 'Swap';
+                    swapBtn.disabled = false;
+
+                } else {
+                    statusMsg.innerText = '⚠️ ' + (data.message || 'No route found');
+                    statusMsg.className = 'status-msg error';
+                    routeInfo.classList.remove('open');
+                    swapBtn.innerHTML = 'Swap';
+                    swapBtn.disabled = false;
+                }
+            } catch (err) {
+                statusMsg.innerText = '⚠️ Failed to get quote';
+                statusMsg.className = 'status-msg error';
+                routeInfo.classList.remove('open');
+                swapBtn.innerHTML = 'Swap';
+                swapBtn.disabled = false;
+                console.error(err);
+            }
+        }, 500);
+    }
+
+    // ============================================================
+    // SWAP EXECUTION
+    // ============================================================
+    async function handleSwap() {
+        if (!account) {
+            await connectWallet();
+            return;
+        }
+
+        if (!currentQuote) {
+            statusMsg.innerText = '⚠️ Enter an amount first';
+            statusMsg.className = 'status-msg error';
+            return;
+        }
+
+        swapBtn.disabled = true;
+        swapBtn.innerHTML = '<span class="loader"></span> Confirm in wallet...';
+        statusMsg.innerText = '⏳ Waiting for confirmation...';
+        statusMsg.className = 'status-msg loading';
+
+        try {
+            const tx = currentQuote.transactionRequest;
+
+            // Ensure we have a valid transaction object
+            const txRequest = {
+                to: tx.to,
+                data: tx.data,
+                value: tx.value ? BigInt(tx.value) : 0n,
+            };
+
+            if (tx.gasLimit) {
+                txRequest.gasLimit = BigInt(tx.gasLimit);
+            }
+
+            const txResponse = await signer.sendTransaction(txRequest);
+
+            statusMsg.innerText = '⏳ Transaction sent, waiting...';
+            swapBtn.innerHTML = '<span class="loader"></span> Processing...';
+
+            const receipt = await txResponse.wait();
+
+            statusMsg.innerText = '✅ Swap completed successfully!';
+            statusMsg.className = 'status-msg success';
+            swapBtn.innerHTML = 'Swap';
+
+            // Reset
+            fromAmount.value = '';
+            toAmount.value = '';
+            routeInfo.classList.remove('open');
+            currentQuote = null;
+            await loadBalances();
+
+        } catch (err) {
+            statusMsg.innerText = '❌ ' + (err.reason || err.message || 'Swap failed');
+            statusMsg.className = 'status-msg error';
+            swapBtn.innerHTML = 'Swap';
+            console.error(err);
+        }
+
+        swapBtn.disabled = false;
+    }
+
+    // ============================================================
+    // START
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', init);
 </script>
 {% endblock %}
