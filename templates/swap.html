@@ -23,6 +23,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        flex-wrap: wrap;
     }
 
     .swap-header h1 span {
@@ -153,7 +154,9 @@
         width: 22px;
         height: 22px;
         border-radius: 50%;
-        background: #333;
+        background: #2a2a4a;
+        object-fit: cover;
+        flex-shrink: 0;
     }
 
     .token-btn .symbol {
@@ -252,6 +255,8 @@
         width: 18px;
         height: 18px;
         border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
     }
 
     .token-option.active {
@@ -306,6 +311,8 @@
         width: 16px;
         height: 16px;
         border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
     }
 
     .route-info {
@@ -443,6 +450,33 @@
         color: #ff6b81;
     }
 
+    .token-img-placeholder {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2a2a4a, #1a1a3e);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 700;
+        color: #888;
+        flex-shrink: 0;
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .token-option .token-img-placeholder {
+        width: 18px;
+        height: 18px;
+        font-size: 8px;
+    }
+
+    .network-btn .token-img-placeholder {
+        width: 16px;
+        height: 16px;
+        font-size: 7px;
+    }
+
     @media (max-width: 480px) {
         .swap-wrapper {
             padding: 0 12px;
@@ -482,7 +516,7 @@
             <div class="swap-input-group">
                 <input type="number" id="fromAmount" placeholder="0" step="any" oninput="getQuote()">
                 <div class="token-btn" onclick="toggleTokenPicker('from')" id="fromTokenBtn">
-                    <img id="fromTokenLogo" src="" alt="">
+                    <div id="fromTokenLogo" class="token-img-placeholder">ETH</div>
                     <span class="symbol" id="fromTokenSymbol">ETH</span>
                     <span class="arrow" id="fromArrow">▾</span>
                 </div>
@@ -504,7 +538,7 @@
             <div class="swap-input-group">
                 <input type="number" id="toAmount" placeholder="0" readonly>
                 <div class="token-btn" onclick="toggleTokenPicker('to')" id="toTokenBtn">
-                    <img id="toTokenLogo" src="" alt="">
+                    <div id="toTokenLogo" class="token-img-placeholder">USDC</div>
                     <span class="symbol" id="toTokenSymbol">USDC</span>
                     <span class="arrow" id="toArrow">▾</span>
                 </div>
@@ -589,45 +623,58 @@
         { id: "999",   name: "Robinhood", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/robinhood.svg" },
     ];
 
+    // Token logos using reliable CDN
+    const TOKEN_LOGO_MAP = {
+        "ETH": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+        "USDC": "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png?1547042389",
+        "USDT": "https://assets.coingecko.com/coins/images/325/small/Tether.png?1668148663",
+        "DAI": "https://assets.coingecko.com/coins/images/9956/small/4943.png?1636636734",
+        "AVAX": "https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png?1670992574",
+        "POL": "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912",
+        "ZETA": "https://assets.coingecko.com/coins/images/31427/small/ZetaChain.png?1712903544",
+        "HOOD": "https://assets.coingecko.com/coins/images/32593/small/robinhood.png?1700000000",
+        "WBTC": "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png?1547042743",
+    };
+
     const TOKENS = {
         "8453":  [
-            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
-            { symbol: "USDC", addr: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
-            { symbol: "USDT", addr: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18 },
+            { symbol: "USDC", addr: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
+            { symbol: "USDT", addr: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", logo: TOKEN_LOGO_MAP["USDT"], decimals: 6 },
         ],
         "57073": [
-            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
-            { symbol: "USDC", addr: "0x6900000000000000000000000000000000000001", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18 },
+            { symbol: "USDC", addr: "0x6900000000000000000000000000000000000001", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "43114": [
-            { symbol: "AVAX", addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/avax.svg", decimals: 18 },
-            { symbol: "USDC", addr: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
-            { symbol: "USDT", addr: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
+            { symbol: "AVAX", addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["AVAX"], decimals: 18 },
+            { symbol: "USDC", addr: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
+            { symbol: "USDT", addr: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7", logo: TOKEN_LOGO_MAP["USDT"], decimals: 6 },
         ],
         "1": [
-            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
-            { symbol: "USDC", addr: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
-            { symbol: "USDT", addr: "0xdAC17F958D2ee523a2206206994597C13D831ec7", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdt.svg", decimals: 6 },
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18 },
+            { symbol: "USDC", addr: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
+            { symbol: "USDT", addr: "0xdAC17F958D2ee523a2206206994597C13D831ec7", logo: TOKEN_LOGO_MAP["USDT"], decimals: 6 },
         ],
         "137": [
-            { symbol: "POL",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/pol.svg", decimals: 18 },
-            { symbol: "USDC", addr: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+            { symbol: "POL",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["POL"], decimals: 18 },
+            { symbol: "USDC", addr: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "42161": [
-            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
-            { symbol: "USDC", addr: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18 },
+            { symbol: "USDC", addr: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "10": [
-            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/eth.svg", decimals: 18 },
-            { symbol: "USDC", addr: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18 },
+            { symbol: "USDC", addr: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "7000": [
-            { symbol: "ZETA", addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/zetachain.svg", decimals: 18 },
-            { symbol: "USDC", addr: "0x0c6f6e5b0b4e5c5b0b0b0b0b0b0b0b0b0b0b0b0b", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+            { symbol: "ZETA", addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ZETA"], decimals: 18 },
+            { symbol: "USDC", addr: "0x0c6f6e5b0b4e5c5b0b0b0b0b0b0b0b0b0b0b0b0b", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "999": [
-            { symbol: "HOOD", addr: "0x0000000000000000000000000000000000000000", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/robinhood.svg", decimals: 18 },
-            { symbol: "USDC", addr: "0x0c6f6e5b0b4e5c5b0b0b0b0b0b0b0b0b0b0b0b0b", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/tokens/usdc.svg", decimals: 6 },
+            { symbol: "HOOD", addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["HOOD"], decimals: 18 },
+            { symbol: "USDC", addr: "0x0c6f6e5b0b4e5c5b0b0b0b0b0b0b0b0b0b0b0b0b", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
     };
 
@@ -681,6 +728,32 @@
     const discountDisplay = $('discountDisplay');
 
     // ============================================================
+    // HELPERS
+    // ============================================================
+    function getTokenLogo(symbol) {
+        return TOKEN_LOGO_MAP[symbol] || '';
+    }
+
+    function getNetworkLogo(chainId) {
+        const network = NETWORKS.find(n => n.id === chainId);
+        return network ? network.logo : '';
+    }
+
+    function getTokenPlaceholder(symbol) {
+        return symbol ? symbol.slice(0, 3).toUpperCase() : '---';
+    }
+
+    function setTokenImage(el, symbol) {
+        const logo = getTokenLogo(symbol);
+        if (logo) {
+            el.innerHTML = `<img src="${logo}" alt="${symbol}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+        } else {
+            el.className = 'token-img-placeholder';
+            el.textContent = getTokenPlaceholder(symbol);
+        }
+    }
+
+    // ============================================================
     // INIT
     // ============================================================
     function init() {
@@ -708,7 +781,10 @@
             const btn = document.createElement('div');
             btn.className = 'network-btn';
             btn.dataset.chainId = n.id;
-            btn.innerHTML = `<img src="${n.logo}" onerror="this.style.display='none'"><span>${n.name}</span>`;
+            const logo = getNetworkLogo(n.id);
+            btn.innerHTML = logo 
+                ? `<img src="${logo}" alt="${n.name}" onerror="this.style.display='none'"><span>${n.name}</span>`
+                : `<span>${n.name}</span>`;
             btn.onclick = () => selectNetwork(n.id);
             networkList.appendChild(btn);
         });
@@ -740,7 +816,10 @@
         tokens.forEach(t => {
             const btn = document.createElement('div');
             btn.className = 'token-option';
-            btn.innerHTML = `<img src="${t.logo}" onerror="this.style.display='none'"><span>${t.symbol}</span>`;
+            const logo = getTokenLogo(t.symbol);
+            btn.innerHTML = logo 
+                ? `<img src="${logo}" alt="${t.symbol}" onerror="this.style.display='none'"><span>${t.symbol}</span>`
+                : `<span class="token-img-placeholder" style="width:18px;height:18px;font-size:8px;">${getTokenPlaceholder(t.symbol)}</span><span>${t.symbol}</span>`;
             btn.onclick = () => selectToken(t, activePickerSide);
             if (activePickerSide === 'from' && fromToken && fromToken.symbol === t.symbol) {
                 btn.classList.add('active');
@@ -779,11 +858,11 @@
     function updateTokenUI() {
         if (fromToken) {
             fromTokenSymbol.textContent = fromToken.symbol;
-            fromTokenLogo.src = fromToken.logo;
+            setTokenImage(fromTokenLogo, fromToken.symbol);
         }
         if (toToken) {
             toTokenSymbol.textContent = toToken.symbol;
-            toTokenLogo.src = toToken.logo;
+            setTokenImage(toTokenLogo, toToken.symbol);
         }
         renderTokenPicker();
     }
@@ -877,26 +956,58 @@
     }
 
     // ============================================================
-    // BALANCES
+    // BALANCES - FIXED
     // ============================================================
     async function loadBalances() {
         if (!account || !fromToken) return;
+        
         try {
+            // Load from token balance
             if (fromToken.addr === '0x0000000000000000000000000000000000000000') {
                 const bal = await provider.getBalance(account);
-                fromBalance.textContent = parseFloat(ethers.formatEther(bal)).toFixed(4);
+                const balFormatted = parseFloat(ethers.formatEther(bal));
+                fromBalance.textContent = balFormatted > 0.0001 ? balFormatted.toFixed(4) : '< 0.0001';
             } else {
                 try {
                     const contract = new ethers.Contract(fromToken.addr, [
                         'function balanceOf(address) view returns (uint256)'
                     ], provider);
                     const bal = await contract.balanceOf(account);
-                    fromBalance.textContent = parseFloat(ethers.formatUnits(bal, fromToken.decimals)).toFixed(4);
+                    const balFormatted = parseFloat(ethers.formatUnits(bal, fromToken.decimals));
+                    fromBalance.textContent = balFormatted > 0.000001 ? balFormatted.toFixed(4) : '< 0.000001';
                 } catch (e) {
                     fromBalance.textContent = '—';
+                    console.warn('Balance fetch error:', e.message);
                 }
             }
-        } catch (e) { fromBalance.textContent = '—'; }
+        } catch (e) {
+            fromBalance.textContent = '—';
+            console.warn('Balance fetch error:', e.message);
+        }
+
+        // Load to token balance
+        if (toToken) {
+            try {
+                if (toToken.addr === '0x0000000000000000000000000000000000000000') {
+                    const bal = await provider.getBalance(account);
+                    const balFormatted = parseFloat(ethers.formatEther(bal));
+                    toBalance.textContent = balFormatted > 0.0001 ? balFormatted.toFixed(4) : '< 0.0001';
+                } else {
+                    try {
+                        const contract = new ethers.Contract(toToken.addr, [
+                            'function balanceOf(address) view returns (uint256)'
+                        ], provider);
+                        const bal = await contract.balanceOf(account);
+                        const balFormatted = parseFloat(ethers.formatUnits(bal, toToken.decimals));
+                        toBalance.textContent = balFormatted > 0.000001 ? balFormatted.toFixed(4) : '< 0.000001';
+                    } catch (e) {
+                        toBalance.textContent = '—';
+                    }
+                }
+            } catch (e) {
+                toBalance.textContent = '—';
+            }
+        }
     }
 
     // ============================================================
@@ -955,7 +1066,6 @@
                     gasDisplay.textContent = gasCost ? `$${parseFloat(gasCost).toFixed(2)}` : '—';
                     protocolFeeDisplay.textContent = protocolFee ? `$${parseFloat(protocolFee).toFixed(2)}` : '—';
 
-                    // Member discount
                     if (isMember) {
                         discountRow.style.display = 'flex';
                         discountAmountDisplay.textContent = `-${MEMBER_DISCOUNT}%`;
