@@ -654,31 +654,6 @@
             font-size: 15px;
         }
     }
-
-    @media (max-width: 380px) {
-        .swap-header h1 {
-            font-size: 17px;
-            gap: 6px;
-        }
-        .swap-header h1 svg {
-            width: 18px;
-            height: 18px;
-        }
-        .swap-input-group input {
-            font-size: 18px;
-        }
-        .token-btn .symbol {
-            font-size: 11px;
-        }
-        .token-btn {
-            min-width: 60px;
-            padding: 3px 10px 3px 5px;
-        }
-        .token-btn img {
-            width: 20px;
-            height: 20px;
-        }
-    }
 </style>
 
 <div class="swap-wrapper">
@@ -801,7 +776,7 @@
     </div>
 
     <div class="powered-by">
-        Powered by <a href="https://li.fi" target="_blank">LI.FI</a> &bull; optimized for members
+        Powered by <a href="https://relay.link" target="_blank">Relay</a> &bull; optimized for members
     </div>
 </div>
 
@@ -822,6 +797,19 @@
         { id: "999",   name: "Robinhood", chainId: "0x3e7",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/robinhood.svg" },
     ];
 
+    // Network IDs for Relay API
+    const RELAY_NETWORK_IDS = {
+        "8453": "base",
+        "57073": "ink",
+        "43114": "avalanche",
+        "1": "ethereum",
+        "137": "polygon",
+        "42161": "arbitrum",
+        "10": "optimism",
+        "7000": "zetachain",
+        "999": "robinhood"
+    };
+
     const TOKEN_LOGO_MAP = {
         "ETH": "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
         "USDC": "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png",
@@ -834,6 +822,7 @@
         "HOOD": "https://cryptologos.cc/logos/robinhood-hoo-logo.png",
     };
 
+    // Token addresses per network (for Relay)
     const TOKENS = {
         "8453":  [
             { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18, isNative: true },
@@ -876,7 +865,7 @@
         ],
     };
 
-    const LIFI_API = "https://li.quest/v1";
+    const RELAY_API = "https://api.relay.link";
     const MEMBER_DISCOUNT = 10;
 
     // ============================================================
@@ -944,6 +933,10 @@
 
     function getNetworkByHex(hexChainId) {
         return NETWORKS.find(n => n.chainId.toLowerCase() === hexChainId.toLowerCase());
+    }
+
+    function getRelayNetworkId(chainId) {
+        return RELAY_NETWORK_IDS[chainId] || null;
     }
 
     function setTokenImage(el, symbol) {
@@ -1345,7 +1338,7 @@
     }
 
     // ============================================================
-    // QUOTE
+    // QUOTE - Using Relay API
     // ============================================================
     async function getQuote() {
         clearTimeout(quoteTimer);
@@ -1360,6 +1353,16 @@
             return;
         }
 
+        // Get Relay network names
+        const fromRelayId = getRelayNetworkId(selectedChain);
+        const toRelayId = getRelayNetworkId(selectedChain);
+
+        if (!fromRelayId || !toRelayId) {
+            statusMsg.innerText = `⚠️ Network ${selectedChain} is not supported by Relay`;
+            statusMsg.className = 'status-msg error';
+            return;
+        }
+
         const amountWei = ethers.parseUnits(amount, fromToken.decimals).toString();
 
         quoteTimer = setTimeout(async () => {
@@ -1369,30 +1372,44 @@
             swapBtn.disabled = true;
 
             try {
-                const url = `${LIFI_API}/quote?fromChain=${selectedChain}&toChain=${selectedChain}&fromToken=${fromToken.addr}&toToken=${toToken.addr}&fromAmount=${amountWei}&fromAddress=${account}`;
+                // Build Relay quote URL
+                const url = `${RELAY_API}/quote?fromChain=${fromRelayId}&toChain=${toRelayId}&fromToken=${fromToken.addr}&toToken=${toToken.addr}&fromAmount=${amountWei}&fromAddress=${account}`;
+
+                console.log('📤 Relay Quote request:', {
+                    fromChain: fromRelayId,
+                    toChain: toRelayId,
+                    fromToken: fromToken.addr,
+                    toToken: toToken.addr,
+                    amount: amountWei,
+                    account
+                });
 
                 const res = await fetch(url);
                 const data = await res.json();
 
-                if (data.estimate) {
+                console.log('📥 Relay Quote response:', data);
+
+                if (data.quote || data.estimate) {
+                    const quoteData = data.quote || data.estimate;
                     currentQuote = data;
 
-                    const toAmountValue = parseFloat(data.estimate.toAmount) / 10 ** toToken.decimals;
+                    // Calculate to amount
+                    const toAmountValue = parseFloat(quoteData.toAmount) / 10 ** toToken.decimals;
                     toAmount.value = toAmountValue.toFixed(6);
 
                     const rate = (toAmountValue / parseFloat(amount)).toFixed(4);
                     rateDisplay.textContent = `1 ${fromToken.symbol} ≈ ${rate} ${toToken.symbol}`;
 
-                    routeDisplay.textContent = data.toolDetails?.name || data.tool || 'LI.FI';
-                    const duration = data.estimate.executionDuration || 30;
+                    routeDisplay.textContent = data.tool || 'Relay';
+                    const duration = data.executionDuration || 30;
                     timeDisplay.textContent = Math.ceil(duration / 60) + ' min';
 
-                    const fee = data.estimate.fee || {};
-                    const gasCost = data.estimate.gasCost || 0;
-                    const protocolFee = data.estimate.protocolFee || 0;
+                    const fee = data.fee || {};
+                    const gasCost = data.gasCost || 0;
+                    const protocolFee = data.protocolFee || 0;
 
                     const feeUsd = fee.amountUSD || 0;
-                    const totalUsd = data.estimate.toAmountUSD || 0;
+                    const totalUsd = quoteData.toAmountUSD || 0;
 
                     feeDisplay.textContent = feeUsd ? `$${parseFloat(feeUsd).toFixed(2)}` : '—';
                     totalCostDisplay.textContent = totalUsd ? `≈ $${parseFloat(totalUsd).toFixed(2)}` : '—';
@@ -1407,7 +1424,7 @@
                         discountRow.style.display = 'none';
                     }
 
-                    const fromUsdValue = data.estimate.fromAmountUSD || 0;
+                    const fromUsdValue = quoteData.fromAmountUSD || 0;
                     fromUsd.textContent = fromUsdValue ? `≈ $${parseFloat(fromUsdValue).toFixed(2)}` : '';
 
                     routeInfo.classList.add('open');
@@ -1418,19 +1435,21 @@
                     swapBtn.disabled = false;
 
                 } else {
-                    statusMsg.innerText = '⚠️ ' + (data.message || 'No route found');
+                    const errorMsg = data.message || data.error || 'No route found';
+                    statusMsg.innerText = '⚠️ ' + errorMsg;
                     statusMsg.className = 'status-msg error';
                     routeInfo.classList.remove('open');
                     swapBtn.innerHTML = 'Swap';
                     swapBtn.disabled = false;
+                    console.error('Quote error:', data);
                 }
             } catch (err) {
-                statusMsg.innerText = '⚠️ Failed to get quote';
+                console.error('Quote fetch error:', err);
+                statusMsg.innerText = '⚠️ Failed to get quote: ' + (err.message || 'Unknown error');
                 statusMsg.className = 'status-msg error';
                 routeInfo.classList.remove('open');
                 swapBtn.innerHTML = 'Swap';
                 swapBtn.disabled = false;
-                console.error(err);
             }
         }, 500);
     }
@@ -1456,12 +1475,17 @@
         statusMsg.className = 'status-msg loading';
 
         try {
-            const tx = currentQuote.transactionRequest;
+            const tx = currentQuote.transactionRequest || currentQuote.tx;
+            if (!tx || !tx.to) {
+                throw new Error('Invalid transaction data');
+            }
+
             const txRequest = {
                 to: tx.to,
                 data: tx.data,
                 value: tx.value ? BigInt(tx.value) : 0n,
             };
+
             if (tx.gasLimit) {
                 txRequest.gasLimit = BigInt(tx.gasLimit);
             }
@@ -1470,7 +1494,7 @@
             statusMsg.innerText = '⏳ Transaction sent, waiting...';
             swapBtn.innerHTML = '<span class="loader"></span> Processing...';
 
-            await txResponse.wait();
+            const receipt = await txResponse.wait();
 
             statusMsg.innerText = '✅ Swap completed successfully!';
             statusMsg.className = 'status-msg success';
@@ -1483,10 +1507,10 @@
             await loadBalances();
 
         } catch (err) {
+            console.error('Swap error:', err);
             statusMsg.innerText = '❌ ' + (err.reason || err.message || 'Swap failed');
             statusMsg.className = 'status-msg error';
             swapBtn.innerHTML = 'Swap';
-            console.error(err);
         }
 
         swapBtn.disabled = false;
