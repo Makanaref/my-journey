@@ -786,24 +786,39 @@
     </div>
 
     <div class="powered-by">
-        Powered by <a href="https://li.fi" target="_blank">LI.FI</a> &bull; optimized for members
+        Powered by <a href="https://li.fi" target="_blank">LI.FI</a> &bull; <a href="https://relay.link" target="_blank">Relay</a>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script>
     // ============================================================
-    // CONFIGURATION
+    // CONFIGURATION - ALL NETWORKS SUPPORTED
     // ============================================================
     
-    // Only networks supported by LI.FI
-    const SUPPORTED_CHAINS = {
+    // Supported by LI.FI
+    const LIFI_SUPPORTED = {
         "1": "ethereum",
         "10": "optimism",
         "137": "polygon",
         "42161": "arbitrum",
         "8453": "base",
-        "43114": "avalanche"
+        "43114": "avalanche",
+        "57073": "ink",        // ✅ Ink added
+        "999": "robinhood"     // ✅ Robinhood added
+    };
+
+    // Supported by Relay
+    const RELAY_SUPPORTED = {
+        "8453": "base",
+        "57073": "ink",
+        "43114": "avalanche",
+        "1": "ethereum",
+        "137": "polygon",
+        "42161": "arbitrum",
+        "10": "optimism",
+        "7000": "zetachain",
+        "999": "robinhood"
     };
 
     const NETWORKS = [
@@ -811,64 +826,55 @@
             id: "8453",  name: "Base",      chainId: "0x2105", 
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/base.svg",
             rpc: "https://mainnet.base.org",
-            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 },
-            supported: true
+            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 }
         },
         { 
             id: "57073", name: "Ink",       chainId: "0xdfe1", 
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/ink.svg",
             rpc: "https://rpc-gel.inkonchain.com",
-            nativeCurrency: { name: "Ink", symbol: "INK", decimals: 18 },
-            supported: false
+            nativeCurrency: { name: "Ink", symbol: "INK", decimals: 18 }
         },
         { 
             id: "43114", name: "Avalanche", chainId: "0xa86a", 
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/avax.svg",
             rpc: "https://api.avax.network/ext/bc/C/rpc",
-            nativeCurrency: { name: "Avalanche", symbol: "AVAX", decimals: 18 },
-            supported: true
+            nativeCurrency: { name: "Avalanche", symbol: "AVAX", decimals: 18 }
         },
         { 
             id: "1",     name: "Ethereum",  chainId: "0x1",    
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/eth.svg",
             rpc: "https://mainnet.infura.io/v3/",
-            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 },
-            supported: true
+            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 }
         },
         { 
             id: "137",   name: "Polygon",   chainId: "0x89",   
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/pol.svg",
             rpc: "https://polygon-rpc.com",
-            nativeCurrency: { name: "Polygon", symbol: "POL", decimals: 18 },
-            supported: true
+            nativeCurrency: { name: "Polygon", symbol: "POL", decimals: 18 }
         },
         { 
             id: "42161", name: "Arbitrum",  chainId: "0xa4b1", 
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/arb.svg",
             rpc: "https://arb1.arbitrum.io/rpc",
-            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 },
-            supported: true
+            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 }
         },
         { 
             id: "10",    name: "Optimism",  chainId: "0xa",    
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/opt.svg",
             rpc: "https://mainnet.optimism.io",
-            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 },
-            supported: true
+            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 }
         },
         { 
             id: "7000",  name: "ZetaChain", chainId: "0x1b58", 
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/zetachain.svg",
             rpc: "https://zetachain-evm.blockpi.network/v1/rpc/public",
-            nativeCurrency: { name: "ZetaChain", symbol: "ZETA", decimals: 18 },
-            supported: false
+            nativeCurrency: { name: "ZetaChain", symbol: "ZETA", decimals: 18 }
         },
         { 
             id: "999",   name: "Robinhood", chainId: "0x3e7",  
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/robinhood.svg",
             rpc: "https://robinhood.rpc.url",
-            nativeCurrency: { name: "Robinhood", symbol: "HOOD", decimals: 18 },
-            supported: false
+            nativeCurrency: { name: "Robinhood", symbol: "HOOD", decimals: 18 }
         },
     ];
 
@@ -882,6 +888,7 @@
         "WBTC": "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png",
         "ZETA": "https://assets.coingecko.com/coins/images/31427/small/ZetaChain.png",
         "HOOD": "https://cryptologos.cc/logos/robinhood-hoo-logo.png",
+        "INK": "https://assets.coingecko.com/coins/images/34135/small/ink.png",
     };
 
     const TOKENS = {
@@ -891,7 +898,7 @@
             { symbol: "USDT", addr: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", logo: TOKEN_LOGO_MAP["USDT"], decimals: 6 },
         ],
         "57073": [
-            { symbol: "INK",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18, isNative: true },
+            { symbol: "INK",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["INK"], decimals: 18, isNative: true },
             { symbol: "USDC", addr: "0x6900000000000000000000000000000000000001", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "43114": [
@@ -918,13 +925,16 @@
         ],
         "7000": [
             { symbol: "ZETA", addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ZETA"], decimals: 18, isNative: true },
+            { symbol: "USDC", addr: "0x0c6f6e5b0b4e5c5b0b0b0b0b0b0b0b0b0b0b0b0b", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "999": [
             { symbol: "HOOD", addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["HOOD"], decimals: 18, isNative: true },
+            { symbol: "USDC", addr: "0x0c6f6e5b0b4e5c5b0b0b0b0b0b0b0b0b0b0b0b0b", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
     };
 
     const LIFI_API = "https://li.quest/v1";
+    const RELAY_API = "https://api.relay.link";
     const MEMBER_DISCOUNT = 10;
 
     // ============================================================
@@ -941,6 +951,7 @@
     let isConnecting = false;
     let balanceInterval = null;
     let isChainSwitching = false;
+    let useRelay = false;
 
     // ============================================================
     // DOM REFS
@@ -995,7 +1006,13 @@
     }
 
     function isNetworkSupported(chainId) {
-        return SUPPORTED_CHAINS[chainId] !== undefined;
+        return LIFI_SUPPORTED[chainId] !== undefined || RELAY_SUPPORTED[chainId] !== undefined;
+    }
+
+    function getApiForNetwork(chainId) {
+        if (LIFI_SUPPORTED[chainId]) return 'lifi';
+        if (RELAY_SUPPORTED[chainId]) return 'relay';
+        return null;
     }
 
     function setTokenImage(el, symbol) {
@@ -1112,8 +1129,9 @@
             await loadBalances();
 
             const isSupported = isNetworkSupported(selectedChain);
+            const api = getApiForNetwork(selectedChain);
             statusMsg.innerText = isSupported 
-                ? `✅ Switched to ${network.name}` 
+                ? `✅ Switched to ${network.name} (via ${api})` 
                 : `⚠️ ${network.name} is not supported for swaps yet`;
             statusMsg.className = isSupported ? 'status-msg success' : 'status-msg error';
             swapBtn.innerHTML = account ? 'Swap' : 'Connect Wallet';
@@ -1411,7 +1429,7 @@
     }
 
     // ============================================================
-    // QUOTE - Using LI.FI API
+    // QUOTE - Auto-select API
     // ============================================================
     async function getQuote() {
         clearTimeout(quoteTimer);
@@ -1441,41 +1459,52 @@
             swapBtn.disabled = true;
 
             try {
-                const url = `${LIFI_API}/quote?fromChain=${selectedChain}&toChain=${selectedChain}&fromToken=${fromToken.addr}&toToken=${toToken.addr}&fromAmount=${amountWei}&fromAddress=${account}`;
+                // Try LI.FI first if supported
+                let data = null;
+                let apiUsed = '';
 
-                console.log('📤 Quote request:', {
-                    fromChain: selectedChain,
-                    toChain: selectedChain,
-                    fromToken: fromToken.addr,
-                    toToken: toToken.addr,
-                    amount: amountWei,
-                    account
-                });
+                if (LIFI_SUPPORTED[selectedChain]) {
+                    const lifiUrl = `${LIFI_API}/quote?fromChain=${selectedChain}&toChain=${selectedChain}&fromToken=${fromToken.addr}&toToken=${toToken.addr}&fromAmount=${amountWei}&fromAddress=${account}`;
+                    const lifiRes = await fetch(lifiUrl);
+                    const lifiData = await lifiRes.json();
+                    if (lifiData.estimate) {
+                        data = lifiData;
+                        apiUsed = 'LI.FI';
+                    }
+                }
 
-                const res = await fetch(url);
-                const data = await res.json();
+                // If LI.FI fails, try Relay
+                if (!data && RELAY_SUPPORTED[selectedChain]) {
+                    const relayId = RELAY_SUPPORTED[selectedChain];
+                    const relayUrl = `${RELAY_API}/quote?fromChain=${relayId}&toChain=${relayId}&fromToken=${fromToken.addr}&toToken=${toToken.addr}&fromAmount=${amountWei}&fromAddress=${account}`;
+                    const relayRes = await fetch(relayUrl);
+                    const relayData = await relayRes.json();
+                    if (relayData.quote || relayData.estimate) {
+                        data = relayData;
+                        apiUsed = 'Relay';
+                    }
+                }
 
-                console.log('📥 Quote response:', data);
-
-                if (data.estimate) {
+                if (data) {
+                    const quoteData = data.quote || data.estimate || data;
                     currentQuote = data;
 
-                    const toAmountValue = parseFloat(data.estimate.toAmount) / 10 ** toToken.decimals;
+                    const toAmountValue = parseFloat(quoteData.toAmount) / 10 ** toToken.decimals;
                     toAmount.value = toAmountValue.toFixed(6);
 
                     const rate = (toAmountValue / parseFloat(amount)).toFixed(4);
                     rateDisplay.textContent = `1 ${fromToken.symbol} ≈ ${rate} ${toToken.symbol}`;
 
-                    routeDisplay.textContent = data.toolDetails?.name || data.tool || 'LI.FI';
-                    const duration = data.estimate.executionDuration || 30;
+                    routeDisplay.textContent = data.toolDetails?.name || data.tool || apiUsed;
+                    const duration = data.estimate?.executionDuration || data.executionDuration || 30;
                     timeDisplay.textContent = Math.ceil(duration / 60) + ' min';
 
-                    const fee = data.estimate.fee || {};
-                    const gasCost = data.estimate.gasCost || 0;
-                    const protocolFee = data.estimate.protocolFee || 0;
+                    const fee = data.estimate?.fee || data.fee || {};
+                    const gasCost = data.estimate?.gasCost || data.gasCost || 0;
+                    const protocolFee = data.estimate?.protocolFee || data.protocolFee || 0;
 
                     const feeUsd = fee.amountUSD || 0;
-                    const totalUsd = data.estimate.toAmountUSD || 0;
+                    const totalUsd = quoteData.toAmountUSD || 0;
 
                     feeDisplay.textContent = feeUsd ? `$${parseFloat(feeUsd).toFixed(2)}` : '—';
                     totalCostDisplay.textContent = totalUsd ? `≈ $${parseFloat(totalUsd).toFixed(2)}` : '—';
@@ -1490,7 +1519,7 @@
                         discountRow.style.display = 'none';
                     }
 
-                    const fromUsdValue = data.estimate.fromAmountUSD || 0;
+                    const fromUsdValue = quoteData.fromAmountUSD || 0;
                     fromUsd.textContent = fromUsdValue ? `≈ $${parseFloat(fromUsdValue).toFixed(2)}` : '';
 
                     routeInfo.classList.add('open');
@@ -1501,13 +1530,11 @@
                     swapBtn.disabled = false;
 
                 } else {
-                    const errorMsg = data.message || 'No route found';
-                    statusMsg.innerText = '⚠️ ' + errorMsg;
+                    statusMsg.innerText = '⚠️ No route found for this pair';
                     statusMsg.className = 'status-msg error';
                     routeInfo.classList.remove('open');
                     swapBtn.innerHTML = 'Swap';
                     swapBtn.disabled = false;
-                    console.error('Quote error:', data);
                 }
             } catch (err) {
                 console.error('Quote fetch error:', err);
@@ -1541,7 +1568,7 @@
         statusMsg.className = 'status-msg loading';
 
         try {
-            const tx = currentQuote.transactionRequest;
+            const tx = currentQuote.transactionRequest || currentQuote.tx;
             if (!tx || !tx.to) {
                 throw new Error('Invalid transaction data');
             }
