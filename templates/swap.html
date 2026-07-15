@@ -804,8 +804,8 @@
         "42161": "arbitrum",
         "8453": "base",
         "43114": "avalanche",
-        "57073": "ink",        // ✅ Ink added
-        "999": "robinhood"     // ✅ Robinhood added
+        "57073": "ink",
+        "999": "robinhood"
     };
 
     // Supported by Relay
@@ -832,7 +832,7 @@
             id: "57073", name: "Ink",       chainId: "0xdfe1", 
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/ink.svg",
             rpc: "https://rpc-gel.inkonchain.com",
-            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 }  // ✅ ETH
+            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 }
         },
         { 
             id: "43114", name: "Avalanche", chainId: "0xa86a", 
@@ -897,7 +897,6 @@
             { symbol: "USDT", addr: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", logo: TOKEN_LOGO_MAP["USDT"], decimals: 6 },
         ],
         "57073": [
-            // ✅ Ink native token is ETH, not INK
             { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18, isNative: true },
             { symbol: "USDC", addr: "0x6900000000000000000000000000000000000001", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
