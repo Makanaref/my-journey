@@ -609,6 +609,16 @@
         color: #ff6b81;
     }
 
+    .unsupported-badge {
+        font-size: 9px;
+        color: #666;
+        background: rgba(255,255,255,0.03);
+        padding: 2px 8px;
+        border-radius: 20px;
+        margin-left: 4px;
+        font-weight: 400;
+    }
+
     @media (max-width: 480px) {
         .swap-wrapper {
             padding: 0 10px;
@@ -776,7 +786,7 @@
     </div>
 
     <div class="powered-by">
-        Powered by <a href="https://relay.link" target="_blank">Relay</a> &bull; optimized for members
+        Powered by <a href="https://li.fi" target="_blank">LI.FI</a> &bull; optimized for members
     </div>
 </div>
 
@@ -785,74 +795,82 @@
     // ============================================================
     // CONFIGURATION
     // ============================================================
+    
+    // Only networks supported by LI.FI
+    const SUPPORTED_CHAINS = {
+        "1": "ethereum",
+        "10": "optimism",
+        "137": "polygon",
+        "42161": "arbitrum",
+        "8453": "base",
+        "43114": "avalanche"
+    };
+
     const NETWORKS = [
         { 
             id: "8453",  name: "Base",      chainId: "0x2105", 
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/base.svg",
             rpc: "https://mainnet.base.org",
-            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 }
+            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 },
+            supported: true
         },
         { 
             id: "57073", name: "Ink",       chainId: "0xdfe1", 
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/ink.svg",
             rpc: "https://rpc-gel.inkonchain.com",
-            nativeCurrency: { name: "Ink", symbol: "INK", decimals: 18 }
+            nativeCurrency: { name: "Ink", symbol: "INK", decimals: 18 },
+            supported: false
         },
         { 
             id: "43114", name: "Avalanche", chainId: "0xa86a", 
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/avax.svg",
             rpc: "https://api.avax.network/ext/bc/C/rpc",
-            nativeCurrency: { name: "Avalanche", symbol: "AVAX", decimals: 18 }
+            nativeCurrency: { name: "Avalanche", symbol: "AVAX", decimals: 18 },
+            supported: true
         },
         { 
             id: "1",     name: "Ethereum",  chainId: "0x1",    
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/eth.svg",
             rpc: "https://mainnet.infura.io/v3/",
-            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 }
+            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 },
+            supported: true
         },
         { 
             id: "137",   name: "Polygon",   chainId: "0x89",   
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/pol.svg",
             rpc: "https://polygon-rpc.com",
-            nativeCurrency: { name: "Polygon", symbol: "POL", decimals: 18 }
+            nativeCurrency: { name: "Polygon", symbol: "POL", decimals: 18 },
+            supported: true
         },
         { 
             id: "42161", name: "Arbitrum",  chainId: "0xa4b1", 
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/arb.svg",
             rpc: "https://arb1.arbitrum.io/rpc",
-            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 }
+            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 },
+            supported: true
         },
         { 
             id: "10",    name: "Optimism",  chainId: "0xa",    
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/opt.svg",
             rpc: "https://mainnet.optimism.io",
-            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 }
+            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 },
+            supported: true
         },
         { 
             id: "7000",  name: "ZetaChain", chainId: "0x1b58", 
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/zetachain.svg",
             rpc: "https://zetachain-evm.blockpi.network/v1/rpc/public",
-            nativeCurrency: { name: "ZetaChain", symbol: "ZETA", decimals: 18 }
+            nativeCurrency: { name: "ZetaChain", symbol: "ZETA", decimals: 18 },
+            supported: false
         },
         { 
             id: "999",   name: "Robinhood", chainId: "0x3e7",  
             logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/robinhood.svg",
-            rpc: "https://robinhood.rpc.url",  // Replace with actual Robinhood RPC
-            nativeCurrency: { name: "Robinhood", symbol: "HOOD", decimals: 18 }
+            rpc: "https://robinhood.rpc.url",
+            nativeCurrency: { name: "Robinhood", symbol: "HOOD", decimals: 18 },
+            supported: false
         },
     ];
-
-    const RELAY_NETWORK_IDS = {
-        "8453": "base",
-        "57073": "ink",
-        "43114": "avalanche",
-        "1": "ethereum",
-        "137": "polygon",
-        "42161": "arbitrum",
-        "10": "optimism",
-        "7000": "zetachain",
-        "999": "robinhood"
-    };
 
     const TOKEN_LOGO_MAP = {
         "ETH": "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
@@ -866,9 +884,6 @@
         "HOOD": "https://cryptologos.cc/logos/robinhood-hoo-logo.png",
     };
 
-    // ============================================================
-    // TOKENS WITH CORRECT ADDRESSES
-    // ============================================================
     const TOKENS = {
         "8453":  [
             { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18, isNative: true },
@@ -903,16 +918,13 @@
         ],
         "7000": [
             { symbol: "ZETA", addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ZETA"], decimals: 18, isNative: true },
-            // ZetaChain USDC - using the correct address
-            { symbol: "USDC", addr: "0x0c6f6e5b0b4e5c5b0b0b0b0b0b0b0b0b0b0b0b0b", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "999": [
             { symbol: "HOOD", addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["HOOD"], decimals: 18, isNative: true },
-            { symbol: "USDC", addr: "0x0c6f6e5b0b4e5c5b0b0b0b0b0b0b0b0b0b0b0b0b", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
     };
 
-    const RELAY_API = "https://api.relay.link";
+    const LIFI_API = "https://li.quest/v1";
     const MEMBER_DISCOUNT = 10;
 
     // ============================================================
@@ -982,8 +994,8 @@
         return NETWORKS.find(n => n.chainId.toLowerCase() === hexChainId.toLowerCase());
     }
 
-    function getRelayNetworkId(chainId) {
-        return RELAY_NETWORK_IDS[chainId] || null;
+    function isNetworkSupported(chainId) {
+        return SUPPORTED_CHAINS[chainId] !== undefined;
     }
 
     function setTokenImage(el, symbol) {
@@ -1099,8 +1111,11 @@
 
             await loadBalances();
 
-            statusMsg.innerText = `✅ Switched to ${network.name}`;
-            statusMsg.className = 'status-msg success';
+            const isSupported = isNetworkSupported(selectedChain);
+            statusMsg.innerText = isSupported 
+                ? `✅ Switched to ${network.name}` 
+                : `⚠️ ${network.name} is not supported for swaps yet`;
+            statusMsg.className = isSupported ? 'status-msg success' : 'status-msg error';
             swapBtn.innerHTML = account ? 'Swap' : 'Connect Wallet';
 
         } catch (err) {
@@ -1151,15 +1166,25 @@
             const btn = document.createElement('div');
             btn.className = 'network-btn';
             btn.dataset.chainId = n.id;
-            btn.innerHTML = `<img src="${n.logo}" alt="${n.name}" onerror="this.style.display='none'"><span>${n.name}</span>`;
+            const isSupported = isNetworkSupported(n.id);
+            btn.innerHTML = `
+                <img src="${n.logo}" alt="${n.name}" onerror="this.style.display='none'">
+                <span>${n.name}</span>
+                ${!isSupported ? '<span class="unsupported-badge">soon</span>' : ''}
+            `;
+            btn.style.opacity = isSupported ? '1' : '0.6';
             btn.onclick = () => {
+                if (!isSupported) {
+                    statusMsg.innerText = `⚠️ ${n.name} swap is coming soon!`;
+                    statusMsg.className = 'status-msg error';
+                    return;
+                }
                 if (window.ethereum) {
                     window.ethereum.request({
                         method: 'wallet_switchEthereumChain',
                         params: [{ chainId: n.chainId }],
                     }).catch((error) => {
                         if (error.code === 4902) {
-                            // Network not added, add it with correct RPC
                             window.ethereum.request({
                                 method: 'wallet_addEthereumChain',
                                 params: [{
@@ -1386,7 +1411,7 @@
     }
 
     // ============================================================
-    // QUOTE - Using Relay API
+    // QUOTE - Using LI.FI API
     // ============================================================
     async function getQuote() {
         clearTimeout(quoteTimer);
@@ -1395,18 +1420,15 @@
             return;
         }
 
-        const amount = fromAmount.value;
-        if (!amount || parseFloat(amount) <= 0 || !fromToken || !toToken || fromToken.symbol === toToken.symbol) {
-            routeInfo.classList.remove('open');
+        if (!isNetworkSupported(selectedChain)) {
+            statusMsg.innerText = `⚠️ ${getNetworkByChainId(selectedChain)?.name || 'This network'} is not supported for swaps yet`;
+            statusMsg.className = 'status-msg error';
             return;
         }
 
-        const fromRelayId = getRelayNetworkId(selectedChain);
-        const toRelayId = getRelayNetworkId(selectedChain);
-
-        if (!fromRelayId || !toRelayId) {
-            statusMsg.innerText = `⚠️ Network ${selectedChain} is not supported by Relay`;
-            statusMsg.className = 'status-msg error';
+        const amount = fromAmount.value;
+        if (!amount || parseFloat(amount) <= 0 || !fromToken || !toToken || fromToken.symbol === toToken.symbol) {
+            routeInfo.classList.remove('open');
             return;
         }
 
@@ -1419,11 +1441,11 @@
             swapBtn.disabled = true;
 
             try {
-                const url = `${RELAY_API}/quote?fromChain=${fromRelayId}&toChain=${toRelayId}&fromToken=${fromToken.addr}&toToken=${toToken.addr}&fromAmount=${amountWei}&fromAddress=${account}`;
+                const url = `${LIFI_API}/quote?fromChain=${selectedChain}&toChain=${selectedChain}&fromToken=${fromToken.addr}&toToken=${toToken.addr}&fromAmount=${amountWei}&fromAddress=${account}`;
 
-                console.log('📤 Relay Quote request:', {
-                    fromChain: fromRelayId,
-                    toChain: toRelayId,
+                console.log('📤 Quote request:', {
+                    fromChain: selectedChain,
+                    toChain: selectedChain,
                     fromToken: fromToken.addr,
                     toToken: toToken.addr,
                     amount: amountWei,
@@ -1433,28 +1455,27 @@
                 const res = await fetch(url);
                 const data = await res.json();
 
-                console.log('📥 Relay Quote response:', data);
+                console.log('📥 Quote response:', data);
 
-                if (data.quote || data.estimate) {
-                    const quoteData = data.quote || data.estimate;
+                if (data.estimate) {
                     currentQuote = data;
 
-                    const toAmountValue = parseFloat(quoteData.toAmount) / 10 ** toToken.decimals;
+                    const toAmountValue = parseFloat(data.estimate.toAmount) / 10 ** toToken.decimals;
                     toAmount.value = toAmountValue.toFixed(6);
 
                     const rate = (toAmountValue / parseFloat(amount)).toFixed(4);
                     rateDisplay.textContent = `1 ${fromToken.symbol} ≈ ${rate} ${toToken.symbol}`;
 
-                    routeDisplay.textContent = data.tool || 'Relay';
-                    const duration = data.executionDuration || 30;
+                    routeDisplay.textContent = data.toolDetails?.name || data.tool || 'LI.FI';
+                    const duration = data.estimate.executionDuration || 30;
                     timeDisplay.textContent = Math.ceil(duration / 60) + ' min';
 
-                    const fee = data.fee || {};
-                    const gasCost = data.gasCost || 0;
-                    const protocolFee = data.protocolFee || 0;
+                    const fee = data.estimate.fee || {};
+                    const gasCost = data.estimate.gasCost || 0;
+                    const protocolFee = data.estimate.protocolFee || 0;
 
                     const feeUsd = fee.amountUSD || 0;
-                    const totalUsd = quoteData.toAmountUSD || 0;
+                    const totalUsd = data.estimate.toAmountUSD || 0;
 
                     feeDisplay.textContent = feeUsd ? `$${parseFloat(feeUsd).toFixed(2)}` : '—';
                     totalCostDisplay.textContent = totalUsd ? `≈ $${parseFloat(totalUsd).toFixed(2)}` : '—';
@@ -1469,7 +1490,7 @@
                         discountRow.style.display = 'none';
                     }
 
-                    const fromUsdValue = quoteData.fromAmountUSD || 0;
+                    const fromUsdValue = data.estimate.fromAmountUSD || 0;
                     fromUsd.textContent = fromUsdValue ? `≈ $${parseFloat(fromUsdValue).toFixed(2)}` : '';
 
                     routeInfo.classList.add('open');
@@ -1480,7 +1501,7 @@
                     swapBtn.disabled = false;
 
                 } else {
-                    const errorMsg = data.message || data.error || 'No route found';
+                    const errorMsg = data.message || 'No route found';
                     statusMsg.innerText = '⚠️ ' + errorMsg;
                     statusMsg.className = 'status-msg error';
                     routeInfo.classList.remove('open');
@@ -1520,7 +1541,7 @@
         statusMsg.className = 'status-msg loading';
 
         try {
-            const tx = currentQuote.transactionRequest || currentQuote.tx;
+            const tx = currentQuote.transactionRequest;
             if (!tx || !tx.to) {
                 throw new Error('Invalid transaction data');
             }
