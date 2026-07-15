@@ -15,41 +15,41 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: 24px;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 10px;
     }
 
     .swap-header h1 {
-        font-size: 22px;
+        font-size: 24px;
         font-weight: 700;
         color: #fff;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         flex-wrap: wrap;
-        letter-spacing: -0.3px;
+        letter-spacing: -0.5px;
     }
 
     .swap-header h1 .badge {
         background: rgba(233,69,96,0.12);
         color: #e94560;
         font-size: 10px;
-        padding: 2px 10px;
+        padding: 3px 12px;
         border-radius: 30px;
-        border: 1px solid rgba(233,69,96,0.15);
+        border: 1px solid rgba(233,69,96,0.12);
         font-weight: 500;
         letter-spacing: 0.3px;
     }
 
     .member-badge {
         display: inline-block;
-        background: rgba(74,222,128,0.1);
+        background: rgba(74,222,128,0.08);
         color: #4ade80;
         font-size: 10px;
-        padding: 2px 10px;
+        padding: 3px 12px;
         border-radius: 30px;
-        border: 1px solid rgba(74,222,128,0.12);
+        border: 1px solid rgba(74,222,128,0.08);
         font-weight: 500;
     }
 
@@ -58,7 +58,7 @@
         background: rgba(74,222,128,0.06);
         color: #4ade80;
         font-size: 11px;
-        padding: 2px 8px;
+        padding: 2px 10px;
         border-radius: 30px;
         font-weight: 500;
     }
@@ -66,86 +66,124 @@
     .header-right {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         flex-wrap: wrap;
     }
 
     .chain-indicator {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 11px;
+        gap: 8px;
+        font-size: 12px;
         color: #4ade80;
         background: rgba(74,222,128,0.04);
-        padding: 4px 12px;
+        padding: 5px 14px 5px 12px;
         border-radius: 30px;
         border: 1px solid rgba(74,222,128,0.06);
+        transition: all 0.3s;
+    }
+
+    .chain-indicator:hover {
+        background: rgba(74,222,128,0.06);
+        border-color: rgba(74,222,128,0.12);
     }
 
     .chain-indicator img {
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
         object-fit: cover;
     }
 
+    .chain-indicator .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #4ade80;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 0.3; transform: scale(0.8); }
+        50% { opacity: 1; transform: scale(1); }
+        100% { opacity: 0.3; transform: scale(0.8); }
+    }
+
     /* ===== MAIN BOX ===== */
     .swap-box {
-        background: #16213e;
-        border-radius: 20px;
+        background: linear-gradient(145deg, #16213e, #1a1a2e);
+        border-radius: 24px;
         border: 1px solid rgba(233,69,96,0.06);
-        padding: 20px;
-        transition: border-color 0.3s, box-shadow 0.3s;
+        padding: 24px;
+        transition: all 0.4s ease;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.2);
     }
 
     .swap-box:hover {
-        border-color: rgba(233,69,96,0.12);
-        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        border-color: rgba(233,69,96,0.1);
+        box-shadow: 0 12px 50px rgba(0,0,0,0.3);
     }
 
     /* ===== ROWS ===== */
     .swap-row {
-        background: #0f1a2e;
-        border-radius: 14px;
-        padding: 14px 16px;
+        background: rgba(15,26,46,0.6);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 16px 18px;
         margin-bottom: 6px;
-        transition: border-color 0.2s, box-shadow 0.2s;
+        transition: all 0.3s ease;
         border: 1px solid transparent;
     }
 
     .swap-row:focus-within {
-        border-color: rgba(233,69,96,0.2);
-        box-shadow: 0 0 0 3px rgba(233,69,96,0.03);
+        border-color: rgba(233,69,96,0.15);
+        box-shadow: 0 0 0 4px rgba(233,69,96,0.03);
+        background: rgba(15,26,46,0.8);
     }
 
     .swap-row .label-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
     }
 
     .swap-row .label-row .label {
         font-size: 11px;
         color: #666;
-        font-weight: 500;
-        letter-spacing: 0.3px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
         text-transform: uppercase;
     }
 
     .swap-row .label-row .balance {
-        font-size: 11px;
+        font-size: 12px;
         color: #555;
-        font-weight: 400;
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 0.2s;
+        padding: 2px 8px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.02);
+    }
+
+    .swap-row .label-row .balance:hover {
+        color: #888;
     }
 
     .swap-row .label-row .balance .num {
-        color: #888;
+        color: #aaa;
+        font-weight: 600;
+    }
+
+    .swap-row .label-row .balance .currency {
+        color: #666;
+        font-weight: 400;
     }
 
     .swap-input-group {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
     }
 
     .swap-input-group input {
@@ -153,19 +191,20 @@
         background: none;
         border: none;
         color: #fff;
-        font-size: 26px;
+        font-size: 28px;
         font-weight: 600;
         outline: none;
         min-width: 0;
         width: 100%;
         font-family: inherit;
         letter-spacing: -0.5px;
+        padding: 2px 0;
     }
 
     .swap-input-group input::placeholder {
         color: #3a3a5a;
         font-weight: 400;
-        font-size: 24px;
+        font-size: 26px;
     }
 
     .swap-input-group input:read-only {
@@ -186,42 +225,50 @@
     .token-btn {
         display: flex;
         align-items: center;
-        gap: 8px;
-        background: #1a1a3e;
+        gap: 10px;
+        background: rgba(26,26,62,0.8);
         border: 1px solid rgba(255,255,255,0.04);
-        border-radius: 30px;
-        padding: 6px 12px 6px 8px;
+        border-radius: 40px;
+        padding: 6px 14px 6px 8px;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.3s ease;
         white-space: nowrap;
         flex-shrink: 0;
-        min-width: 70px;
+        min-width: 80px;
     }
 
     .token-btn:hover {
-        border-color: rgba(233,69,96,0.2);
-        background: #1e1e4a;
+        border-color: rgba(233,69,96,0.15);
+        background: rgba(30,30,74,0.9);
+        transform: scale(1.02);
+    }
+
+    .token-btn:active {
+        transform: scale(0.97);
     }
 
     .token-btn img {
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         background: #1a1a3e;
         object-fit: cover;
         flex-shrink: 0;
+        border: 1px solid rgba(255,255,255,0.03);
     }
 
     .token-btn .symbol {
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 600;
         color: #fff;
+        letter-spacing: -0.2px;
     }
 
     .token-btn .arrow {
         color: #555;
-        font-size: 10px;
-        transition: transform 0.25s ease;
+        font-size: 11px;
+        transition: transform 0.3s ease;
+        margin-left: 2px;
     }
 
     .token-btn .arrow.open {
@@ -229,40 +276,61 @@
     }
 
     .token-img-placeholder {
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         background: linear-gradient(135deg, #1a1a3e, #2a2a4a);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 700;
         color: #666;
         flex-shrink: 0;
+        border: 1px solid rgba(255,255,255,0.03);
     }
 
     .usd-value {
-        font-size: 11px;
+        font-size: 12px;
         color: #444;
         margin-top: 6px;
-        min-height: 16px;
+        min-height: 18px;
         letter-spacing: 0.2px;
+        font-weight: 400;
     }
 
     /* ===== SWAP ARROW ===== */
     .swap-arrow-btn {
         text-align: center;
         cursor: pointer;
-        padding: 6px;
+        padding: 8px;
         color: #444;
-        font-size: 18px;
-        transition: all 0.3s;
+        font-size: 22px;
+        transition: all 0.4s ease;
         background: none;
         border: none;
         width: 100%;
         display: block;
         margin: 2px 0;
+        position: relative;
+    }
+
+    .swap-arrow-btn::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 0;
+        height: 0;
+        background: rgba(233,69,96,0.03);
+        border-radius: 50%;
+        transition: all 0.4s ease;
+    }
+
+    .swap-arrow-btn:hover::before {
+        width: 40px;
+        height: 40px;
     }
 
     .swap-arrow-btn:hover {
@@ -273,74 +341,78 @@
     /* ===== TOKEN PICKER ===== */
     .token-picker {
         display: none;
-        background: #0a0a1a;
-        border-radius: 14px;
-        padding: 12px 14px;
-        margin: 10px 0 14px 0;
+        background: rgba(10,10,26,0.9);
+        backdrop-filter: blur(12px);
+        border-radius: 16px;
+        padding: 14px 16px;
+        margin: 12px 0 16px 0;
         border: 1px solid rgba(255,255,255,0.04);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
     }
 
     .token-picker.open {
         display: block;
-        animation: fadeIn 0.2s ease;
+        animation: slideDown 0.25s ease;
     }
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-6px); }
-        to { opacity: 1; transform: translateY(0); }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .token-picker .title {
         font-size: 11px;
         color: #555;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.8px;
+        font-weight: 600;
     }
 
     .token-list {
         display: flex;
         flex-wrap: wrap;
-        gap: 6px;
+        gap: 8px;
     }
 
     .token-option {
         display: flex;
         align-items: center;
-        gap: 6px;
-        padding: 6px 12px 6px 10px;
-        border-radius: 30px;
+        gap: 8px;
+        padding: 8px 16px 8px 12px;
+        border-radius: 40px;
         border: 1px solid rgba(255,255,255,0.03);
         background: rgba(255,255,255,0.01);
         cursor: pointer;
         font-size: 13px;
         color: #999;
-        transition: all 0.2s;
+        transition: all 0.25s ease;
     }
 
     .token-option:hover {
-        border-color: rgba(233,69,96,0.15);
+        border-color: rgba(233,69,96,0.12);
         background: rgba(233,69,96,0.03);
         color: #fff;
+        transform: translateY(-1px);
     }
 
     .token-option img {
-        width: 18px;
-        height: 18px;
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
         object-fit: cover;
         flex-shrink: 0;
     }
 
     .token-option .placeholder-sm {
-        width: 18px;
-        height: 18px;
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
         background: #1a1a3e;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 7px;
+        font-size: 8px;
         font-weight: 700;
         color: #555;
         flex-shrink: 0;
@@ -354,16 +426,17 @@
 
     /* ===== NETWORKS ===== */
     .network-section {
-        margin: 12px 0 16px 0;
+        margin: 14px 0 18px 0;
     }
 
     .network-section .label {
         font-size: 11px;
         color: #555;
         display: block;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.8px;
+        font-weight: 600;
     }
 
     .network-list {
@@ -376,30 +449,32 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        padding: 5px 12px 5px 10px;
+        padding: 6px 14px 6px 10px;
         border-radius: 30px;
         border: 1px solid rgba(255,255,255,0.03);
         background: rgba(255,255,255,0.01);
         cursor: pointer;
         font-size: 12px;
         color: #777;
-        transition: all 0.2s;
+        transition: all 0.25s ease;
     }
 
     .network-btn:hover {
-        border-color: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.06);
         color: #aaa;
+        background: rgba(255,255,255,0.02);
     }
 
     .network-btn.active {
         border-color: #e94560;
         background: rgba(233,69,96,0.04);
         color: #fff;
+        box-shadow: 0 0 20px rgba(233,69,96,0.03);
     }
 
     .network-btn img {
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
         object-fit: cover;
         flex-shrink: 0;
@@ -409,27 +484,28 @@
     .route-info {
         display: none;
         background: rgba(255,255,255,0.01);
-        border-radius: 12px;
-        padding: 12px 14px;
-        margin: 14px 0 16px 0;
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin: 14px 0 18px 0;
         border: 1px solid rgba(255,255,255,0.03);
     }
 
     .route-info.open {
         display: block;
-        animation: fadeIn 0.3s ease;
+        animation: slideDown 0.3s ease;
     }
 
     .route-info .row {
         display: flex;
         justify-content: space-between;
-        padding: 3px 0;
+        padding: 4px 0;
         font-size: 12px;
         color: #555;
     }
 
     .route-info .row .value {
         color: #aaa;
+        font-weight: 500;
     }
 
     .route-info .row .value.green {
@@ -442,13 +518,13 @@
 
     .route-info .divider {
         border-top: 1px solid rgba(255,255,255,0.03);
-        margin: 6px 0;
+        margin: 8px 0;
     }
 
     .fees-breakdown {
         display: none;
-        margin-top: 6px;
-        padding-top: 6px;
+        margin-top: 8px;
+        padding-top: 8px;
         border-top: 1px solid rgba(255,255,255,0.03);
     }
 
@@ -459,7 +535,7 @@
     .fees-breakdown .row {
         font-size: 11px;
         color: #444;
-        padding: 2px 0;
+        padding: 3px 0;
     }
 
     .fees-breakdown .row .value {
@@ -471,9 +547,10 @@
         font-size: 12px;
         color: #555;
         text-align: center;
-        min-height: 20px;
-        padding: 6px 0;
+        min-height: 24px;
+        padding: 8px 0;
         transition: all 0.3s;
+        font-weight: 400;
     }
 
     .status-msg.success {
@@ -491,23 +568,39 @@
     /* ===== SWAP BUTTON ===== */
     .swap-btn {
         width: 100%;
-        padding: 14px;
+        padding: 16px;
         background: linear-gradient(135deg, #e94560, #c73652);
         color: #fff;
         border: none;
-        border-radius: 14px;
+        border-radius: 16px;
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
         letter-spacing: 0.3px;
+        margin-top: 4px;
+    }
+
+    .swap-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .swap-btn:hover:not(:disabled)::before {
+        left: 100%;
     }
 
     .swap-btn:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 6px 30px rgba(233,69,96,0.2);
+        box-shadow: 0 8px 40px rgba(233,69,96,0.2);
     }
 
     .swap-btn:disabled {
@@ -518,14 +611,14 @@
 
     .swap-btn .loader {
         display: inline-block;
-        width: 16px;
-        height: 16px;
-        border: 2px solid rgba(255,255,255,0.15);
+        width: 18px;
+        height: 18px;
+        border: 2.5px solid rgba(255,255,255,0.15);
         border-top-color: #fff;
         border-radius: 50%;
         animation: spin 0.7s linear infinite;
         vertical-align: middle;
-        margin-right: 8px;
+        margin-right: 10px;
     }
 
     @keyframes spin {
@@ -537,7 +630,8 @@
         font-size: 11px;
         color: #333;
         text-align: center;
-        margin-top: 14px;
+        margin-top: 16px;
+        letter-spacing: 0.3px;
     }
 
     .powered-by a {
@@ -550,6 +644,18 @@
         color: #ff6b81;
     }
 
+    /* ===== SCROLLBAR ===== */
+    .swap-wrapper::-webkit-scrollbar {
+        width: 3px;
+    }
+    .swap-wrapper::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .swap-wrapper::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 10px;
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 480px) {
         .swap-wrapper {
@@ -557,46 +663,60 @@
             margin: 20px auto;
         }
         .swap-box {
-            padding: 14px;
+            padding: 16px;
+            border-radius: 20px;
         }
         .swap-input-group input {
-            font-size: 20px;
+            font-size: 22px;
         }
         .swap-input-group input::placeholder {
-            font-size: 18px;
+            font-size: 20px;
         }
         .swap-header h1 {
-            font-size: 18px;
+            font-size: 20px;
         }
         .token-btn {
-            padding: 4px 10px 4px 6px;
-            min-width: 60px;
+            padding: 4px 12px 4px 6px;
+            min-width: 70px;
         }
         .token-btn img {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
         }
         .token-btn .symbol {
-            font-size: 12px;
+            font-size: 13px;
         }
         .swap-row {
-            padding: 10px 12px;
+            padding: 12px 14px;
         }
         .chain-indicator {
-            font-size: 10px;
-            padding: 2px 10px;
+            font-size: 11px;
+            padding: 4px 12px 4px 10px;
+        }
+        .swap-btn {
+            padding: 14px;
+            font-size: 15px;
         }
     }
 
     @media (max-width: 380px) {
         .swap-header h1 {
-            font-size: 16px;
+            font-size: 17px;
+            gap: 6px;
         }
         .swap-input-group input {
             font-size: 18px;
         }
         .token-btn .symbol {
             font-size: 11px;
+        }
+        .token-btn {
+            min-width: 60px;
+            padding: 3px 10px 3px 5px;
+        }
+        .token-btn img {
+            width: 20px;
+            height: 20px;
         }
     }
 </style>
@@ -612,6 +732,7 @@
             <span class="chain-indicator" id="chainIndicator">
                 <span id="chainIconContainer"></span>
                 <span id="chainNameDisplay">Base</span>
+                <span class="dot"></span>
             </span>
             <span id="discountDisplay" style="font-size:11px; color:#555;"></span>
         </div>
@@ -622,7 +743,9 @@
         <div class="swap-row">
             <div class="label-row">
                 <span class="label">From</span>
-                <span class="balance">Balance: <span class="num" id="fromBalance">—</span></span>
+                <span class="balance" onclick="fillMax()">
+                    Balance: <span class="num" id="fromBalance">0.0000</span> <span class="currency" id="fromBalanceSymbol">ETH</span>
+                </span>
             </div>
             <div class="swap-input-group">
                 <input type="number" id="fromAmount" placeholder="0" step="any" oninput="getQuote()">
@@ -644,7 +767,9 @@
         <div class="swap-row">
             <div class="label-row">
                 <span class="label">To</span>
-                <span class="balance">Balance: <span class="num" id="toBalance">—</span></span>
+                <span class="balance">
+                    Balance: <span class="num" id="toBalance">0.0000</span> <span class="currency" id="toBalanceSymbol">USDC</span>
+                </span>
             </div>
             <div class="swap-input-group">
                 <input type="number" id="toAmount" placeholder="0" readonly>
@@ -734,7 +859,7 @@
         { id: "999",   name: "Robinhood", chainId: "0x3e7",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/robinhood.svg" },
     ];
 
-    // Token logos - using reliable CDN
+    // Token logos - reliable CDN
     const TOKEN_LOGO_MAP = {
         "ETH": "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
         "USDC": "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png",
@@ -747,7 +872,6 @@
         "HOOD": "https://cryptologos.cc/logos/robinhood-hoo-logo.png",
     };
 
-    // Tokens per network
     const TOKENS = {
         "8453":  [
             { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18, isNative: true },
@@ -819,6 +943,8 @@
     const toTokenLogo = $('toTokenLogo');
     const fromBalance = $('fromBalance');
     const toBalance = $('toBalance');
+    const fromBalanceSymbol = $('fromBalanceSymbol');
+    const toBalanceSymbol = $('toBalanceSymbol');
     const fromUsd = $('fromUsd');
     const toUsd = $('toUsd');
     const rateDisplay = $('rateDisplay');
@@ -857,16 +983,6 @@
         return NETWORKS.find(n => n.chainId.toLowerCase() === hexChainId.toLowerCase());
     }
 
-    function getNetworkName(chainId) {
-        const net = getNetworkByChainId(chainId);
-        return net ? net.name : chainId;
-    }
-
-    function getNetworkLogo(chainId) {
-        const net = getNetworkByChainId(chainId);
-        return net ? net.logo : '';
-    }
-
     function setTokenImage(el, symbol) {
         const logo = getTokenLogo(symbol);
         if (logo) {
@@ -881,7 +997,33 @@
         const network = getNetworkByChainId(chainId);
         if (network) {
             chainNameDisplay.textContent = network.name;
-            chainIconContainer.innerHTML = `<img src="${network.logo}" alt="${network.name}" onerror="this.style.display='none'" style="width:14px;height:14px;border-radius:50%;object-fit:cover;">`;
+            chainIconContainer.innerHTML = `<img src="${network.logo}" alt="${network.name}" onerror="this.style.display='none'" style="width:16px;height:16px;border-radius:50%;object-fit:cover;">`;
+        }
+    }
+
+    function formatBalance(balance, decimals) {
+        if (balance === 0 || balance === '0') return '0.0000';
+        const num = typeof balance === 'string' ? parseFloat(balance) : balance;
+        if (num < 0.000001) return '< 0.000001';
+        if (num < 0.01) return num.toFixed(6);
+        if (num < 1) return num.toFixed(4);
+        if (num < 1000) return num.toFixed(4);
+        if (num < 1000000) return num.toFixed(2);
+        return num.toFixed(0);
+    }
+
+    // ============================================================
+    // FILL MAX BALANCE
+    // ============================================================
+    function fillMax() {
+        if (!account || !fromToken) return;
+        const balanceText = fromBalance.textContent;
+        if (balanceText && balanceText !== '—' && !balanceText.includes('<')) {
+            const cleanBalance = parseFloat(balanceText);
+            if (cleanBalance > 0) {
+                fromAmount.value = cleanBalance;
+                getQuote();
+            }
         }
     }
 
@@ -927,7 +1069,6 @@
         renderTokenPicker();
         setupChainChangeListener();
 
-        // Auto-connect if already connected
         if (window.ethereum && window.ethereum.selectedAddress) {
             connectWallet();
         }
@@ -937,7 +1078,6 @@
             if (!account) statusMsg.innerText = 'Connect wallet first';
         });
 
-        // Refresh balance every 30 seconds
         balanceInterval = setInterval(() => {
             if (account) loadBalances();
         }, 30000);
@@ -1028,10 +1168,12 @@
     function updateTokenUI() {
         if (fromToken) {
             fromTokenSymbol.textContent = fromToken.symbol;
+            fromBalanceSymbol.textContent = fromToken.symbol;
             setTokenImage(fromTokenLogo, fromToken.symbol);
         }
         if (toToken) {
             toTokenSymbol.textContent = toToken.symbol;
+            toBalanceSymbol.textContent = toToken.symbol;
             setTokenImage(toTokenLogo, toToken.symbol);
         }
         renderTokenPicker();
@@ -1071,7 +1213,6 @@
             signer = await provider.getSigner();
             account = await signer.getAddress();
 
-            // Get current chain
             const network = await provider.getNetwork();
             const chainIdHex = '0x' + network.chainId.toString(16);
             const currentNetwork = getNetworkByHex(chainIdHex);
@@ -1103,7 +1244,6 @@
     // MEMBER STATUS
     // ============================================================
     function checkMemberStatus() {
-        // TODO: Replace with real backend check
         if (account) {
             isMember = true;
             memberBadge.style.display = 'inline-block';
@@ -1116,50 +1256,54 @@
     }
 
     // ============================================================
-    // BALANCES - COMPLETELY FIXED
+    // BALANCES - FIXED WITH PRECISION
     // ============================================================
     async function loadBalances() {
         if (!account || !provider) return;
         
         try {
-            // Load from token balance
+            // From token balance
             if (fromToken) {
+                let formattedBalance = '0.0000';
                 if (fromToken.isNative || fromToken.addr === '0x0000000000000000000000000000000000000000') {
                     const bal = await provider.getBalance(account);
-                    const balFormatted = parseFloat(ethers.formatEther(bal));
-                    fromBalance.textContent = balFormatted > 0.0001 ? balFormatted.toFixed(4) : '< 0.0001';
+                    const balNum = parseFloat(ethers.formatEther(bal));
+                    formattedBalance = formatBalance(balNum, fromToken.decimals);
                 } else {
                     try {
                         const contract = new ethers.Contract(fromToken.addr, [
                             'function balanceOf(address) view returns (uint256)'
                         ], provider);
                         const bal = await contract.balanceOf(account);
-                        const balFormatted = parseFloat(ethers.formatUnits(bal, fromToken.decimals));
-                        fromBalance.textContent = balFormatted > 0.000001 ? balFormatted.toFixed(4) : '< 0.000001';
+                        const balNum = parseFloat(ethers.formatUnits(bal, fromToken.decimals));
+                        formattedBalance = formatBalance(balNum, fromToken.decimals);
                     } catch (e) {
-                        fromBalance.textContent = '—';
+                        formattedBalance = '—';
                     }
                 }
+                fromBalance.textContent = formattedBalance;
             }
 
-            // Load to token balance
+            // To token balance
             if (toToken) {
+                let formattedBalance = '0.0000';
                 if (toToken.isNative || toToken.addr === '0x0000000000000000000000000000000000000000') {
                     const bal = await provider.getBalance(account);
-                    const balFormatted = parseFloat(ethers.formatEther(bal));
-                    toBalance.textContent = balFormatted > 0.0001 ? balFormatted.toFixed(4) : '< 0.0001';
+                    const balNum = parseFloat(ethers.formatEther(bal));
+                    formattedBalance = formatBalance(balNum, toToken.decimals);
                 } else {
                     try {
                         const contract = new ethers.Contract(toToken.addr, [
                             'function balanceOf(address) view returns (uint256)'
                         ], provider);
                         const bal = await contract.balanceOf(account);
-                        const balFormatted = parseFloat(ethers.formatUnits(bal, toToken.decimals));
-                        toBalance.textContent = balFormatted > 0.000001 ? balFormatted.toFixed(4) : '< 0.000001';
+                        const balNum = parseFloat(ethers.formatUnits(bal, toToken.decimals));
+                        formattedBalance = formatBalance(balNum, toToken.decimals);
                     } catch (e) {
-                        toBalance.textContent = '—';
+                        formattedBalance = '—';
                     }
                 }
+                toBalance.textContent = formattedBalance;
             }
         } catch (e) {
             console.warn('Balance fetch error:', e.message);
@@ -1319,7 +1463,6 @@
     // ============================================================
     document.addEventListener('DOMContentLoaded', init);
 
-    // Clean up on page unload
     window.addEventListener('beforeunload', () => {
         if (balanceInterval) clearInterval(balanceInterval);
         if (window.ethereum) {
