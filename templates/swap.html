@@ -786,18 +786,62 @@
     // CONFIGURATION
     // ============================================================
     const NETWORKS = [
-        { id: "8453",  name: "Base",      chainId: "0x2105", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/base.svg" },
-        { id: "57073", name: "Ink",       chainId: "0xdfe1", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/ink.svg" },
-        { id: "43114", name: "Avalanche", chainId: "0xa86a", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/avax.svg" },
-        { id: "1",     name: "Ethereum",  chainId: "0x1",    logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/eth.svg" },
-        { id: "137",   name: "Polygon",   chainId: "0x89",   logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/pol.svg" },
-        { id: "42161", name: "Arbitrum",  chainId: "0xa4b1", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/arb.svg" },
-        { id: "10",    name: "Optimism",  chainId: "0xa",    logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/opt.svg" },
-        { id: "7000",  name: "ZetaChain", chainId: "0x1b58", logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/zetachain.svg" },
-        { id: "999",   name: "Robinhood", chainId: "0x3e7",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/robinhood.svg" },
+        { 
+            id: "8453",  name: "Base",      chainId: "0x2105", 
+            logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/base.svg",
+            rpc: "https://mainnet.base.org",
+            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 }
+        },
+        { 
+            id: "57073", name: "Ink",       chainId: "0xdfe1", 
+            logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/ink.svg",
+            rpc: "https://rpc-gel.inkonchain.com",
+            nativeCurrency: { name: "Ink", symbol: "INK", decimals: 18 }
+        },
+        { 
+            id: "43114", name: "Avalanche", chainId: "0xa86a", 
+            logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/avax.svg",
+            rpc: "https://api.avax.network/ext/bc/C/rpc",
+            nativeCurrency: { name: "Avalanche", symbol: "AVAX", decimals: 18 }
+        },
+        { 
+            id: "1",     name: "Ethereum",  chainId: "0x1",    
+            logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/eth.svg",
+            rpc: "https://mainnet.infura.io/v3/",
+            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 }
+        },
+        { 
+            id: "137",   name: "Polygon",   chainId: "0x89",   
+            logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/pol.svg",
+            rpc: "https://polygon-rpc.com",
+            nativeCurrency: { name: "Polygon", symbol: "POL", decimals: 18 }
+        },
+        { 
+            id: "42161", name: "Arbitrum",  chainId: "0xa4b1", 
+            logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/arb.svg",
+            rpc: "https://arb1.arbitrum.io/rpc",
+            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 }
+        },
+        { 
+            id: "10",    name: "Optimism",  chainId: "0xa",    
+            logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/opt.svg",
+            rpc: "https://mainnet.optimism.io",
+            nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 }
+        },
+        { 
+            id: "7000",  name: "ZetaChain", chainId: "0x1b58", 
+            logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/zetachain.svg",
+            rpc: "https://zetachain-evm.blockpi.network/v1/rpc/public",
+            nativeCurrency: { name: "ZetaChain", symbol: "ZETA", decimals: 18 }
+        },
+        { 
+            id: "999",   name: "Robinhood", chainId: "0x3e7",  
+            logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/robinhood.svg",
+            rpc: "https://robinhood.rpc.url",  // Replace with actual Robinhood RPC
+            nativeCurrency: { name: "Robinhood", symbol: "HOOD", decimals: 18 }
+        },
     ];
 
-    // Network IDs for Relay API
     const RELAY_NETWORK_IDS = {
         "8453": "base",
         "57073": "ink",
@@ -822,7 +866,9 @@
         "HOOD": "https://cryptologos.cc/logos/robinhood-hoo-logo.png",
     };
 
-    // Token addresses per network (for Relay)
+    // ============================================================
+    // TOKENS WITH CORRECT ADDRESSES
+    // ============================================================
     const TOKENS = {
         "8453":  [
             { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18, isNative: true },
@@ -830,7 +876,7 @@
             { symbol: "USDT", addr: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", logo: TOKEN_LOGO_MAP["USDT"], decimals: 6 },
         ],
         "57073": [
-            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18, isNative: true },
+            { symbol: "INK",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18, isNative: true },
             { symbol: "USDC", addr: "0x6900000000000000000000000000000000000001", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "43114": [
@@ -857,6 +903,7 @@
         ],
         "7000": [
             { symbol: "ZETA", addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ZETA"], decimals: 18, isNative: true },
+            // ZetaChain USDC - using the correct address
             { symbol: "USDC", addr: "0x0c6f6e5b0b4e5c5b0b0b0b0b0b0b0b0b0b0b0b0b", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "999": [
@@ -1112,13 +1159,14 @@
                         params: [{ chainId: n.chainId }],
                     }).catch((error) => {
                         if (error.code === 4902) {
+                            // Network not added, add it with correct RPC
                             window.ethereum.request({
                                 method: 'wallet_addEthereumChain',
                                 params: [{
                                     chainId: n.chainId,
                                     chainName: n.name,
-                                    rpcUrls: [`https://${n.name.toLowerCase()}.rpc.url`],
-                                    nativeCurrency: { name: n.name, symbol: n.name.slice(0,3).toUpperCase(), decimals: 18 },
+                                    rpcUrls: [n.rpc],
+                                    nativeCurrency: n.nativeCurrency,
                                     blockExplorerUrls: [`https://${n.name.toLowerCase()}.explorer.url`],
                                 }],
                             }).catch((err) => {
@@ -1353,7 +1401,6 @@
             return;
         }
 
-        // Get Relay network names
         const fromRelayId = getRelayNetworkId(selectedChain);
         const toRelayId = getRelayNetworkId(selectedChain);
 
@@ -1372,7 +1419,6 @@
             swapBtn.disabled = true;
 
             try {
-                // Build Relay quote URL
                 const url = `${RELAY_API}/quote?fromChain=${fromRelayId}&toChain=${toRelayId}&fromToken=${fromToken.addr}&toToken=${toToken.addr}&fromAmount=${amountWei}&fromAddress=${account}`;
 
                 console.log('📤 Relay Quote request:', {
@@ -1393,7 +1439,6 @@
                     const quoteData = data.quote || data.estimate;
                     currentQuote = data;
 
-                    // Calculate to amount
                     const toAmountValue = parseFloat(quoteData.toAmount) / 10 ** toToken.decimals;
                     toAmount.value = toAmountValue.toFixed(6);
 
