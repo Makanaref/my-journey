@@ -81,18 +81,7 @@
         border-radius: 30px;
         border: 1px solid rgba(74,222,128,0.06);
         transition: all 0.3s;
-    }
-
-    .chain-indicator:hover {
-        background: rgba(74,222,128,0.06);
-        border-color: rgba(74,222,128,0.12);
-    }
-
-    .chain-indicator img {
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        object-fit: cover;
+        cursor: default;
     }
 
     .chain-indicator .dot {
@@ -107,6 +96,17 @@
         0% { opacity: 0.3; transform: scale(0.8); }
         50% { opacity: 1; transform: scale(1); }
         100% { opacity: 0.3; transform: scale(0.8); }
+    }
+
+    .chain-indicator img {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .chain-indicator .chain-name {
+        font-weight: 500;
     }
 
     /* ===== MAIN BOX ===== */
@@ -124,7 +124,6 @@
         box-shadow: 0 12px 50px rgba(0,0,0,0.3);
     }
 
-    /* ===== ROWS ===== */
     .swap-row {
         background: rgba(15,26,46,0.6);
         backdrop-filter: blur(10px);
@@ -221,7 +220,6 @@
         -moz-appearance: textfield;
     }
 
-    /* ===== TOKEN BUTTON ===== */
     .token-btn {
         display: flex;
         align-items: center;
@@ -299,7 +297,6 @@
         font-weight: 400;
     }
 
-    /* ===== SWAP ARROW ===== */
     .swap-arrow-btn {
         text-align: center;
         cursor: pointer;
@@ -315,30 +312,11 @@
         position: relative;
     }
 
-    .swap-arrow-btn::before {
-        content: '';
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        width: 0;
-        height: 0;
-        background: rgba(233,69,96,0.03);
-        border-radius: 50%;
-        transition: all 0.4s ease;
-    }
-
-    .swap-arrow-btn:hover::before {
-        width: 40px;
-        height: 40px;
-    }
-
     .swap-arrow-btn:hover {
         color: #e94560;
         transform: scale(1.1);
     }
 
-    /* ===== TOKEN PICKER ===== */
     .token-picker {
         display: none;
         background: rgba(10,10,26,0.9);
@@ -424,7 +402,6 @@
         color: #fff;
     }
 
-    /* ===== NETWORKS ===== */
     .network-section {
         margin: 14px 0 18px 0;
     }
@@ -480,7 +457,6 @@
         flex-shrink: 0;
     }
 
-    /* ===== ROUTE INFO ===== */
     .route-info {
         display: none;
         background: rgba(255,255,255,0.01);
@@ -542,7 +518,6 @@
         color: #777;
     }
 
-    /* ===== STATUS ===== */
     .status-msg {
         font-size: 12px;
         color: #555;
@@ -565,7 +540,6 @@
         color: #fbbf24;
     }
 
-    /* ===== SWAP BUTTON ===== */
     .swap-btn {
         width: 100%;
         padding: 16px;
@@ -581,21 +555,6 @@
         overflow: hidden;
         letter-spacing: 0.3px;
         margin-top: 4px;
-    }
-
-    .swap-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-        transition: left 0.6s ease;
-    }
-
-    .swap-btn:hover:not(:disabled)::before {
-        left: 100%;
     }
 
     .swap-btn:hover:not(:disabled) {
@@ -625,7 +584,6 @@
         to { transform: rotate(360deg); }
     }
 
-    /* ===== FOOTER ===== */
     .powered-by {
         font-size: 11px;
         color: #333;
@@ -642,18 +600,6 @@
 
     .powered-by a:hover {
         color: #ff6b81;
-    }
-
-    /* ===== SCROLLBAR ===== */
-    .swap-wrapper::-webkit-scrollbar {
-        width: 3px;
-    }
-    .swap-wrapper::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    .swap-wrapper::-webkit-scrollbar-thumb {
-        background: #333;
-        border-radius: 10px;
     }
 
     /* ===== RESPONSIVE ===== */
@@ -698,27 +644,6 @@
             font-size: 15px;
         }
     }
-
-    @media (max-width: 380px) {
-        .swap-header h1 {
-            font-size: 17px;
-            gap: 6px;
-        }
-        .swap-input-group input {
-            font-size: 18px;
-        }
-        .token-btn .symbol {
-            font-size: 11px;
-        }
-        .token-btn {
-            min-width: 60px;
-            padding: 3px 10px 3px 5px;
-        }
-        .token-btn img {
-            width: 20px;
-            height: 20px;
-        }
-    }
 </style>
 
 <div class="swap-wrapper">
@@ -731,7 +656,7 @@
         <div class="header-right">
             <span class="chain-indicator" id="chainIndicator">
                 <span id="chainIconContainer"></span>
-                <span id="chainNameDisplay">Base</span>
+                <span class="chain-name" id="chainNameDisplay">Base</span>
                 <span class="dot"></span>
             </span>
             <span id="discountDisplay" style="font-size:11px; color:#555;"></span>
@@ -859,7 +784,6 @@
         { id: "999",   name: "Robinhood", chainId: "0x3e7",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/robinhood.svg" },
     ];
 
-    // Token logos - reliable CDN
     const TOKEN_LOGO_MAP = {
         "ETH": "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
         "USDC": "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png",
@@ -930,6 +854,7 @@
     let isMember = false;
     let isConnecting = false;
     let balanceInterval = null;
+    let isChainSwitching = false;
 
     // ============================================================
     // DOM REFS
@@ -1001,7 +926,7 @@
         }
     }
 
-    function formatBalance(balance, decimals) {
+    function formatBalance(balance) {
         if (balance === 0 || balance === '0') return '0.0000';
         const num = typeof balance === 'string' ? parseFloat(balance) : balance;
         if (num < 0.000001) return '< 0.000001';
@@ -1028,56 +953,131 @@
     }
 
     // ============================================================
-    // CHAIN CHANGE DETECTION
+    // CHAIN CHANGE DETECTION - FIXED!
     // ============================================================
     function setupChainChangeListener() {
         if (window.ethereum) {
+            // Listen for chain changes
             window.ethereum.on('chainChanged', (chainId) => {
-                const network = getNetworkByHex(chainId);
-                if (network) {
-                    selectedChain = network.id;
-                    selectNetwork(selectedChain);
-                    updateChainIndicator(selectedChain);
-                    statusMsg.innerText = `🔄 Switched to ${network.name}`;
-                    statusMsg.className = 'status-msg success';
-                }
+                console.log('🔄 Chain changed to:', chainId);
+                handleChainChange(chainId);
             });
 
+            // Listen for account changes
             window.ethereum.on('accountsChanged', (accounts) => {
+                console.log('👤 Accounts changed:', accounts);
                 if (accounts.length > 0) {
                     account = accounts[0];
                     statusMsg.innerText = '✅ Account changed: ' + account.slice(0,6) + '...' + account.slice(-4);
                     statusMsg.className = 'status-msg success';
+                    // Reload everything for the new account
                     loadBalances();
                 } else {
                     account = null;
                     statusMsg.innerText = '👋 Wallet disconnected';
                     statusMsg.className = 'status-msg';
                     swapBtn.innerHTML = 'Connect Wallet';
+                    fromBalance.textContent = '0.0000';
+                    toBalance.textContent = '0.0000';
                 }
             });
         }
     }
 
     // ============================================================
-    // INIT
+    // HANDLE CHAIN CHANGE - CORE FIX
     // ============================================================
-    function init() {
-        renderNetworks();
-        selectNetwork('8453');
-        checkMemberStatus();
-        renderTokenPicker();
-        setupChainChangeListener();
+    async function handleChainChange(chainId) {
+        if (isChainSwitching) return;
+        isChainSwitching = true;
 
-        if (window.ethereum && window.ethereum.selectedAddress) {
-            connectWallet();
+        try {
+            // 1. Find the network
+            const network = getNetworkByHex(chainId);
+            if (!network) {
+                statusMsg.innerText = '⚠️ Unsupported network: ' + chainId;
+                statusMsg.className = 'status-msg error';
+                isChainSwitching = false;
+                return;
+            }
+
+            // 2. Update selected chain
+            selectedChain = network.id;
+            
+            // 3. Update UI indicator
+            updateChainIndicator(selectedChain);
+            
+            // 4. Update network buttons
+            document.querySelectorAll('.network-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.chainId === selectedChain);
+            });
+
+            // 5. Get tokens for this network
+            const tokens = TOKENS[selectedChain] || [];
+            fromToken = tokens[0] || null;
+            toToken = tokens[1] || tokens[0] || null;
+            
+            // 6. Update token UI
+            updateTokenUI();
+            
+            // 7. Clear inputs
+            fromAmount.value = '';
+            toAmount.value = '';
+            routeInfo.classList.remove('open');
+            currentQuote = null;
+
+            // 8. Update provider if needed
+            if (window.ethereum) {
+                provider = new ethers.BrowserProvider(window.ethereum);
+                signer = await provider.getSigner();
+            }
+
+            // 9. Load balances for the new network
+            await loadBalances();
+
+            // 10. Update status
+            statusMsg.innerText = `✅ Switched to ${network.name}`;
+            statusMsg.className = 'status-msg success';
+            swapBtn.innerHTML = account ? 'Swap' : 'Connect Wallet';
+
+        } catch (err) {
+            console.error('Chain switch error:', err);
+            statusMsg.innerText = '❌ Failed to switch network: ' + err.message;
+            statusMsg.className = 'status-msg error';
         }
 
-        fromAmount.addEventListener('input', getQuote);
-        fromAmount.addEventListener('focus', () => {
-            if (!account) statusMsg.innerText = 'Connect wallet first';
-        });
+        isChainSwitching = false;
+    }
 
+    // ============================================================
+    // INIT
+    // ============================================================
+    async function init() {
+        renderNetworks();
+        setupChainChangeListener();
+
+        // Check if already connected
+        if (window.ethereum && window.ethereum.selectedAddress) {
+            await connectWallet();
+            
+            // Get current chain
+            try {
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                await handleChainChange(chainId);
+            } catch (err) {
+                console.warn('Could not get initial chain:', err);
+            }
+        } else {
+            selectNetwork('8453');
+            updateChainIndicator('8453');
+        }
+
+        checkMemberStatus();
+        renderTokenPicker();
+
+        fromAmount.addEventListener('input', getQuote);
+
+        // Refresh balance every 30 seconds
         balanceInterval = setInterval(() => {
             if (account) loadBalances();
         }, 30000);
@@ -1093,7 +1093,32 @@
             btn.className = 'network-btn';
             btn.dataset.chainId = n.id;
             btn.innerHTML = `<img src="${n.logo}" alt="${n.name}" onerror="this.style.display='none'"><span>${n.name}</span>`;
-            btn.onclick = () => selectNetwork(n.id);
+            btn.onclick = () => {
+                // Manually select network in MetaMask
+                if (window.ethereum) {
+                    window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: n.chainId }],
+                    }).catch((error) => {
+                        if (error.code === 4902) {
+                            // Network not added, add it
+                            window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: n.chainId,
+                                    chainName: n.name,
+                                    rpcUrls: [`https://${n.name.toLowerCase()}.rpc.url`], // You may need to set correct RPC URLs
+                                    nativeCurrency: { name: n.name, symbol: n.name.slice(0,3).toUpperCase(), decimals: 18 },
+                                    blockExplorerUrls: [`https://${n.name.toLowerCase()}.explorer.url`],
+                                }],
+                            }).catch((err) => {
+                                statusMsg.innerText = '❌ Failed to add network: ' + err.message;
+                                statusMsg.className = 'status-msg error';
+                            });
+                        }
+                    });
+                }
+            };
             networkList.appendChild(btn);
         });
     }
@@ -1213,14 +1238,9 @@
             signer = await provider.getSigner();
             account = await signer.getAddress();
 
-            const network = await provider.getNetwork();
-            const chainIdHex = '0x' + network.chainId.toString(16);
-            const currentNetwork = getNetworkByHex(chainIdHex);
-            if (currentNetwork) {
-                selectedChain = currentNetwork.id;
-                selectNetwork(selectedChain);
-                updateChainIndicator(selectedChain);
-            }
+            // Get current chain
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            await handleChainChange(chainId);
 
             statusMsg.innerText = '✅ Connected: ' + account.slice(0,6) + '...' + account.slice(-4);
             statusMsg.className = 'status-msg success';
@@ -1268,7 +1288,7 @@
                 if (fromToken.isNative || fromToken.addr === '0x0000000000000000000000000000000000000000') {
                     const bal = await provider.getBalance(account);
                     const balNum = parseFloat(ethers.formatEther(bal));
-                    formattedBalance = formatBalance(balNum, fromToken.decimals);
+                    formattedBalance = formatBalance(balNum);
                 } else {
                     try {
                         const contract = new ethers.Contract(fromToken.addr, [
@@ -1276,7 +1296,7 @@
                         ], provider);
                         const bal = await contract.balanceOf(account);
                         const balNum = parseFloat(ethers.formatUnits(bal, fromToken.decimals));
-                        formattedBalance = formatBalance(balNum, fromToken.decimals);
+                        formattedBalance = formatBalance(balNum);
                     } catch (e) {
                         formattedBalance = '—';
                     }
@@ -1290,7 +1310,7 @@
                 if (toToken.isNative || toToken.addr === '0x0000000000000000000000000000000000000000') {
                     const bal = await provider.getBalance(account);
                     const balNum = parseFloat(ethers.formatEther(bal));
-                    formattedBalance = formatBalance(balNum, toToken.decimals);
+                    formattedBalance = formatBalance(balNum);
                 } else {
                     try {
                         const contract = new ethers.Contract(toToken.addr, [
@@ -1298,7 +1318,7 @@
                         ], provider);
                         const bal = await contract.balanceOf(account);
                         const balNum = parseFloat(ethers.formatUnits(bal, toToken.decimals));
-                        formattedBalance = formatBalance(balNum, toToken.decimals);
+                        formattedBalance = formatBalance(balNum);
                     } catch (e) {
                         formattedBalance = '—';
                     }
