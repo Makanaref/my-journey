@@ -3,111 +3,149 @@
 
 {% block content %}
 <style>
+    /* ===== RESET & BASE ===== */
     .swap-wrapper {
         max-width: 480px;
         margin: 40px auto;
-        padding: 0 20px;
+        padding: 0 16px;
     }
 
+    /* ===== HEADER ===== */
     .swap-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 8px;
     }
 
     .swap-header h1 {
-        font-size: 24px;
-        font-weight: 600;
+        font-size: 22px;
+        font-weight: 700;
         color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        letter-spacing: -0.3px;
+    }
+
+    .swap-header h1 .badge {
+        background: rgba(233,69,96,0.12);
+        color: #e94560;
+        font-size: 10px;
+        padding: 2px 10px;
+        border-radius: 30px;
+        border: 1px solid rgba(233,69,96,0.15);
+        font-weight: 500;
+        letter-spacing: 0.3px;
+    }
+
+    .member-badge {
+        display: inline-block;
+        background: rgba(74,222,128,0.1);
+        color: #4ade80;
+        font-size: 10px;
+        padding: 2px 10px;
+        border-radius: 30px;
+        border: 1px solid rgba(74,222,128,0.12);
+        font-weight: 500;
+    }
+
+    .discount-badge {
+        display: inline-block;
+        background: rgba(74,222,128,0.06);
+        color: #4ade80;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 30px;
+        font-weight: 500;
+    }
+
+    .header-right {
         display: flex;
         align-items: center;
         gap: 10px;
         flex-wrap: wrap;
     }
 
-    .swap-header h1 span {
-        background: rgba(233,69,96,0.15);
-        color: #e94560;
+    .chain-indicator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         font-size: 11px;
-        padding: 2px 10px;
-        border-radius: 20px;
-        border: 1px solid rgba(233,69,96,0.2);
-        font-weight: 400;
-    }
-
-    .member-badge {
-        display: inline-block;
-        background: rgba(74,222,128,0.12);
         color: #4ade80;
-        font-size: 10px;
-        padding: 2px 10px;
-        border-radius: 12px;
-        border: 1px solid rgba(74,222,128,0.15);
-        margin-left: 8px;
-        font-weight: 400;
+        background: rgba(74,222,128,0.04);
+        padding: 4px 12px;
+        border-radius: 30px;
+        border: 1px solid rgba(74,222,128,0.06);
     }
 
-    .discount-badge {
-        display: inline-block;
-        background: rgba(74,222,128,0.08);
-        color: #4ade80;
-        font-size: 11px;
-        padding: 2px 8px;
-        border-radius: 10px;
-        margin-left: 6px;
+    .chain-indicator img {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        object-fit: cover;
     }
 
+    /* ===== MAIN BOX ===== */
     .swap-box {
         background: #16213e;
-        border-radius: 16px;
-        border: 1px solid rgba(233,69,96,0.12);
-        padding: 24px;
-        transition: border-color 0.3s, transform 0.3s;
+        border-radius: 20px;
+        border: 1px solid rgba(233,69,96,0.06);
+        padding: 20px;
+        transition: border-color 0.3s, box-shadow 0.3s;
     }
 
     .swap-box:hover {
-        border-color: rgba(233,69,96,0.3);
-        transform: translateY(-2px);
+        border-color: rgba(233,69,96,0.12);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
     }
 
+    /* ===== ROWS ===== */
     .swap-row {
-        background: #0f3460;
-        border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 8px;
-        transition: border-color 0.2s;
+        background: #0f1a2e;
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-bottom: 6px;
+        transition: border-color 0.2s, box-shadow 0.2s;
         border: 1px solid transparent;
     }
 
     .swap-row:focus-within {
-        border-color: rgba(233,69,96,0.4);
-        box-shadow: 0 0 0 3px rgba(233,69,96,0.05);
+        border-color: rgba(233,69,96,0.2);
+        box-shadow: 0 0 0 3px rgba(233,69,96,0.03);
     }
 
     .swap-row .label-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
     }
 
-    .swap-row .label-row span {
-        font-size: 12px;
-        color: #888;
+    .swap-row .label-row .label {
+        font-size: 11px;
+        color: #666;
         font-weight: 500;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
     }
 
     .swap-row .label-row .balance {
-        color: #666;
         font-size: 11px;
+        color: #555;
+        font-weight: 400;
+    }
+
+    .swap-row .label-row .balance .num {
+        color: #888;
     }
 
     .swap-input-group {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
     }
 
     .swap-input-group input {
@@ -115,17 +153,19 @@
         background: none;
         border: none;
         color: #fff;
-        font-size: 28px;
+        font-size: 26px;
         font-weight: 600;
         outline: none;
         min-width: 0;
         width: 100%;
         font-family: inherit;
+        letter-spacing: -0.5px;
     }
 
     .swap-input-group input::placeholder {
-        color: #444;
+        color: #3a3a5a;
         font-weight: 400;
+        font-size: 24px;
     }
 
     .swap-input-group input:read-only {
@@ -133,30 +173,41 @@
         cursor: default;
     }
 
+    .swap-input-group input[type="number"]::-webkit-inner-spin-button,
+    .swap-input-group input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .swap-input-group input[type="number"] {
+        -moz-appearance: textfield;
+    }
+
+    /* ===== TOKEN BUTTON ===== */
     .token-btn {
         display: flex;
         align-items: center;
         gap: 8px;
         background: #1a1a3e;
-        border: 1px solid rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.04);
         border-radius: 30px;
-        padding: 8px 14px;
+        padding: 6px 12px 6px 8px;
         cursor: pointer;
         transition: all 0.2s;
         white-space: nowrap;
         flex-shrink: 0;
+        min-width: 70px;
     }
 
     .token-btn:hover {
-        border-color: rgba(233,69,96,0.3);
+        border-color: rgba(233,69,96,0.2);
         background: #1e1e4a;
     }
 
     .token-btn img {
-        width: 22px;
-        height: 22px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
-        background: #2a2a4a;
+        background: #1a1a3e;
         object-fit: cover;
         flex-shrink: 0;
     }
@@ -168,33 +219,50 @@
     }
 
     .token-btn .arrow {
-        color: #666;
-        font-size: 11px;
-        transition: transform 0.2s;
+        color: #555;
+        font-size: 10px;
+        transition: transform 0.25s ease;
     }
 
     .token-btn .arrow.open {
         transform: rotate(180deg);
     }
 
-    .usd-value {
-        font-size: 12px;
-        color: #555;
-        margin-top: 6px;
-        min-height: 18px;
+    .token-img-placeholder {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #1a1a3e, #2a2a4a);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 700;
+        color: #666;
+        flex-shrink: 0;
     }
 
+    .usd-value {
+        font-size: 11px;
+        color: #444;
+        margin-top: 6px;
+        min-height: 16px;
+        letter-spacing: 0.2px;
+    }
+
+    /* ===== SWAP ARROW ===== */
     .swap-arrow-btn {
         text-align: center;
         cursor: pointer;
-        padding: 4px;
-        color: #666;
-        font-size: 20px;
+        padding: 6px;
+        color: #444;
+        font-size: 18px;
         transition: all 0.3s;
         background: none;
         border: none;
         width: 100%;
         display: block;
+        margin: 2px 0;
     }
 
     .swap-arrow-btn:hover {
@@ -202,13 +270,14 @@
         transform: scale(1.1);
     }
 
+    /* ===== TOKEN PICKER ===== */
     .token-picker {
         display: none;
         background: #0a0a1a;
-        border-radius: 12px;
-        padding: 12px;
-        margin-bottom: 16px;
-        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 12px 14px;
+        margin: 10px 0 14px 0;
+        border: 1px solid rgba(255,255,255,0.04);
     }
 
     .token-picker.open {
@@ -217,39 +286,41 @@
     }
 
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-8px); }
+        from { opacity: 0; transform: translateY(-6px); }
         to { opacity: 1; transform: translateY(0); }
     }
 
     .token-picker .title {
-        font-size: 12px;
-        color: #666;
+        font-size: 11px;
+        color: #555;
         margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .token-list {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 6px;
     }
 
     .token-option {
         display: flex;
         align-items: center;
         gap: 6px;
-        padding: 8px 14px;
-        border-radius: 20px;
-        border: 1px solid rgba(255,255,255,0.06);
-        background: rgba(255,255,255,0.02);
+        padding: 6px 12px 6px 10px;
+        border-radius: 30px;
+        border: 1px solid rgba(255,255,255,0.03);
+        background: rgba(255,255,255,0.01);
         cursor: pointer;
         font-size: 13px;
-        color: #ccc;
+        color: #999;
         transition: all 0.2s;
     }
 
     .token-option:hover {
-        border-color: rgba(233,69,96,0.3);
-        background: rgba(233,69,96,0.05);
+        border-color: rgba(233,69,96,0.15);
+        background: rgba(233,69,96,0.03);
         color: #fff;
     }
 
@@ -261,26 +332,43 @@
         flex-shrink: 0;
     }
 
+    .token-option .placeholder-sm {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #1a1a3e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 7px;
+        font-weight: 700;
+        color: #555;
+        flex-shrink: 0;
+    }
+
     .token-option.active {
         border-color: #e94560;
-        background: rgba(233,69,96,0.1);
+        background: rgba(233,69,96,0.06);
         color: #fff;
     }
 
+    /* ===== NETWORKS ===== */
     .network-section {
-        margin-bottom: 16px;
+        margin: 12px 0 16px 0;
     }
 
     .network-section .label {
-        font-size: 12px;
-        color: #666;
+        font-size: 11px;
+        color: #555;
         display: block;
         margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .network-list {
         display: flex;
-        gap: 8px;
+        gap: 6px;
         flex-wrap: wrap;
     }
 
@@ -288,42 +376,43 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        padding: 6px 14px;
-        border-radius: 20px;
-        border: 1px solid rgba(255,255,255,0.06);
-        background: rgba(255,255,255,0.02);
+        padding: 5px 12px 5px 10px;
+        border-radius: 30px;
+        border: 1px solid rgba(255,255,255,0.03);
+        background: rgba(255,255,255,0.01);
         cursor: pointer;
         font-size: 12px;
-        color: #888;
+        color: #777;
         transition: all 0.2s;
     }
 
     .network-btn:hover {
-        border-color: rgba(255,255,255,0.15);
-        color: #ccc;
+        border-color: rgba(255,255,255,0.08);
+        color: #aaa;
     }
 
     .network-btn.active {
         border-color: #e94560;
-        background: rgba(233,69,96,0.08);
+        background: rgba(233,69,96,0.04);
         color: #fff;
     }
 
     .network-btn img {
-        width: 16px;
-        height: 16px;
+        width: 14px;
+        height: 14px;
         border-radius: 50%;
         object-fit: cover;
         flex-shrink: 0;
     }
 
+    /* ===== ROUTE INFO ===== */
     .route-info {
         display: none;
-        background: rgba(255,255,255,0.02);
-        border-radius: 10px;
-        padding: 14px;
-        margin-bottom: 16px;
-        border: 1px solid rgba(255,255,255,0.04);
+        background: rgba(255,255,255,0.01);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin: 14px 0 16px 0;
+        border: 1px solid rgba(255,255,255,0.03);
     }
 
     .route-info.open {
@@ -334,29 +423,33 @@
     .route-info .row {
         display: flex;
         justify-content: space-between;
-        padding: 4px 0;
+        padding: 3px 0;
         font-size: 12px;
-        color: #666;
+        color: #555;
     }
 
     .route-info .row .value {
-        color: #ccc;
+        color: #aaa;
     }
 
     .route-info .row .value.green {
         color: #4ade80;
     }
 
+    .route-info .row .value.pink {
+        color: #e94560;
+    }
+
     .route-info .divider {
-        border-top: 1px solid rgba(255,255,255,0.04);
-        margin: 8px 0;
+        border-top: 1px solid rgba(255,255,255,0.03);
+        margin: 6px 0;
     }
 
     .fees-breakdown {
         display: none;
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px solid rgba(255,255,255,0.04);
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px solid rgba(255,255,255,0.03);
     }
 
     .fees-breakdown.open {
@@ -365,20 +458,22 @@
 
     .fees-breakdown .row {
         font-size: 11px;
-        color: #555;
+        color: #444;
         padding: 2px 0;
     }
 
     .fees-breakdown .row .value {
-        color: #888;
+        color: #777;
     }
 
+    /* ===== STATUS ===== */
     .status-msg {
         font-size: 12px;
-        color: #666;
+        color: #555;
         text-align: center;
         min-height: 20px;
         padding: 6px 0;
+        transition: all 0.3s;
     }
 
     .status-msg.success {
@@ -393,28 +488,30 @@
         color: #fbbf24;
     }
 
+    /* ===== SWAP BUTTON ===== */
     .swap-btn {
         width: 100%;
         padding: 14px;
         background: linear-gradient(135deg, #e94560, #c73652);
         color: #fff;
         border: none;
-        border-radius: 12px;
+        border-radius: 14px;
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s;
         position: relative;
         overflow: hidden;
+        letter-spacing: 0.3px;
     }
 
     .swap-btn:hover:not(:disabled) {
-        transform: scale(1.02);
-        box-shadow: 0 4px 20px rgba(233,69,96,0.25);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 30px rgba(233,69,96,0.2);
     }
 
     .swap-btn:disabled {
-        opacity: 0.6;
+        opacity: 0.5;
         cursor: not-allowed;
         transform: none;
     }
@@ -423,10 +520,10 @@
         display: inline-block;
         width: 16px;
         height: 16px;
-        border: 2px solid rgba(255,255,255,0.2);
+        border: 2px solid rgba(255,255,255,0.15);
         border-top-color: #fff;
         border-radius: 50%;
-        animation: spin 0.8s linear infinite;
+        animation: spin 0.7s linear infinite;
         vertical-align: middle;
         margin-right: 8px;
     }
@@ -435,9 +532,10 @@
         to { transform: rotate(360deg); }
     }
 
+    /* ===== FOOTER ===== */
     .powered-by {
         font-size: 11px;
-        color: #444;
+        color: #333;
         text-align: center;
         margin-top: 14px;
     }
@@ -452,58 +550,53 @@
         color: #ff6b81;
     }
 
-    .token-img-placeholder {
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #2a2a4a, #1a1a3e);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        font-weight: 700;
-        color: #888;
-        flex-shrink: 0;
-        border: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .token-option .token-img-placeholder {
-        width: 18px;
-        height: 18px;
-        font-size: 8px;
-    }
-
-    .network-btn .token-img-placeholder {
-        width: 16px;
-        height: 16px;
-        font-size: 7px;
-    }
-
-    .chain-indicator {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 11px;
-        color: #4ade80;
-        background: rgba(74,222,128,0.06);
-        padding: 4px 12px;
-        border-radius: 12px;
-        border: 1px solid rgba(74,222,128,0.08);
-    }
-
+    /* ===== RESPONSIVE ===== */
     @media (max-width: 480px) {
         .swap-wrapper {
-            padding: 0 12px;
+            padding: 0 10px;
             margin: 20px auto;
         }
         .swap-box {
-            padding: 16px;
+            padding: 14px;
         }
         .swap-input-group input {
-            font-size: 22px;
+            font-size: 20px;
+        }
+        .swap-input-group input::placeholder {
+            font-size: 18px;
         }
         .swap-header h1 {
-            font-size: 20px;
+            font-size: 18px;
+        }
+        .token-btn {
+            padding: 4px 10px 4px 6px;
+            min-width: 60px;
+        }
+        .token-btn img {
+            width: 20px;
+            height: 20px;
+        }
+        .token-btn .symbol {
+            font-size: 12px;
+        }
+        .swap-row {
+            padding: 10px 12px;
+        }
+        .chain-indicator {
+            font-size: 10px;
+            padding: 2px 10px;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .swap-header h1 {
+            font-size: 16px;
+        }
+        .swap-input-group input {
+            font-size: 18px;
+        }
+        .token-btn .symbol {
+            font-size: 11px;
         }
     }
 </style>
@@ -512,12 +605,15 @@
     <div class="swap-header">
         <h1>
             🔄 Swap
-            <span>Cross-Chain</span>
+            <span class="badge">Cross-Chain</span>
             <span class="member-badge" id="memberBadge" style="display:none;">⭐ Member</span>
         </h1>
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-            <span class="chain-indicator" id="chainIndicator">⛓️ Base</span>
-            <span id="discountDisplay" style="font-size:12px; color:#666;"></span>
+        <div class="header-right">
+            <span class="chain-indicator" id="chainIndicator">
+                <span id="chainIconContainer"></span>
+                <span id="chainNameDisplay">Base</span>
+            </span>
+            <span id="discountDisplay" style="font-size:11px; color:#555;"></span>
         </div>
     </div>
 
@@ -525,8 +621,8 @@
         <!-- From -->
         <div class="swap-row">
             <div class="label-row">
-                <span>From</span>
-                <span class="balance">Balance: <span id="fromBalance">—</span></span>
+                <span class="label">From</span>
+                <span class="balance">Balance: <span class="num" id="fromBalance">—</span></span>
             </div>
             <div class="swap-input-group">
                 <input type="number" id="fromAmount" placeholder="0" step="any" oninput="getQuote()">
@@ -547,8 +643,8 @@
         <!-- To -->
         <div class="swap-row">
             <div class="label-row">
-                <span>To</span>
-                <span class="balance">Balance: <span id="toBalance">—</span></span>
+                <span class="label">To</span>
+                <span class="balance">Balance: <span class="num" id="toBalance">—</span></span>
             </div>
             <div class="swap-input-group">
                 <input type="number" id="toAmount" placeholder="0" readonly>
@@ -601,10 +697,10 @@
                 <div class="row"><span>Protocol fee</span><span class="value" id="protocolFeeDisplay">—</span></div>
                 <div class="row" id="discountRow" style="display:none;">
                     <span>Member discount</span>
-                    <span class="value" style="color:#4ade80;" id="discountAmountDisplay">-10%</span>
+                    <span class="value green" id="discountAmountDisplay">-10%</span>
                 </div>
             </div>
-            <div style="margin-top:6px; font-size:10px; color:#444; text-align:center;" id="slippageDisplay">Slippage: 0.5%</div>
+            <div style="margin-top:6px; font-size:10px; color:#333; text-align:center;" id="slippageDisplay">Slippage: 0.5%</div>
         </div>
 
         <!-- Status -->
@@ -617,7 +713,7 @@
     </div>
 
     <div class="powered-by">
-        Powered by <a href="https://li.fi" target="_blank">LI.FI</a> — optimized for members
+        Powered by <a href="https://li.fi" target="_blank">LI.FI</a> &bull; optimized for members
     </div>
 </div>
 
@@ -638,56 +734,58 @@
         { id: "999",   name: "Robinhood", chainId: "0x3e7",  logo: "https://raw.githubusercontent.com/lifinance/brand/main/src/assets/icons/chains/robinhood.svg" },
     ];
 
+    // Token logos - using reliable CDN
     const TOKEN_LOGO_MAP = {
-        "ETH": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
-        "USDC": "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png?1547042389",
-        "USDT": "https://assets.coingecko.com/coins/images/325/small/Tether.png?1668148663",
-        "DAI": "https://assets.coingecko.com/coins/images/9956/small/4943.png?1636636734",
-        "AVAX": "https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png?1670992574",
-        "POL": "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png?1624446912",
-        "WBTC": "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png?1547042743",
-        "HOOD": "https://cryptologos.cc/logos/robinhood-hoo-logo.png",  // جایگزین
-        "ZETA": "https://cryptologos.cc/logos/zetachain-zeta-logo.png", // جایگزین
+        "ETH": "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
+        "USDC": "https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png",
+        "USDT": "https://assets.coingecko.com/coins/images/325/small/Tether.png",
+        "DAI": "https://assets.coingecko.com/coins/images/9956/small/4943.png",
+        "AVAX": "https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png",
+        "POL": "https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png",
+        "WBTC": "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png",
+        "ZETA": "https://assets.coingecko.com/coins/images/31427/small/ZetaChain.png",
+        "HOOD": "https://cryptologos.cc/logos/robinhood-hoo-logo.png",
     };
 
+    // Tokens per network
     const TOKENS = {
         "8453":  [
-            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18 },
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18, isNative: true },
             { symbol: "USDC", addr: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
             { symbol: "USDT", addr: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", logo: TOKEN_LOGO_MAP["USDT"], decimals: 6 },
         ],
         "57073": [
-            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18 },
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18, isNative: true },
             { symbol: "USDC", addr: "0x6900000000000000000000000000000000000001", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "43114": [
-            { symbol: "AVAX", addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["AVAX"], decimals: 18 },
+            { symbol: "AVAX", addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["AVAX"], decimals: 18, isNative: true },
             { symbol: "USDC", addr: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
             { symbol: "USDT", addr: "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7", logo: TOKEN_LOGO_MAP["USDT"], decimals: 6 },
         ],
         "1": [
-            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18 },
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18, isNative: true },
             { symbol: "USDC", addr: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
             { symbol: "USDT", addr: "0xdAC17F958D2ee523a2206206994597C13D831ec7", logo: TOKEN_LOGO_MAP["USDT"], decimals: 6 },
         ],
         "137": [
-            { symbol: "POL",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["POL"], decimals: 18 },
+            { symbol: "POL",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["POL"], decimals: 18, isNative: true },
             { symbol: "USDC", addr: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "42161": [
-            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18 },
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18, isNative: true },
             { symbol: "USDC", addr: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "10": [
-            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18 },
+            { symbol: "ETH",  addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ETH"], decimals: 18, isNative: true },
             { symbol: "USDC", addr: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "7000": [
-            { symbol: "ZETA", addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ZETA"], decimals: 18 },
+            { symbol: "ZETA", addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["ZETA"], decimals: 18, isNative: true },
             { symbol: "USDC", addr: "0x0c6f6e5b0b4e5c5b0b0b0b0b0b0b0b0b0b0b0b0b", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
         "999": [
-            { symbol: "HOOD", addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["HOOD"], decimals: 18 },
+            { symbol: "HOOD", addr: "0x0000000000000000000000000000000000000000", logo: TOKEN_LOGO_MAP["HOOD"], decimals: 18, isNative: true },
             { symbol: "USDC", addr: "0x0c6f6e5b0b4e5c5b0b0b0b0b0b0b0b0b0b0b0b0b", logo: TOKEN_LOGO_MAP["USDC"], decimals: 6 },
         ],
     };
@@ -741,7 +839,8 @@
     const networkList = $('networkList');
     const memberBadge = $('memberBadge');
     const discountDisplay = $('discountDisplay');
-    const chainIndicator = $('chainIndicator');
+    const chainNameDisplay = $('chainNameDisplay');
+    const chainIconContainer = $('chainIconContainer');
 
     // ============================================================
     // HELPERS
@@ -763,13 +862,26 @@
         return net ? net.name : chainId;
     }
 
+    function getNetworkLogo(chainId) {
+        const net = getNetworkByChainId(chainId);
+        return net ? net.logo : '';
+    }
+
     function setTokenImage(el, symbol) {
         const logo = getTokenLogo(symbol);
         if (logo) {
-            el.innerHTML = `<img src="${logo}" alt="${symbol}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.className='token-img-placeholder';this.parentElement.textContent='${symbol.slice(0,3)}'">`;
+            el.innerHTML = `<img src="${logo}" alt="${symbol}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.className='token-img-placeholder';this.parentElement.textContent='${symbol.slice(0,3).toUpperCase()}'">`;
         } else {
             el.className = 'token-img-placeholder';
             el.textContent = symbol.slice(0, 3).toUpperCase();
+        }
+    }
+
+    function updateChainIndicator(chainId) {
+        const network = getNetworkByChainId(chainId);
+        if (network) {
+            chainNameDisplay.textContent = network.name;
+            chainIconContainer.innerHTML = `<img src="${network.logo}" alt="${network.name}" onerror="this.style.display='none'" style="width:14px;height:14px;border-radius:50%;object-fit:cover;">`;
         }
     }
 
@@ -783,7 +895,7 @@
                 if (network) {
                     selectedChain = network.id;
                     selectNetwork(selectedChain);
-                    chainIndicator.innerHTML = `⛓️ ${network.name}`;
+                    updateChainIndicator(selectedChain);
                     statusMsg.innerText = `🔄 Switched to ${network.name}`;
                     statusMsg.className = 'status-msg success';
                 }
@@ -852,10 +964,7 @@
             btn.classList.toggle('active', btn.dataset.chainId === chainId);
         });
 
-        const network = getNetworkByChainId(chainId);
-        if (network) {
-            chainIndicator.innerHTML = `⛓️ ${network.name}`;
-        }
+        updateChainIndicator(chainId);
 
         const tokens = TOKENS[chainId] || [];
         fromToken = tokens[0] || null;
@@ -880,7 +989,7 @@
             const logo = getTokenLogo(t.symbol);
             btn.innerHTML = logo 
                 ? `<img src="${logo}" alt="${t.symbol}" onerror="this.style.display='none'"><span>${t.symbol}</span>`
-                : `<span class="token-img-placeholder" style="width:18px;height:18px;font-size:8px;">${t.symbol.slice(0,3)}</span><span>${t.symbol}</span>`;
+                : `<span class="placeholder-sm">${t.symbol.slice(0,3)}</span><span>${t.symbol}</span>`;
             btn.onclick = () => selectToken(t, activePickerSide);
             if (activePickerSide === 'from' && fromToken && fromToken.symbol === t.symbol) {
                 btn.classList.add('active');
@@ -969,7 +1078,7 @@
             if (currentNetwork) {
                 selectedChain = currentNetwork.id;
                 selectNetwork(selectedChain);
-                chainIndicator.innerHTML = `⛓️ ${currentNetwork.name}`;
+                updateChainIndicator(selectedChain);
             }
 
             statusMsg.innerText = '✅ Connected: ' + account.slice(0,6) + '...' + account.slice(-4);
@@ -1007,7 +1116,7 @@
     }
 
     // ============================================================
-    // BALANCES - FIXED
+    // BALANCES - COMPLETELY FIXED
     // ============================================================
     async function loadBalances() {
         if (!account || !provider) return;
@@ -1015,7 +1124,7 @@
         try {
             // Load from token balance
             if (fromToken) {
-                if (fromToken.addr === '0x0000000000000000000000000000000000000000') {
+                if (fromToken.isNative || fromToken.addr === '0x0000000000000000000000000000000000000000') {
                     const bal = await provider.getBalance(account);
                     const balFormatted = parseFloat(ethers.formatEther(bal));
                     fromBalance.textContent = balFormatted > 0.0001 ? balFormatted.toFixed(4) : '< 0.0001';
@@ -1035,7 +1144,7 @@
 
             // Load to token balance
             if (toToken) {
-                if (toToken.addr === '0x0000000000000000000000000000000000000000') {
+                if (toToken.isNative || toToken.addr === '0x0000000000000000000000000000000000000000') {
                     const bal = await provider.getBalance(account);
                     const balFormatted = parseFloat(ethers.formatEther(bal));
                     toBalance.textContent = balFormatted > 0.0001 ? balFormatted.toFixed(4) : '< 0.0001';
