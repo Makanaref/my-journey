@@ -28,6 +28,7 @@
     .copy-btn:hover { color: #fff; }
     .badge { display: inline-block; background: rgba(233,69,96,0.15); border: 1px solid rgba(233,69,96,0.3); color: #e94560; padding: 3px 10px; border-radius: 20px; font-size: 0.75em; margin-left: 8px; vertical-align: middle; }
     .hidden { display: none; }
+    .error-msg { color: #e94560; background: rgba(233,69,96,0.1); border: 1px solid rgba(233,69,96,0.2); padding: 8px 12px; border-radius: 8px; margin-top: 8px; }
 </style>
 
 <div class="b20-wrap">
@@ -157,6 +158,37 @@
         "function hasRole(bytes32 role, address account) view returns (bool)"
     ];
 
+    // تابع کمکی برای نمایش ارورهای خفن و ساده
+    function showUserFriendlyError(error, statusElement) {
+        console.error("Raw error:", error);
+        
+        // چک کردن ارور گاز
+        if (error.code === 'CALL_EXCEPTION' || error.message?.includes('execution reverted')) {
+            // چک کردن برای ارور گاز
+            if (error.message?.includes('insufficient funds') || 
+                error.message?.includes('gas') ||
+                error.data?.includes('4b344b11')) { // این هگز مخصوص ارور گازه
+                statusElement.innerHTML = '⚠️ <b>Not enough ETH for gas!</b><br>Charge your wallet dude!';
+                return;
+            }
+            
+            // ارورهای دیگه
+            if (error.message?.includes('user rejected')) {
+                statusElement.innerHTML = '⛔ Transaction rejected by user';
+                return;
+            }
+        }
+        
+        // ارورهای شبکه
+        if (error.code === 'NETWORK_ERROR' || error.message?.includes('network')) {
+            statusElement.innerHTML = '🌐 Network error! Check your connection.';
+            return;
+        }
+        
+        // ارورهای دیگه با یه پیام ساده
+        statusElement.innerHTML = '❌ Transaction failed: ' + (error.reason || error.message || 'Unknown error').slice(0, 100);
+    }
+
     function switchTab(tab) {
         document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
         document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
@@ -183,7 +215,9 @@
             document.getElementById("wallet-info").style.display = "block";
             document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
             document.getElementById("main-section").style.display = "block";
-        } catch (err) { alert("Failed: " + err.message); }
+        } catch (err) { 
+            alert("Failed: " + err.message); 
+        }
     }
 
     async function loadToken() {
@@ -209,7 +243,7 @@
             document.getElementById("burn-card").style.display = "block";
             document.getElementById("load-status").innerText = "Token loaded ✅";
         } catch (err) {
-            document.getElementById("load-status").innerText = "Failed: " + err.message;
+            showUserFriendlyError(err, document.getElementById("load-status"));
         }
     }
 
@@ -217,15 +251,16 @@
         const to = document.getElementById("transfer-to").value.trim();
         const amount = document.getElementById("transfer-amount").value;
         if (!to || !amount) { alert("Fill all fields!"); return; }
-        document.getElementById("transfer-status").innerText = "Sending...";
+        const statusEl = document.getElementById("transfer-status");
+        statusEl.innerText = "Sending...";
         try {
             const feeData = await provider.getFeeData();
             const tx = await tokenContract.transfer(to, ethers.parseUnits(amount, tokenDecimals), { gasPrice: feeData.gasPrice });
             await tx.wait();
-            document.getElementById("transfer-status").innerText = "Transfer confirmed ✅";
+            statusEl.innerText = "Transfer confirmed ✅";
             await loadToken();
         } catch (err) {
-            document.getElementById("transfer-status").innerText = "Failed: " + (err.reason || err.message);
+            showUserFriendlyError(err, statusEl);
         }
     }
 
@@ -233,15 +268,16 @@
         const to = document.getElementById("mint-to").value.trim();
         const amount = document.getElementById("mint-amount").value;
         if (!to || !amount) { alert("Fill all fields!"); return; }
-        document.getElementById("mint-status").innerText = "Minting...";
+        const statusEl = document.getElementById("mint-status");
+        statusEl.innerText = "Minting...";
         try {
             const feeData = await provider.getFeeData();
             const tx = await tokenContract.mint(to, ethers.parseUnits(amount, tokenDecimals), { gasPrice: feeData.gasPrice });
             await tx.wait();
-            document.getElementById("mint-status").innerText = "Minted ✅";
+            statusEl.innerText = "Minted ✅";
             await loadToken();
         } catch (err) {
-            document.getElementById("mint-status").innerText = "Failed: " + (err.reason || err.message);
+            showUserFriendlyError(err, statusEl);
         }
     }
 
@@ -252,7 +288,8 @@
             return;
         }
 
-        document.getElementById("burn-status").innerText = "Checking permissions...";
+        const statusEl = document.getElementById("burn-status");
+        statusEl.innerText = "Checking permissions...";
         const burnBtn = document.getElementById("burn-btn");
         burnBtn.disabled = true;
 
@@ -270,7 +307,7 @@
 
             // 2. If doesn't have BURN_ROLE, try to grant it (if admin)
             if (!hasBurnRole) {
-                document.getElementById("burn-status").innerText = "Granting BURN_ROLE...";
+                statusEl.innerText = "Granting BURN_ROLE...";
                 try {
                     const grantRoleInterface = new ethers.Interface([
                         "function grantRole(bytes32 role, address account)"
@@ -284,10 +321,10 @@
                         gasPrice: feeData.gasPrice
                     });
                     await grantTx.wait();
-                    document.getElementById("burn-status").innerText = "BURN_ROLE granted! ✅";
+                    statusEl.innerText = "BURN_ROLE granted! ✅";
                 } catch (grantErr) {
                     console.error("Grant error:", grantErr);
-                    document.getElementById("burn-status").innerHTML = "❌ <b>Cannot grant BURN_ROLE!</b><br><small>You need to be DEFAULT_ADMIN to grant roles.</small>";
+                    showUserFriendlyError(grantErr, statusEl);
                     burnBtn.disabled = false;
                     return;
                 }
@@ -296,39 +333,27 @@
             // 3. Check balance
             const balance = await tokenContract.balanceOf(account);
             if (balance < burnAmount) {
-                document.getElementById("burn-status").innerText = "❌ Insufficient balance!";
+                statusEl.innerText = "❌ Insufficient balance!";
                 burnBtn.disabled = false;
                 return;
             }
 
             // 4. Execute burn
-            document.getElementById("burn-status").innerText = "Burning...";
+            statusEl.innerText = "Burning...";
             const feeData = await provider.getFeeData();
             const tx = await tokenContract.burn(burnAmount, {
                 gasPrice: feeData.gasPrice || undefined
             });
 
-            document.getElementById("burn-status").innerText = "⏳ Waiting for confirmation...";
+            statusEl.innerText = "⏳ Waiting for confirmation...";
             await tx.wait();
 
-            document.getElementById("burn-status").innerText = "✅ Burned successfully!";
+            statusEl.innerText = "✅ Burned successfully!";
             await loadToken();
 
         } catch (err) {
             console.error("Burn error:", err);
-            let errorMsg = err.reason || err.message || "Unknown error";
-
-            // Check for specific B20 error codes
-            if (err.data) {
-                // 0xe2517d3f is "MissingRole" error in B20
-                if (err.data.includes("0xe2517d3f")) {
-                    document.getElementById("burn-status").innerHTML = "❌ <b>You don't have BURN_ROLE!</b><br><small>Try granting the role first.</small>";
-                } else {
-                    document.getElementById("burn-status").innerText = "❌ Failed: " + errorMsg;
-                }
-            } else {
-                document.getElementById("burn-status").innerText = "❌ Failed: " + errorMsg;
-            }
+            showUserFriendlyError(err, statusEl);
         }
         burnBtn.disabled = false;
     }
@@ -428,11 +453,6 @@
                 );
             }
 
-            console.log("=== DEPLOYMENT DEBUG ===");
-            console.log("Type:", deployType);
-            console.log("Factory:", B20_FACTORY);
-            console.log("Params encoded:", params);
-
             const initCalls = [];
 
             const grantRoleInterface = new ethers.Interface([
@@ -484,20 +504,7 @@
 
         } catch (err) {
             console.error("Full error:", err);
-            let errorMsg = err.message;
-            if (err.data) {
-                try {
-                    if (err.data.startsWith("0x")) {
-                        const hexStr = err.data.slice(2);
-                        const bytes = new Uint8Array(hexStr.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-                        const decoded = new TextDecoder().decode(bytes);
-                        if (decoded) errorMsg = decoded;
-                    }
-                } catch {
-                    errorMsg = err.data;
-                }
-            }
-            statusEl.innerText = "Failed: " + (err.reason || errorMsg || "Unknown error");
+            showUserFriendlyError(err, statusEl);
         }
         document.getElementById("deploy-btn").disabled = false;
     }
