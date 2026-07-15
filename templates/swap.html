@@ -792,6 +792,32 @@
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script>
+
+        function getFriendlyError(err) {
+            const raw = ((err && (err.reason || err.message)) || "").toString();
+            const msg = raw.toLowerCase();
+
+            if (msg.includes("already known") || msg.includes("nonce too low")) {
+                return "This transaction was already submitted. Please wait a moment.";
+            }
+            if (msg.includes("insufficient funds")) {
+                return "Insufficient balance to complete this transaction.";
+            }
+            if (msg.includes("user rejected") || msg.includes("user denied") || msg.includes("action_rejected")) {
+                return "Transaction was rejected.";
+            }
+            if (msg.includes("gas required exceeds") || msg.includes("out of gas")) {
+                return "Estimated gas cost is too high. Please try again.";
+            }
+            if (msg.includes("execution reverted")) {
+                return "Transaction was reverted by the contract.";
+            }
+            if (msg.includes("network") || msg.includes("timeout")) {
+                return "Network connection issue. Please check your connection and try again.";
+            }
+            return "Something went wrong. Please try again.";
+        }
+
     // ============================================================
     // CONFIGURATION - ALL NETWORKS SUPPORTED
     // ============================================================
@@ -1351,7 +1377,7 @@
             await loadBalances();
 
         } catch (err) {
-            statusMsg.innerText = '❌ ' + (err.message || 'Connection failed');
+            statusMsg.innerText = '❌ ' + (getFriendlyError(err));
             statusMsg.className = 'status-msg error';
             swapBtn.innerHTML = 'Connect Wallet';
             swapBtn.disabled = false;
@@ -1438,7 +1464,8 @@
         }
 
         if (!isNetworkSupported(selectedChain)) {
-            statusMsg.innerText = `⚠️ ${getNetworkByChainId(selectedChain)?.name || 'This network'} is not supported for swaps yet`;
+            const _net = getNetworkByChainId(selectedChain);
+            statusMsg.innerText = `⚠️ ${(_net && _net.name) || 'This network'} is not supported for swaps yet`;
             statusMsg.className = 'status-msg error';
             return;
         }
@@ -1494,13 +1521,13 @@
                     const rate = (toAmountValue / parseFloat(amount)).toFixed(4);
                     rateDisplay.textContent = `1 ${fromToken.symbol} ≈ ${rate} ${toToken.symbol}`;
 
-                    routeDisplay.textContent = data.toolDetails?.name || data.tool || apiUsed;
-                    const duration = data.estimate?.executionDuration || data.executionDuration || 30;
+                    routeDisplay.textContent = (data.toolDetails && data.toolDetails.name) || data.tool || apiUsed;
+                    const duration = (data.estimate && data.estimate.executionDuration) || data.executionDuration || 30;
                     timeDisplay.textContent = Math.ceil(duration / 60) + ' min';
 
-                    const fee = data.estimate?.fee || data.fee || {};
-                    const gasCost = data.estimate?.gasCost || data.gasCost || 0;
-                    const protocolFee = data.estimate?.protocolFee || data.protocolFee || 0;
+                    const fee = (data.estimate && data.estimate.fee) || data.fee || {};
+                    const gasCost = (data.estimate && data.estimate.gasCost) || data.gasCost || 0;
+                    const protocolFee = (data.estimate && data.estimate.protocolFee) || data.protocolFee || 0;
 
                     const feeUsd = fee.amountUSD || 0;
                     const totalUsd = quoteData.toAmountUSD || 0;
@@ -1537,7 +1564,7 @@
                 }
             } catch (err) {
                 console.error('Quote fetch error:', err);
-                statusMsg.innerText = '⚠️ Failed to get quote: ' + (err.message || 'Unknown error');
+                statusMsg.innerText = '⚠️ Failed to get quote: ' + (getFriendlyError(err));
                 statusMsg.className = 'status-msg error';
                 routeInfo.classList.remove('open');
                 swapBtn.innerHTML = 'Swap';
@@ -1600,7 +1627,7 @@
 
         } catch (err) {
             console.error('Swap error:', err);
-            statusMsg.innerText = '❌ ' + (err.reason || err.message || 'Swap failed');
+            statusMsg.innerText = '❌ ' + (getFriendlyError(err));
             statusMsg.className = 'status-msg error';
             swapBtn.innerHTML = 'Swap';
         }

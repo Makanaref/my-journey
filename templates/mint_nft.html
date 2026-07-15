@@ -274,6 +274,32 @@
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script>
+
+        function getFriendlyError(err) {
+            const raw = ((err && (err.reason || err.message)) || "").toString();
+            const msg = raw.toLowerCase();
+
+            if (msg.includes("already known") || msg.includes("nonce too low")) {
+                return "This transaction was already submitted. Please wait a moment.";
+            }
+            if (msg.includes("insufficient funds")) {
+                return "Insufficient balance to complete this transaction.";
+            }
+            if (msg.includes("user rejected") || msg.includes("user denied") || msg.includes("action_rejected")) {
+                return "Transaction was rejected.";
+            }
+            if (msg.includes("gas required exceeds") || msg.includes("out of gas")) {
+                return "Estimated gas cost is too high. Please try again.";
+            }
+            if (msg.includes("execution reverted")) {
+                return "Transaction was reverted by the contract.";
+            }
+            if (msg.includes("network") || msg.includes("timeout")) {
+                return "Network connection issue. Please check your connection and try again.";
+            }
+            return "Something went wrong. Please try again.";
+        }
+
     let provider, signer, account, factoryContract, collectionContract, currentNet, currentCollectionAddress;
     let uploadedImageUrl = null;
 
@@ -471,7 +497,7 @@
             const urlParams = getUrlParams();
             await loadMintView(currentCollectionAddress, urlParams.meta);
         } catch (err) {
-            const errMsg = err.reason || err.message || "";
+            const errMsg = getFriendlyError(err);
 if (errMsg.includes("max fee per gas less than block base fee") || errMsg.includes("maxFeePerGas")) {
     statusEl.innerText = "Gas fee too low. Please increase the gas fee in MetaMask (select at least Low).";
 } else {
@@ -620,7 +646,7 @@ if (errMsg.includes("max fee per gas less than block base fee") || errMsg.includ
 
             await loadMyCollections();
         } catch (err) {
-            const errMsg = err.reason || err.message || "";
+            const errMsg = getFriendlyError(err);
 if (errMsg.includes("max fee per gas less than block base fee") || errMsg.includes("maxFeePerGas")) {
     statusEl.innerText = "Gas fee too low. Please increase the gas fee in MetaMask (select at least Low).";
 } else {
@@ -717,7 +743,7 @@ if (errMsg.includes("max fee per gas less than block base fee") || errMsg.includ
             statusEl.innerText = "Minted ✅";
             await loadCollectionDetails(currentCollectionAddress);
         } catch (err) {
-            const errMsg = err.reason || err.message || "";
+            const errMsg = getFriendlyError(err);
 if (errMsg.includes("max fee per gas less than block base fee") || errMsg.includes("maxFeePerGas")) {
     statusEl.innerText = "Gas fee too low. Please increase the gas fee in MetaMask (select at least Low).";
 } else {
@@ -783,7 +809,7 @@ const events = await c.queryFilter(c.filters.Transfer(null, account), fromBlock,
             alert("Sent!");
             await loadMyTokensInCollection(addr);
         } catch (err) {
-            alert("Failed: " + (err.reason || err.message || "unknown error"));
+            alert("Failed: " + (getFriendlyError(err)));
         }
     }
 
@@ -799,7 +825,7 @@ const events = await c.queryFilter(c.filters.Transfer(null, account), fromBlock,
             await loadCollectionDetails(addr);
         await loadMyTokensInCollection(addr);
         } catch (err) {
-            alert("Failed: " + (err.reason || err.message || "unknown error"));
+            alert("Failed: " + (getFriendlyError(err)));
         }
     }
 async function getMyTokenIds() {
@@ -841,7 +867,7 @@ async function burnMultiple() {
         document.getElementById("burn-count").value = "";
         await loadCollectionDetails(currentCollectionAddress);
     } catch (err) {
-        const errMsg = err.reason || err.message || "";
+        const errMsg = getFriendlyError(err);
 if (errMsg.includes("max fee per gas less than block base fee") || errMsg.includes("maxFeePerGas")) {
     statusEl.innerText = "Gas fee too low. Please increase the gas fee in MetaMask (select at least Low).";
 } else {
@@ -874,7 +900,7 @@ async function sendMultiple() {
         document.getElementById("send-to-address").value = "";
         await loadCollectionDetails(currentCollectionAddress);
     } catch (err) {
-        const errMsg = err.reason || err.message || "";
+        const errMsg = getFriendlyError(err);
 if (errMsg.includes("max fee per gas less than block base fee") || errMsg.includes("maxFeePerGas")) {
     statusEl.innerText = "Gas fee too low. Please increase the gas fee in MetaMask (select at least Low).";
 } else {

@@ -251,6 +251,32 @@
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script>
+
+        function getFriendlyError(err) {
+            const raw = ((err && (err.reason || err.message)) || "").toString();
+            const msg = raw.toLowerCase();
+
+            if (msg.includes("already known") || msg.includes("nonce too low")) {
+                return "This transaction was already submitted. Please wait a moment.";
+            }
+            if (msg.includes("insufficient funds")) {
+                return "Insufficient balance to complete this transaction.";
+            }
+            if (msg.includes("user rejected") || msg.includes("user denied") || msg.includes("action_rejected")) {
+                return "Transaction was rejected.";
+            }
+            if (msg.includes("gas required exceeds") || msg.includes("out of gas")) {
+                return "Estimated gas cost is too high. Please try again.";
+            }
+            if (msg.includes("execution reverted")) {
+                return "Transaction was reverted by the contract.";
+            }
+            if (msg.includes("network") || msg.includes("timeout")) {
+                return "Network connection issue. Please check your connection and try again.";
+            }
+            return "Something went wrong. Please try again.";
+        }
+
     let provider, signer, account, factoryContract, tokenContract, currentNet, currentTokenAddress;
 
     const FACTORY_ADDRESSES = {
@@ -355,7 +381,7 @@
             document.getElementById("tok-supply").value = "";
             await loadMyTokens();
         } catch (err) {
-            document.getElementById("create-status").innerText = "Failed: " + (err.reason || err.message || "unknown error");
+            document.getElementById("create-status").innerText = "Failed: " + (getFriendlyError(err));
         }
         btn.disabled = false;
     }
@@ -518,7 +544,7 @@
             document.getElementById("transfer-amount").value = "";
             await loadSelectedToken();
         } catch (err) {
-            document.getElementById("manage-status").innerText = "Failed: " + (err.reason || err.message || "unknown error");
+            document.getElementById("manage-status").innerText = "Failed: " + (getFriendlyError(err));
         }
     }
 
@@ -537,7 +563,7 @@
             document.getElementById("mint-amount").value = "";
             await loadSelectedToken();
         } catch (err) {
-            document.getElementById("manage-status").innerText = "Failed: " + (err.reason || err.message || "unknown error");
+            document.getElementById("manage-status").innerText = "Failed: " + (getFriendlyError(err));
         }
     }
 
@@ -556,7 +582,7 @@
             document.getElementById("burn-amount").value = "";
             await loadSelectedToken();
         } catch (err) {
-            document.getElementById("manage-status").innerText = "Failed: " + (err.reason || err.message || "unknown error");
+            document.getElementById("manage-status").innerText = "Failed: " + (getFriendlyError(err));
         }
     }
 </script>

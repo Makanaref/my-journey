@@ -260,6 +260,32 @@
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script>
+
+        function getFriendlyError(err) {
+            const raw = ((err && (err.reason || err.message)) || "").toString();
+            const msg = raw.toLowerCase();
+
+            if (msg.includes("already known") || msg.includes("nonce too low")) {
+                return "This transaction was already submitted. Please wait a moment.";
+            }
+            if (msg.includes("insufficient funds")) {
+                return "Insufficient balance to complete this transaction.";
+            }
+            if (msg.includes("user rejected") || msg.includes("user denied") || msg.includes("action_rejected")) {
+                return "Transaction was rejected.";
+            }
+            if (msg.includes("gas required exceeds") || msg.includes("out of gas")) {
+                return "Estimated gas cost is too high. Please try again.";
+            }
+            if (msg.includes("execution reverted")) {
+                return "Transaction was reverted by the contract.";
+            }
+            if (msg.includes("network") || msg.includes("timeout")) {
+                return "Network connection issue. Please check your connection and try again.";
+            }
+            return "Something went wrong. Please try again.";
+        }
+
     /* === LAMPS === */
     const LAMP_CFG = [
         {w:44,s:20,g:60},{w:64,s:24,g:72},{w:34,s:18,g:54},
@@ -380,7 +406,7 @@
             await loadStats();
             await loadLeaderboard();
         } catch (err) {
-            const reason = err.reason || err.message || "";
+            const reason = getFriendlyError(err);
             if (reason.includes("Already said GM today")) {
                 document.getElementById("tx-status").innerText = "Once a day. Come back tomorrow 🌅";
             } else {
