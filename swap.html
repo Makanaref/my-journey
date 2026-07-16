@@ -1,294 +1,386 @@
 {% extends "base.html" %}
+
 {% block title %}Swap - Multi-Chain DEX{% endblock %}
 
 {% block content %}
+
 <style>
+
+.swap-container {
+    position: relative;
+    background: linear-gradient(180deg, #16161f 0%, #101018 100%);
+    border-radius: 28px;
+    padding: 32px;
+    max-width: 480px;
+    width: 100%;
+    border: 1px solid #2a2a3e;
+    box-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+        0 1px 0 rgba(255, 255, 255, 0.04) inset;
+    margin: 40px auto;
+    overflow: hidden;
+}
+
+.swap-container::before {
+    content: "";
+    position: absolute;
+    top: -120px;
+    right: -120px;
+    width: 260px;
+    height: 260px;
+    background: radial-gradient(circle, rgba(106, 74, 247, 0.18) 0%, rgba(106, 74, 247, 0) 70%);
+    pointer-events: none;
+}
+
+.swap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    position: relative;
+    z-index: 1;
+}
+
+.swap-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    background: linear-gradient(135deg, #f0f0f5, #a8a8c0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.network-selector {
+    background: #1c1c2c;
+    border: 1px solid #2e2e42;
+    border-radius: 12px;
+    padding: 7px 14px;
+    color: #c4c4d8;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.network-selector:hover {
+    border-color: #4a4a6a;
+    background: #26263a;
+}
+
+.network-selector:focus {
+    border-color: #6a4af7;
+    box-shadow: 0 0 0 3px rgba(106, 74, 247, 0.15);
+}
+
+.swap-box {
+    background: #0d0d15;
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 4px;
+    border: 1px solid #212132;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.swap-box:focus-within {
+    border-color: #5a6cf7;
+    background: #0f0f19;
+}
+
+.swap-box-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #7d7d96;
+    margin-bottom: 10px;
+    letter-spacing: 0.01em;
+}
+
+.swap-box-label span:last-child {
+    color: #9494ac;
+    font-variant-numeric: tabular-nums;
+}
+
+.swap-box-input {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.swap-box-input input {
+    background: transparent;
+    border: none;
+    color: #f0f0f8;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    width: 100%;
+    outline: none;
+    padding: 4px 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.swap-box-input input::placeholder {
+    color: #3a3a4e;
+}
+
+.token-selector {
+    background: #1e1e30;
+    border: 1px solid #2e2e46;
+    border-radius: 30px;
+    padding: 6px 14px 6px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 600;
+    color: #e0e0f0;
+    flex-shrink: 0;
+}
+
+.token-selector:hover {
+    background: #292944;
+    border-color: #43436a;
+    transform: translateY(-1px);
+}
+
+.token-selector img {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #2a2a40;
+    border: 1px solid #38384f;
+}
+
+.token-selector .arrow-down {
+    font-size: 10px;
+    color: #6c6c88;
+}
+
+.swap-arrow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: -6px auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: #14141f;
+    border: 4px solid #16161f;
+    color: #8888ac;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    z-index: 2;
+}
+
+.swap-arrow:hover {
+    color: #cfcfe8;
+    background: #1e1e30;
+    border-color: #1e1e2e;
+    transform: rotate(180deg);
+}
+
+.swap-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #6c6c86;
+    padding: 9px 4px;
+    position: relative;
+    z-index: 1;
+}
+
+.swap-info:first-of-type {
+    margin-top: 14px;
+    border-top: 1px solid #1c1c2a;
+    padding-top: 14px;
+}
+
+.swap-info .value {
+    color: #b0b0c8;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+.swap-button {
+    background: linear-gradient(135deg, #4a6cf7, #6a4af7);
+    border: none;
+    color: white;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    padding: 17px;
+    border-radius: 16px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 18px;
+    box-shadow: 0 6px 24px rgba(74, 108, 247, 0.3);
+    position: relative;
+    z-index: 1;
+}
+
+.swap-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 32px rgba(74, 108, 247, 0.4);
+    background: linear-gradient(135deg, #5a7cf7, #7a5af7);
+}
+
+.swap-button:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.swap-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.supported-networks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 20px;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+.network-badge {
+    background: #1a1a2a;
+    border: 1px solid #2a2a3e;
+    border-radius: 20px;
+    padding: 5px 13px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #7d7d96;
+    transition: all 0.2s ease;
+    cursor: default;
+}
+
+.network-badge.active {
+    border-color: #6a4af7;
+    color: #d4d4f0;
+    background: linear-gradient(135deg, rgba(74, 108, 247, 0.18), rgba(106, 74, 247, 0.18));
+    box-shadow: 0 0 0 1px rgba(106, 74, 247, 0.15) inset;
+}
+
+.light .swap-container {
+    background: linear-gradient(180deg, #efece6 0%, #e6e2da 100%);
+    border-color: #d4d0c8;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.1), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+
+.light .swap-container::before {
+    background: radial-gradient(circle, rgba(74, 108, 247, 0.10) 0%, rgba(74, 108, 247, 0) 70%);
+}
+
+.light .swap-box {
+    background: #f5f1eb;
+    border-color: #ddd8ce;
+}
+
+.light .swap-box:focus-within {
+    background: #f8f5f0;
+    border-color: #5a6cf7;
+}
+
+.light .swap-box-input input {
+    color: #1a1a2e;
+}
+
+.light .swap-box-label {
+    color: #767066;
+}
+
+.light .swap-box-label span:last-child {
+    color: #4a453e;
+}
+
+.light .swap-info {
+    color: #8a847a;
+}
+
+.light .swap-info:first-of-type {
+    border-top-color: #ddd8ce;
+}
+
+.light .swap-info .value {
+    color: #302c26;
+}
+
+.light .token-selector {
+    background: #e6e1d8;
+    border-color: #d0cabf;
+    color: #1a1a2e;
+}
+
+.light .token-selector:hover {
+    background: #dbd5c9;
+    border-color: #c0b9ac;
+}
+
+.light .network-selector {
+    background: #e6e1d8;
+    border-color: #d0cabf;
+    color: #1a1a2e;
+}
+
+.light .swap-header h1 {
+    background: linear-gradient(135deg, #1a1a2e, #4a3f35);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.light .network-badge {
+    background: #e6e1d8;
+    border-color: #d0cabf;
+    color: #767066;
+}
+
+.light .network-badge.active {
+    border-color: #4a6cf7;
+    color: #1a1a2e;
+    background: linear-gradient(135deg, rgba(74, 108, 247, 0.15), rgba(106, 74, 247, 0.15));
+}
+
+.light .swap-arrow {
+    background: #efece6;
+    border-color: #efece6;
+    color: #8a847a;
+}
+
+.light .swap-arrow:hover {
+    color: #4a6cf7;
+    background: #dbe0fb;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
     .swap-container {
-        background: #14141e;
-        border-radius: 24px;
-        padding: 32px;
-        max-width: 480px;
-        width: 100%;
-        border: 1px solid #2a2a3a;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-        margin: 40px auto;
-    }
-
-    .swap-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 28px;
-    }
-
-    .swap-header h1 {
-        font-size: 24px;
-        font-weight: 600;
-        background: linear-gradient(135deg, #e0e0e0, #a0a0b0);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    .network-selector {
-        background: #1e1e2e;
-        border: 1px solid #2e2e42;
-        border-radius: 12px;
-        padding: 6px 12px;
-        color: #c0c0d0;
-        font-size: 14px;
-        cursor: pointer;
-        outline: none;
-        transition: all 0.2s;
-    }
-
-    .network-selector:hover {
-        border-color: #4a4a6a;
-        background: #28283a;
-    }
-
-    .swap-box {
-        background: #0e0e16;
-        border-radius: 16px;
-        padding: 16px;
-        margin-bottom: 12px;
-        border: 1px solid #222233;
-        transition: border 0.2s;
-    }
-
-    .swap-box:focus-within {
-        border-color: #4a6cf7;
-    }
-
-    .swap-box-label {
-        display: flex;
-        justify-content: space-between;
-        font-size: 14px;
-        color: #8888a0;
-        margin-bottom: 8px;
-    }
-
-    .swap-box-input {
-        display: flex;
-        align-items: center;
-        gap: 12px;
+        padding: 22px;
+        margin: 20px auto;
+        border-radius: 22px;
     }
 
     .swap-box-input input {
-        background: transparent;
-        border: none;
-        color: #e0e0f0;
-        font-size: 24px;
-        font-weight: 500;
-        width: 100%;
-        outline: none;
-        padding: 4px 0;
+        font-size: 21px;
     }
+}
 
-    .swap-box-input input::placeholder {
-        color: #44445a;
-    }
-
-    .token-selector {
-        background: #1a1a2a;
-        border: 1px solid #2a2a3e;
-        border-radius: 30px;
-        padding: 6px 14px 6px 10px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-        white-space: nowrap;
-        font-size: 14px;
-        font-weight: 500;
-        color: #d0d0e0;
-        flex-shrink: 0;
-    }
-
-    .token-selector:hover {
-        background: #252540;
-        border-color: #3a3a5a;
-    }
-
-    .token-selector img {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: #2a2a40;
-    }
-
-    .token-selector .arrow-down {
-        font-size: 10px;
-        color: #666680;
-    }
-
-    .swap-arrow {
-        display: flex;
-        justify-content: center;
-        margin: 8px 0;
-        color: #444460;
-        font-size: 20px;
-        cursor: pointer;
-        transition: all 0.2s;
-        padding: 4px;
-    }
-
-    .swap-arrow:hover {
-        color: #6a6a8a;
-        transform: scale(1.1);
-    }
-
-    .swap-info {
-        display: flex;
-        justify-content: space-between;
-        font-size: 13px;
-        color: #666680;
-        padding: 8px 4px;
-        margin-top: 8px;
-        border-top: 1px solid #1a1a28;
-    }
-
-    .swap-info .value {
-        color: #a0a0b8;
-    }
-
-    .swap-button {
-        background: linear-gradient(135deg, #4a6cf7, #6a4af7);
-        border: none;
-        color: white;
-        font-size: 18px;
-        font-weight: 600;
-        padding: 16px;
-        border-radius: 30px;
-        width: 100%;
-        cursor: pointer;
-        transition: all 0.2s;
-        margin-top: 16px;
-        box-shadow: 0 4px 20px rgba(74, 108, 247, 0.25);
-    }
-
-    .swap-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(74, 108, 247, 0.35);
-        background: linear-gradient(135deg, #5a7cf7, #7a5af7);
-    }
-
-    .swap-button:active {
-        transform: scale(0.98);
-    }
-
-    .swap-button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    .supported-networks {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 16px;
-        justify-content: center;
-    }
-
-    .network-badge {
-        background: #1a1a2a;
-        border: 1px solid #2a2a3e;
-        border-radius: 20px;
-        padding: 4px 12px;
-        font-size: 11px;
-        color: #8888a0;
-        transition: all 0.2s;
-    }
-
-    .network-badge.active {
-        border-color: #4a6cf7;
-        color: #b0b0d0;
-        background: #1a1a3a;
-    }
-
-    .light .swap-container {
-        background: #e8e4de;
-        border-color: #ccc;
-    }
-
-    .light .swap-box {
-        background: #f0ece6;
-        border-color: #d0ccc6;
-    }
-
-    .light .swap-box-input input {
-        color: #1a1a2e;
-    }
-
-    .light .swap-box-label {
-        color: #666;
-    }
-
-    .light .swap-info {
-        color: #888;
-        border-top-color: #d0ccc6;
-    }
-
-    .light .swap-info .value {
-        color: #333;
-    }
-
-    .light .token-selector {
-        background: #e0dcd6;
-        border-color: #ccc8c2;
-        color: #1a1a2e;
-    }
-
-    .light .token-selector:hover {
-        background: #d5d1cb;
-    }
-
-    .light .network-selector {
-        background: #e0dcd6;
-        border-color: #ccc8c2;
-        color: #1a1a2e;
-    }
-
-    .light .swap-header h1 {
-        background: linear-gradient(135deg, #1a1a2e, #4a3f35);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    .light .network-badge {
-        background: #e0dcd6;
-        border-color: #ccc8c2;
-        color: #666;
-    }
-
-    .light .network-badge.active {
-        border-color: #4a6cf7;
-        color: #1a1a2e;
-        background: #d0d8f0;
-    }
-
-    .light .swap-arrow {
-        color: #888;
-    }
-
-    .light .swap-arrow:hover {
-        color: #4a6cf7;
-    }
-
-    /* Responsive */
-    @media (max-width: 480px) {
-        .swap-container {
-            padding: 20px;
-            margin: 20px auto;
-        }
-        .swap-box-input input {
-            font-size: 20px;
-        }
-    }
 </style>
 
 <div class="swap-container">
+
     <!-- Header -->
     <div class="swap-header">
         <h1>🔄 Swap</h1>
@@ -367,116 +459,112 @@
         <span class="network-badge">ZetaChain</span>
         <span class="network-badge">Plume</span>
     </div>
+
 </div>
 
 <script>
-    // === JavaScript - Swap Logic ===
-    const networkSelect = document.getElementById('networkSelect');
-    const fromTokenSymbol = document.getElementById('fromTokenSymbol');
-    const toTokenSymbol = document.getElementById('toTokenSymbol');
-    const fromAmount = document.getElementById('fromAmount');
-    const toAmount = document.getElementById('toAmount');
-    const swapArrow = document.getElementById('swapArrow');
-    const swapButton = document.getElementById('swapButton');
-    const rateDisplay = document.getElementById('rateDisplay');
-    const feeDisplay = document.getElementById('feeDisplay');
-    const fromBalance = document.getElementById('fromBalance');
-    const toBalance = document.getElementById('toBalance');
+// === JavaScript - Swap Logic (unchanged) ===
+const networkSelect = document.getElementById('networkSelect');
+const fromTokenSymbol = document.getElementById('fromTokenSymbol');
+const toTokenSymbol = document.getElementById('toTokenSymbol');
+const fromAmount = document.getElementById('fromAmount');
+const toAmount = document.getElementById('toAmount');
+const swapArrow = document.getElementById('swapArrow');
+const swapButton = document.getElementById('swapButton');
+const rateDisplay = document.getElementById('rateDisplay');
+const feeDisplay = document.getElementById('feeDisplay');
+const fromBalance = document.getElementById('fromBalance');
+const toBalance = document.getElementById('toBalance');
 
-    // Mock token list for different networks
-    const networkTokens = {
-        base: { from: 'ETH', to: 'USDC', rate: '1 ETH ≈ 3,500 USDC', fee: '~ $0.10' },
-        ink: { from: 'INK', to: 'USDC', rate: '1 INK ≈ 0.85 USDC', fee: '~ $0.15' },
-        robinhood: { from: 'HOOD', to: 'USDC', rate: '1 HOOD ≈ 1.20 USDC', fee: '~ $0.12' },
-        lamina1: { from: 'L1', to: 'USDC', rate: '1 L1 ≈ 2.10 USDC', fee: '~ $0.20' },
-        avax: { from: 'AVAX', to: 'USDC', rate: '1 AVAX ≈ 40 USDC', fee: '~ $0.30' },
-        nexus: { from: 'NXS', to: 'USDC', rate: '1 NXS ≈ 1.50 USDC', fee: '~ $0.18' },
-        zetachain: { from: 'ZETA', to: 'USDC', rate: '1 ZETA ≈ 0.90 USDC', fee: '~ $0.22' },
-        plume: { from: 'PLUME', to: 'USDC', rate: '1 PLUME ≈ 0.75 USDC', fee: '~ $0.08' }
-    };
+const networkTokens = {
+    base: { from: 'ETH', to: 'USDC', rate: '1 ETH ≈ 3,500 USDC', fee: '~ $0.10' },
+    ink: { from: 'INK', to: 'USDC', rate: '1 INK ≈ 0.85 USDC', fee: '~ $0.15' },
+    robinhood: { from: 'HOOD', to: 'USDC', rate: '1 HOOD ≈ 1.20 USDC', fee: '~ $0.12' },
+    lamina1: { from: 'L1', to: 'USDC', rate: '1 L1 ≈ 2.10 USDC', fee: '~ $0.20' },
+    avax: { from: 'AVAX', to: 'USDC', rate: '1 AVAX ≈ 40 USDC', fee: '~ $0.30' },
+    nexus: { from: 'NXS', to: 'USDC', rate: '1 NXS ≈ 1.50 USDC', fee: '~ $0.18' },
+    zetachain: { from: 'ZETA', to: 'USDC', rate: '1 ZETA ≈ 0.90 USDC', fee: '~ $0.22' },
+    plume: { from: 'PLUME', to: 'USDC', rate: '1 PLUME ≈ 0.75 USDC', fee: '~ $0.08' }
+};
 
-    function updateNetwork() {
-        const network = networkSelect.value;
-        const data = networkTokens[network];
+function updateNetwork() {
+    const network = networkSelect.value;
+    const data = networkTokens[network];
 
-        fromTokenSymbol.textContent = data.from;
-        toTokenSymbol.textContent = data.to;
-        rateDisplay.textContent = data.rate;
-        feeDisplay.textContent = data.fee;
+    fromTokenSymbol.textContent = data.from;
+    toTokenSymbol.textContent = data.to;
+    rateDisplay.textContent = data.rate;
+    feeDisplay.textContent = data.fee;
 
-        document.querySelectorAll('.network-badge').forEach(badge => {
-            badge.classList.toggle('active', badge.textContent.toLowerCase() === network || 
-                                     (network === 'avax' && badge.textContent === 'AVAX'));
-        });
+    document.querySelectorAll('.network-badge').forEach(badge => {
+        badge.classList.toggle('active', badge.textContent.toLowerCase() === network ||
+            (network === 'avax' && badge.textContent === 'AVAX'));
+    });
 
-        fromBalance.textContent = (Math.random() * 10 + 1).toFixed(2);
-        toBalance.textContent = (Math.random() * 1000 + 100).toFixed(2);
-        calculateRate();
-    }
+    fromBalance.textContent = (Math.random() * 10 + 1).toFixed(2);
+    toBalance.textContent = (Math.random() * 1000 + 100).toFixed(2);
 
-    function calculateRate() {
-        const amount = parseFloat(fromAmount.value) || 0;
-        const network = networkSelect.value;
-        const data = networkTokens[network];
-        
-        const rateMatch = data.rate.match(/([\d,]+\.?[\d]*)/);
-        const rate = rateMatch ? parseFloat(rateMatch[0].replace(/,/g, '')) : 1;
-        
-        const result = amount * rate;
-        toAmount.value = result.toFixed(6);
-    }
+    calculateRate();
+}
 
-    function swapTokens() {
-        const tempSymbol = fromTokenSymbol.textContent;
-        fromTokenSymbol.textContent = toTokenSymbol.textContent;
-        toTokenSymbol.textContent = tempSymbol;
+function calculateRate() {
+    const amount = parseFloat(fromAmount.value) || 0;
+    const network = networkSelect.value;
+    const data = networkTokens[network];
+    const rateMatch = data.rate.match(/([\d,]+\.?[\d]*)/);
+    const rate = rateMatch ? parseFloat(rateMatch[0].replace(/,/g, '')) : 1;
+    const result = amount * rate;
+    toAmount.value = result.toFixed(6);
+}
 
-        const tempBalance = fromBalance.textContent;
-        fromBalance.textContent = toBalance.textContent;
-        toBalance.textContent = tempBalance;
+function swapTokens() {
+    const tempSymbol = fromTokenSymbol.textContent;
+    fromTokenSymbol.textContent = toTokenSymbol.textContent;
+    toTokenSymbol.textContent = tempSymbol;
 
-        const tempAmount = fromAmount.value;
-        fromAmount.value = toAmount.value;
-        toAmount.value = tempAmount;
+    const tempBalance = fromBalance.textContent;
+    fromBalance.textContent = toBalance.textContent;
+    toBalance.textContent = tempBalance;
 
-        const network = networkSelect.value;
-        const data = networkTokens[network];
-        rateDisplay.textContent = `1 ${fromTokenSymbol.textContent} ≈ ${(Math.random() * 10 + 1).toFixed(2)} ${toTokenSymbol.textContent}`;
-    }
+    const tempAmount = fromAmount.value;
+    fromAmount.value = toAmount.value;
+    toAmount.value = tempAmount;
 
-    async function handleSwap() {
-        if (swapButton.textContent === 'Connect Wallet') {
-            swapButton.textContent = 'Connecting...';
-            swapButton.disabled = true;
-            
-            setTimeout(() => {
-                swapButton.textContent = 'Swap';
-                swapButton.disabled = false;
-                alert('Wallet connected! (Demo)');
-            }, 1500);
-            return;
-        }
+    rateDisplay.textContent = `1 ${fromTokenSymbol.textContent} ≈ ${(Math.random() * 10 + 1).toFixed(2)} ${toTokenSymbol.textContent}`;
+}
 
-        swapButton.textContent = 'Swapping...';
+async function handleSwap() {
+    if (swapButton.textContent === 'Connect Wallet') {
+        swapButton.textContent = 'Connecting...';
         swapButton.disabled = true;
-
         setTimeout(() => {
             swapButton.textContent = 'Swap';
             swapButton.disabled = false;
-            alert('Swap executed! (Demo)');
-            fromBalance.textContent = (parseFloat(fromBalance.textContent) - parseFloat(fromAmount.value) || 0).toFixed(2);
-            toBalance.textContent = (parseFloat(toBalance.textContent) + parseFloat(toAmount.value) || 0).toFixed(2);
-            fromAmount.value = '';
-            toAmount.value = '';
-        }, 2000);
+            alert('Wallet connected! (Demo)');
+        }, 1500);
+        return;
     }
 
-    networkSelect.addEventListener('change', updateNetwork);
-    fromAmount.addEventListener('input', calculateRate);
-    swapArrow.addEventListener('click', swapTokens);
-    swapButton.addEventListener('click', handleSwap);
+    swapButton.textContent = 'Swapping...';
+    swapButton.disabled = true;
+    setTimeout(() => {
+        swapButton.textContent = 'Swap';
+        swapButton.disabled = false;
+        alert('Swap executed! (Demo)');
+        fromBalance.textContent = (parseFloat(fromBalance.textContent) - parseFloat(fromAmount.value) || 0).toFixed(2);
+        toBalance.textContent = (parseFloat(toBalance.textContent) + parseFloat(toAmount.value) || 0).toFixed(2);
+        fromAmount.value = '';
+        toAmount.value = '';
+    }, 2000);
+}
 
-    updateNetwork();
-    calculateRate();
+networkSelect.addEventListener('change', updateNetwork);
+fromAmount.addEventListener('input', calculateRate);
+swapArrow.addEventListener('click', swapTokens);
+swapButton.addEventListener('click', handleSwap);
+
+updateNetwork();
+calculateRate();
 </script>
+
 {% endblock %}
