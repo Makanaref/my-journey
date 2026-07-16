@@ -344,7 +344,7 @@
             await loadStats();
             await loadLeaderboard();
         } catch (err) {
-            document.getElementById("flip-status").innerText = "Failed: " + (err.reason || err.message || "unknown error");
+            document.getElementById("flip-status").innerText = "Something went wrong, Try again mate!";
         }
         btnHeads.disabled = false;
         btnTails.disabled = false;
