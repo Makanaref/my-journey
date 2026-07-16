@@ -129,6 +129,10 @@
                 <div class="symbol">ZETA</div>
                 <div class="name">ZetaChain</div>
             </div>
+            <div class="net-card" id="net-optimism" onclick="switchNetwork('optimism')">
+                <div class="symbol">OP</div>
+                <div class="name">Optimism</div>
+            </div>
         </div>
     </div>
 
@@ -201,7 +205,8 @@
         ink: "0x0eea7AbDdeDD3Ae52B37Db2e041CC5446D40b5B1",
         avax: "0xD00C4A6854da53E321c3FEca1c10E5F3F59a0d31",
         plume: "0xe8E2F8133d40a20eA030A44f7b8A5eee1519Dc2e",
-        zetachain: "0x5A80759a9Ad738c75b3d0aB5335Ef0357231526a"
+        zetachain: "0x5A80759a9Ad738c75b3d0aB5335Ef0357231526a",
+        optimism: "0xEC76D7a9801Fd7De132b299a36B6E0125802430B"
     };
 
     const BTC_CONTRACTS = {
@@ -210,7 +215,8 @@
         ink: "0xD3864216053A9542293eA747172226967c2c6582",
         avax: "0x8824d39768008611DDd761c70e4217Bc081D5383",
         plume: "0x714afCfd73D9da6A2f5f3Ba1B31Fe818933e29Aa",
-        zetachain: "0x1F5fE1cF942a179DA977d4321a20550F85CfC766"
+        zetachain: "0x1F5fE1cF942a179DA977d4321a20550F85CfC766",
+        optimism: "0x68B33a0Dca3Fe084a85A1aB7EAFA34D9F4aB5400"
     };
 
     const BTC_ABI = [
@@ -236,7 +242,8 @@
         ink: { chainIdHex: "0x" + (57073).toString(16), chainName: "Ink", rpcUrls: ["https://rpc-gel.inkonchain.com"], nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://explorer.inkonchain.com"] },
         avax: { chainIdHex: "0x" + (43114).toString(16), chainName: "Avalanche", rpcUrls: ["https://api.avax.network/ext/bc/C/rpc"], nativeCurrency: { name: "AVAX", symbol: "AVAX", decimals: 18 }, blockExplorerUrls: ["https://snowtrace.io"] },
         plume: { chainIdHex: "0x" + (98866).toString(16), chainName: "Plume", rpcUrls: ["https://rpc.plume.org"], nativeCurrency: { name: "PLUME", symbol: "PLUME", decimals: 18 }, blockExplorerUrls: ["https://explorer.plume.org"] },
-        zetachain: { chainIdHex: "0x" + (7000).toString(16), chainName: "ZetaChain", rpcUrls: ["https://zetachain-evm.blockpi.network/v1/rpc/public"], nativeCurrency: { name: "ZETA", symbol: "ZETA", decimals: 18 }, blockExplorerUrls: ["https://zetachain.blockscout.com"] }
+        zetachain: { chainIdHex: "0x" + (7000).toString(16), chainName: "ZetaChain", rpcUrls: ["https://zetachain-evm.blockpi.network/v1/rpc/public"], nativeCurrency: { name: "ZETA", symbol: "ZETA", decimals: 18 }, blockExplorerUrls: ["https://zetachain.blockscout.com"] },
+        optimism: { chainIdHex: "0x" + (10).toString(16), chainName: "Optimism", rpcUrls: ["https://mainnet.optimism.io"], nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://optimistic.etherscan.io"] }
     };
 
     async function connectWallet() {
@@ -257,7 +264,7 @@
         const config = networks[net];
         try {
             await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
-            ["lamina1","nexus","ink","avax","plume","zetachain"].forEach(n => document.getElementById("net-" + n).classList.remove("active"));
+            ["lamina1","nexus","ink","avax","plume","zetachain","optimism"].forEach(n => document.getElementById("net-" + n).classList.remove("active"));
             document.getElementById("net-" + net).classList.add("active");
             provider = new ethers.BrowserProvider(window.ethereum);
             signer = await provider.getSigner();

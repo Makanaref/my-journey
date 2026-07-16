@@ -160,6 +160,10 @@
                 <div class="symbol">ZETA</div>
                 <div class="name">ZetaChain</div>
             </div>
+            <div class="net-card" id="net-optimism" onclick="switchNetwork('optimism')">
+                <div class="symbol">OP</div>
+                <div class="name">Optimism</div>
+            </div>
         </div>
     </div>
 
@@ -287,7 +291,8 @@
         robinhood: "0x8D9bEa1253501Bb5657e9Bb0B5f39807bAE7C47b",
         avax: "0x5ecDA25Bd340b8684F8A97518F7f9892eC5712CB",
         plume: "0xf74fcdFc71a1B7d493a263E25766223004Bf20f7",
-        zetachain: "0x2ACc1E37Ce6C219c9Fc4Cb5b74c9539fA202471a"
+        zetachain: "0x2ACc1E37Ce6C219c9Fc4Cb5b74c9539fA202471a",
+        optimism: "0x9De98bf808154E247BD588E1cbb873495fb60424"
     };
 
     const FACTORY_ABI = [
@@ -315,7 +320,8 @@
         robinhood: { chainIdHex: "0x" + (4663).toString(16), chainName: "Robinhood Chain", rpcUrls: ["https://rpc.mainnet.chain.robinhood.com"], nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://robinhoodchain.blockscout.com"] },
         avax: { chainIdHex: "0x" + (43114).toString(16), chainName: "Avalanche", rpcUrls: ["https://api.avax.network/ext/bc/C/rpc"], nativeCurrency: { name: "AVAX", symbol: "AVAX", decimals: 18 }, blockExplorerUrls: ["https://snowtrace.io"] },
         plume: { chainIdHex: "0x" + (98866).toString(16), chainName: "Plume", rpcUrls: ["https://rpc.plume.org"], nativeCurrency: { name: "PLUME", symbol: "PLUME", decimals: 18 }, blockExplorerUrls: ["https://explorer.plume.org"] },
-        zetachain: { chainIdHex: "0x" + (7000).toString(16), chainName: "ZetaChain", rpcUrls: ["https://zetachain-evm.blockpi.network/v1/rpc/public"], nativeCurrency: { name: "ZETA", symbol: "ZETA", decimals: 18 }, blockExplorerUrls: ["https://zetachain.blockscout.com"] }
+        zetachain: { chainIdHex: "0x" + (7000).toString(16), chainName: "ZetaChain", rpcUrls: ["https://zetachain-evm.blockpi.network/v1/rpc/public"], nativeCurrency: { name: "ZETA", symbol: "ZETA", decimals: 18 }, blockExplorerUrls: ["https://zetachain.blockscout.com"] },
+        optimism: { chainIdHex: "0x" + (10).toString(16), chainName: "Optimism", rpcUrls: ["https://mainnet.optimism.io"], nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://optimistic.etherscan.io"] }
     };
 
     async function connectWallet() {

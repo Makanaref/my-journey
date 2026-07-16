@@ -155,6 +155,7 @@
             <div class="net-card" id="net-avax" onclick="switchNetwork('avax')"><div class="symbol">AVAX</div><div class="name">Avalanche</div></div>
             <div class="net-card" id="net-plume" onclick="switchNetwork('plume')"><div class="symbol">PLUME</div><div class="name">Plume</div></div>
             <div class="net-card" id="net-zetachain" onclick="switchNetwork('zetachain')"><div class="symbol">ZETA</div><div class="name">ZetaChain</div></div>
+            <div class="net-card" id="net-optimism" onclick="switchNetwork('optimism')"><div class="symbol">OP</div><div class="name">Optimism</div></div>
         </div>
     </div>
 
@@ -314,7 +315,8 @@
         robinhood: "0x620145Db1914c1F9c327FA282BD95b9039647Bc6",
         avax:      "0x01d85BF4fb62c2Ba5746e4BC9821E6a7E05d68f4",
         plume:     "0x9791cDBf9a6AF15C313B49d80299769fB8Bd608D",
-        zetachain: "0xF988CAc77e456e915aFbDC22BBc8c114fbd4Cd96"
+        zetachain: "0xF988CAc77e456e915aFbDC22BBc8c114fbd4Cd96",
+        optimism: "0xCA49ab409836c8301831f9908A86AfcFE20dE6e6"
     };
 
     const FACTORY_ABI = [
@@ -346,7 +348,8 @@
         robinhood: { chainIdHex: "0x" + (4663).toString(16),  chainName: "Robinhood Chain",  rpcUrls: ["https://rpc.mainnet.chain.robinhood.com"],          nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://robinhoodchain.blockscout.com"] },
         avax:      { chainIdHex: "0x" + (43114).toString(16), chainName: "Avalanche",       rpcUrls: ["https://api.avax.network/ext/bc/C/rpc"],            nativeCurrency: { name: "AVAX", symbol: "AVAX", decimals: 18 }, blockExplorerUrls: ["https://snowtrace.io"] },
         plume:     { chainIdHex: "0x" + (98866).toString(16), chainName: "Plume",           rpcUrls: ["https://rpc.plume.org"],                            nativeCurrency: { name: "PLUME", symbol: "PLUME", decimals: 18 }, blockExplorerUrls: ["https://explorer.plume.org"] },
-        zetachain: { chainIdHex: "0x" + (7000).toString(16),  chainName: "ZetaChain",       rpcUrls: ["https://zetachain-evm.blockpi.network/v1/rpc/public"], nativeCurrency: { name: "ZETA", symbol: "ZETA", decimals: 18 }, blockExplorerUrls: ["https://zetachain.blockscout.com"] }
+        zetachain: { chainIdHex: "0x" + (7000).toString(16),  chainName: "ZetaChain",       rpcUrls: ["https://zetachain-evm.blockpi.network/v1/rpc/public"], nativeCurrency: { name: "ZETA", symbol: "ZETA", decimals: 18 }, blockExplorerUrls: ["https://zetachain.blockscout.com"] },
+        optimism: { chainIdHex: "0x" + (10).toString(16), chainName: "Optimism", rpcUrls: ["https://mainnet.optimism.io"], nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://optimistic.etherscan.io"] }
     };
 
     const gasPricePercent = { lamina1: 40, nexus: 8, ink: 13, base: 85, robinhood: 100, avax: 700, plume: 25, zetachain: 100 };

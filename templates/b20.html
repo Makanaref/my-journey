@@ -163,7 +163,7 @@
         console.error("Raw error:", error);
         
         // چک کردن ارور گاز
-        if (error.code === 'CALL_EXCEPTION' || error.message?.includes('execution reverted')) {
+        if (error.code === 'CALL_EXCEPTION' || (error.message && error.message.includes('execution reverted'))) {
             // چک کردن برای ارور گاز
             if (error.message?.includes('insufficient funds') || 
                 error.message?.includes('gas') ||
@@ -173,14 +173,14 @@
             }
             
             // ارورهای دیگه
-            if (error.message?.includes('user rejected')) {
+            if (error.message && error.message.includes('user rejected')) {
                 statusElement.innerHTML = '⛔ Transaction rejected by user';
                 return;
             }
         }
         
         // ارورهای شبکه
-        if (error.code === 'NETWORK_ERROR' || error.message?.includes('network')) {
+        if (error.code === 'NETWORK_ERROR' || (error.message && error.message.includes('network'))) {
             statusElement.innerHTML = '🌐 Network error! Check your connection.';
             return;
         }
@@ -392,7 +392,8 @@
         const cap = document.getElementById("deploy-cap").value.trim();
         const mintRole = document.getElementById("deploy-mint-role").checked;
         const statusEl = document.getElementById("deploy-status");
-        const currency = document.getElementById("deploy-currency")?.value.trim() || "USD";
+        const _curEl = document.getElementById("deploy-currency");
+        const currency = (_curEl && _curEl.value.trim()) || "USD";
 
         if (!name || !symbol) {
             statusEl.innerText = "Please fill name and symbol.";
@@ -494,9 +495,10 @@
             statusEl.innerText = "Confirming transaction...";
             const receipt = await tx.wait();
 
-            const tokenAddress = receipt.logs.find(log =>
+            const _foundLog = receipt.logs.find(log =>
                 log.address.toLowerCase().startsWith("0xb20")
-            )?.address || "Check explorer";
+            );
+            const tokenAddress = (_foundLog && _foundLog.address) || "Check explorer";
 
             document.getElementById("deploy-address").innerText = tokenAddress;
             document.getElementById("deploy-result").style.display = "block";
