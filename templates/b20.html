@@ -255,7 +255,7 @@
         statusEl.innerText = "Sending...";
         try {
             const feeData = await provider.getFeeData();
-            const tx = await tokenContract.transfer(to, ethers.parseUnits(amount, tokenDecimals), { gasPrice: feeData.gasPrice });
+            const tx = await tokenContract.transfer(to, ethers.parseUnits(amount, tokenDecimals), { gasPrice: (feeData.gasPrice * 85n / 100n) });
             await tx.wait();
             statusEl.innerText = "Transfer confirmed ✅";
             await loadToken();
@@ -272,7 +272,7 @@
         statusEl.innerText = "Minting...";
         try {
             const feeData = await provider.getFeeData();
-            const tx = await tokenContract.mint(to, ethers.parseUnits(amount, tokenDecimals), { gasPrice: feeData.gasPrice });
+            const tx = await tokenContract.mint(to, ethers.parseUnits(amount, tokenDecimals), { gasPrice: (feeData.gasPrice * 85n / 100n) });
             await tx.wait();
             statusEl.innerText = "Minted ✅";
             await loadToken();
@@ -318,7 +318,7 @@
                     const grantTx = await signer.sendTransaction({
                         to: tokenContract.target,
                         data: data,
-                        gasPrice: feeData.gasPrice
+                        gasPrice: (feeData.gasPrice * 85n / 100n)
                     });
                     await grantTx.wait();
                     statusEl.innerText = "BURN_ROLE granted! ✅";
@@ -342,7 +342,7 @@
             statusEl.innerText = "Burning...";
             const feeData = await provider.getFeeData();
             const tx = await tokenContract.burn(burnAmount, {
-                gasPrice: feeData.gasPrice || undefined
+                gasPrice: (feeData.gasPrice * 85n / 100n) || undefined
             });
 
             statusEl.innerText = "⏳ Waiting for confirmation...";
@@ -489,7 +489,7 @@
             const tx = await signer.sendTransaction({
                 to: B20_FACTORY,
                 data: data,
-                gasPrice: feeData.gasPrice
+                gasPrice: (feeData.gasPrice * 85n / 100n)
             });
 
             statusEl.innerText = "Confirming transaction...";
