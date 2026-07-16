@@ -316,16 +316,18 @@
             const feeData = await provider.getFeeData();
             let tx;
             if (isDefaultQ) {
-                const isFullFee = ["lamina1", "zetachain"].includes(currentNet);
-                const gasPrice = isFullFee ? feeData.gasPrice : feeData.gasPrice * 25n / 100n;
+                const gasPricePercent = { lamina1: 40, nexus: 8, ink: 13, base: 85, robinhood: 100, avax: 700, plume: 25, zetachain: 100, optimism: 85 };
+                const percent = BigInt(gasPricePercent[currentNet] !== undefined ? gasPricePercent[currentNet] : 25);
+                const gasPrice = feeData.gasPrice * percent / 100n;
                 const overridesBtc = { gasPrice };
                 if (["lamina1", "plume", "avax"].includes(currentNet)) overridesBtc.gasLimit = 150000;
                 tx = isUp
                     ? await btcContract.up(overridesBtc)
                     : await btcContract.down(overridesBtc);
             } else {
-                const isFullFeeMain = ["lamina1", "zetachain"].includes(currentNet);
-                const gasPriceMain = isFullFeeMain ? feeData.gasPrice : feeData.gasPrice * 25n / 100n;
+                const gasPricePercentMain = { lamina1: 40, nexus: 8, ink: 13, base: 85, robinhood: 100, avax: 700, plume: 25, zetachain: 100, optimism: 85 };
+                const percentMain = BigInt(gasPricePercentMain[currentNet] !== undefined ? gasPricePercentMain[currentNet] : 25);
+                const gasPriceMain = feeData.gasPrice * percentMain / 100n;
                 const overridesMain = { gasPrice: gasPriceMain };
                 if (["lamina1", "plume", "avax"].includes(currentNet)) overridesMain.gasLimit = 150000;
                 tx = await contract.predict(currentQuestionId, isUp, overridesMain);

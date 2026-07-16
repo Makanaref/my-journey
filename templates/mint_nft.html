@@ -352,7 +352,7 @@
         optimism: { chainIdHex: "0x" + (10).toString(16), chainName: "Optimism", rpcUrls: ["https://mainnet.optimism.io"], nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://optimistic.etherscan.io"] }
     };
 
-    const gasPricePercent = { lamina1: 40, nexus: 8, ink: 13, base: 85, robinhood: 100, avax: 700, plume: 25, zetachain: 100 };
+    const gasPricePercent = { lamina1: 40, nexus: 8, ink: 13, base: 85, robinhood: 100, avax: 700, plume: 25, zetachain: 100, optimism: 85 };
 
     async function getTxOverrides() {
         const gasPriceHex = await provider.send("eth_gasPrice", []);
