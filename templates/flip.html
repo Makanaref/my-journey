@@ -281,16 +281,25 @@
         } catch (err) { alert("Network switch failed: " + err.message); }
     }
 
-    async function getTxOverrides() {
-        const gasPriceHex = await provider.send("eth_gasPrice", []);
-        const networkGasPrice = BigInt(gasPriceHex);
-        const gasPricePercent = { lamina1: 40, nexus: 8, ink: 13, base: 85, robinhood: 100, avax: 700, plume: 25, zetachain: 100, optimism: 85 };
-        const percent = BigInt(gasPricePercent[currentNet] !== undefined ? gasPricePercent[currentNet] : 25);
-        const gasPrice = networkGasPrice * percent / 100n;
-        const overrides = { gasPrice };
-        if (["lamina1", "robinhood", "plume", "avax"].includes(currentNet)) overrides.gasLimit = 150000;
-        return overrides;
+          async function getTxOverrides(guessHeads) {
+    const gasPriceHex = await provider.send("eth_gasPrice", []);
+    const networkGasPrice = BigInt(gasPriceHex);
+    const gasPricePercent = { lamina1: 40, nexus: 8, ink: 13, base: 85, robinhood: 100, avax: 700, plume: 25, zetachain: 100, optimism: 85 };
+    const percent = BigInt(gasPricePercent[currentNet] !== undefined ? gasPricePercent[currentNet] : 25);
+    const gasPrice = networkGasPrice * percent / 100n;
+    const overrides = { gasPrice };
+
+    const fallbackGasLimit = { lamina1: 150000, robinhood: 150000, plume: 150000, avax: 150000 };
+
+    try {
+        const estimated = await contract.flip.estimateGas(guessHeads, { gasPrice });
+        overrides.gasLimit = (estimated * 140n) / 100n;
+    } catch (err) {
+        overrides.gasLimit = BigInt(fallbackGasLimit[currentNet] || 300000);
     }
+
+    return overrides;
+}
 
     async function doFlip(guessHeads) {
         const btnHeads = document.getElementById("btn-heads");
@@ -307,7 +316,7 @@
             const statsBefore = await contract.getStats(account);
             const winsBefore = Number(statsBefore[2]);
 
-            const overrides = await getTxOverrides();
+            const overrides = await getTxOverrides(guessHeads);
             const tx = await contract.flip(guessHeads, overrides);
             document.getElementById("flip-status").innerText = "Confirming...";
             const receipt = await tx.wait();
