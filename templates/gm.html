@@ -91,71 +91,71 @@
     .stat-box .num { font-size: 1.6em; color: #fff; font-weight: 600; }
     .stat-box .lbl { color: #666; font-size: 0.72em; margin-top: 4px; letter-spacing: 0.5px; }
     .lb-wrap {
-    background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 18px; padding: 22px; margin-top: 36px; text-align: left;
-    position: relative;
-    overflow: hidden;
-}
-.lb-wrap::before {
-    content: "";
-    position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, #e94560, transparent);
-    opacity: 0.6;
-}
-.lb-title {
-    font-size: 0.78em; color: #999; margin-bottom: 16px; text-align: center;
-    letter-spacing: 2px; text-transform: uppercase; font-weight: 600;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.lb-title::before, .lb-title::after {
-    content: ""; height: 1px; width: 24px; background: rgba(255,255,255,0.12);
-}
-.lb-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 14px; border-radius: 12px; margin-bottom: 8px;
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.04);
-    transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
-}
-.lb-row:hover {
-    background: rgba(255,255,255,0.05);
-    border-color: rgba(255,255,255,0.1);
-    transform: translateX(2px);
-}
-.lb-row.top1 {
-    background: linear-gradient(90deg, rgba(255,196,0,0.12), rgba(255,196,0,0.02));
-    border: 1px solid rgba(255,196,0,0.3);
-}
-.lb-row.top2 {
-    background: linear-gradient(90deg, rgba(192,192,210,0.10), rgba(192,192,210,0.02));
-    border: 1px solid rgba(192,192,210,0.25);
-}
-.lb-row.top3 {
-    background: linear-gradient(90deg, rgba(205,127,50,0.12), rgba(205,127,50,0.02));
-    border: 1px solid rgba(205,127,50,0.28);
-}
-.lb-rank {
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; color: #777; width: 30px; height: 30px;
-    font-size: 0.8em; border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-    flex-shrink: 0;
-}
-.lb-row.top1 .lb-rank { color: #ffc400; background: rgba(255,196,0,0.15); }
-.lb-row.top2 .lb-rank { color: #c0c0d2; background: rgba(192,192,210,0.15); }
-.lb-row.top3 .lb-rank { color: #cd7f32; background: rgba(205,127,50,0.15); }
-.lb-addr {
-    font-family: monospace; color: #ccc; font-size: 0.85em;
-    flex: 1; margin: 0 12px; letter-spacing: 0.3px;
-}
-.lb-score {
-    color: #4ade80; font-weight: 700; font-size: 0.82em;
-    background: rgba(74,222,128,0.1);
-    padding: 4px 10px; border-radius: 20px;
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-}
+        background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px; padding: 16px; margin-top: 36px; text-align: left;
+        position: relative;
+        overflow: hidden;
+    }
+    .lb-wrap::before {
+        content: "";
+        position: absolute; top: 0; left: 0; right: 0; height: 2px;
+        background: linear-gradient(90deg, transparent, #e94560, transparent);
+        opacity: 0.6;
+    }
+    .lb-title {
+        font-size: 0.72em; color: #999; margin-bottom: 12px; text-align: center;
+        letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600;
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .lb-title::before, .lb-title::after {
+        content: ""; height: 1px; width: 18px; background: rgba(255,255,255,0.12);
+    }
+    .lb-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 8px 12px; border-radius: 8px; margin-bottom: 5px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.04);
+        transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+    }
+    .lb-row:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.1);
+        transform: translateX(2px);
+    }
+    .lb-row.top1 {
+        background: linear-gradient(90deg, rgba(255,196,0,0.12), rgba(255,196,0,0.02));
+        border: 1px solid rgba(255,196,0,0.3);
+    }
+    .lb-row.top2 {
+        background: linear-gradient(90deg, rgba(192,192,210,0.10), rgba(192,192,210,0.02));
+        border: 1px solid rgba(192,192,210,0.25);
+    }
+    .lb-row.top3 {
+        background: linear-gradient(90deg, rgba(205,127,50,0.12), rgba(205,127,50,0.02));
+        border: 1px solid rgba(205,127,50,0.28);
+    }
+    .lb-rank {
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; color: #777; width: 24px; height: 24px;
+        font-size: 0.7em; border-radius: 50%;
+        background: rgba(255,255,255,0.04);
+        flex-shrink: 0;
+    }
+    .lb-row.top1 .lb-rank { color: #ffc400; background: rgba(255,196,0,0.15); }
+    .lb-row.top2 .lb-rank { color: #c0c0d2; background: rgba(192,192,210,0.15); }
+    .lb-row.top3 .lb-rank { color: #cd7f32; background: rgba(205,127,50,0.15); }
+    .lb-addr {
+        font-family: monospace; color: #ccc; font-size: 0.8em;
+        flex: 1; margin: 0 10px; letter-spacing: 0.3px;
+    }
+    .lb-score {
+        color: #4ade80; font-weight: 700; font-size: 0.78em;
+        background: rgba(74,222,128,0.1);
+        padding: 3px 9px; border-radius: 20px;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
 
     /* === LAMPS === */
     .lamps-scene {
@@ -302,15 +302,15 @@
 
     <style>
         .lb-page-btn {
-            padding:7px 16px; border-radius:8px; font-size:0.85em; font-weight:600;
+            padding:8px 18px; border-radius:10px; font-size:0.85em; font-weight:600;
             border:1px solid rgba(233,69,96,0.35); background:rgba(233,69,96,0.08);
             color:#e94560; cursor:pointer;
-            transition:background 0.2s ease, transform 0.2s ease;
+            transition:background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
         .lb-page-btn:hover:not(:disabled) {
-    background:rgba(233,69,96,0.18); transform:translateY(-1px);
-    box-shadow: 0 4px 12px rgba(233,69,96,0.15);
-}
+            background:rgba(233,69,96,0.18); transform:translateY(-1px);
+            box-shadow: 0 4px 12px rgba(233,69,96,0.15);
+        }
         .lb-page-btn:disabled { opacity:0.35; cursor:not-allowed; }
     </style>
 </div>
@@ -541,17 +541,17 @@
         const start = leaderboardPage * LB_PAGE_SIZE;
         const pageRows = leaderboardRows.slice(start, start + LB_PAGE_SIZE);
         listEl.innerHTML = pageRows.map((r, i) => {
-    const rank = start + i;
-    const rankClass = rank === 0 ? 'top1' : rank === 1 ? 'top2' : rank === 2 ? 'top3' : '';
-    const medal = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : `#${rank + 1}`;
-    return `
-    <div class="lb-row ${rankClass}">
-        <span class="lb-rank">${medal}</span>
-        <span class="lb-addr">${r.addr.slice(0,6)}...${r.addr.slice(-4)}</span>
-        <span class="lb-score">${r.score.toFixed(2)}</span>
-    </div>
-`;
-}).join("");
+            const rank = start + i;
+            const rankClass = rank === 0 ? 'top1' : rank === 1 ? 'top2' : rank === 2 ? 'top3' : '';
+            const medal = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : `#${rank + 1}`;
+            return `
+            <div class="lb-row ${rankClass}">
+                <span class="lb-rank">${medal}</span>
+                <span class="lb-addr">${r.addr.slice(0,6)}...${r.addr.slice(-4)}</span>
+                <span class="lb-score">${r.score.toFixed(2)}</span>
+            </div>
+        `;
+        }).join("");
         if (totalPages > 1) {
             paginationEl.style.display = "flex";
             document.getElementById("lb-page-indicator").innerText = `Page ${leaderboardPage + 1} of ${totalPages}`;
