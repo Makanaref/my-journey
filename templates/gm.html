@@ -90,26 +90,40 @@
     }
     .stat-box .num { font-size: 1.6em; color: #fff; font-weight: 600; }
     .stat-box .lbl { color: #666; font-size: 0.72em; margin-top: 4px; letter-spacing: 0.5px; }
+
+    /* === Leaderboard toggle button === */
+    .lb-toggle-btn {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        width: 100%; margin-top: 36px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.09);
+        border-radius: 14px; padding: 14px 18px;
+        color: #ccc; font-size: 0.9em; font-weight: 600;
+        cursor: pointer; transition: all 0.2s ease;
+    }
+    .lb-toggle-btn:hover {
+        border-color: rgba(233,69,96,0.4);
+        background: rgba(233,69,96,0.06);
+        transform: translateY(-1px);
+    }
+    .lb-toggle-btn .chev { transition: transform 0.25s ease; color: #666; }
+    .lb-toggle-btn.open .chev { transform: rotate(180deg); }
+
     .lb-wrap {
         background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
         border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 14px; padding: 16px; margin-top: 36px; text-align: left;
+        border-top: none;
+        border-radius: 0 0 14px 14px; padding: 16px; text-align: left;
         position: relative;
         overflow: hidden;
+        display: none;
     }
+    .lb-wrap.open { display: block; }
     .lb-wrap::before {
         content: "";
         position: absolute; top: 0; left: 0; right: 0; height: 2px;
         background: linear-gradient(90deg, transparent, #e94560, transparent);
         opacity: 0.6;
-    }
-    .lb-title {
-        font-size: 0.72em; color: #999; margin-bottom: 12px; text-align: center;
-        letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600;
-        display: flex; align-items: center; justify-content: center; gap: 6px;
-    }
-    .lb-title::before, .lb-title::after {
-        content: ""; height: 1px; width: 18px; background: rgba(255,255,255,0.12);
     }
     .lb-row {
         display: flex; justify-content: space-between; align-items: center;
@@ -156,6 +170,7 @@
         white-space: nowrap;
         font-variant-numeric: tabular-nums;
     }
+    .lb-loading { text-align:center; color:#666; font-size:0.85em; padding: 10px 0; }
 
     /* === LAMPS === */
     .lamps-scene {
@@ -207,6 +222,18 @@
     .lamp-glow.on { opacity: 1; }
     .lamps-count { text-align: center; color: #444; font-size: 11px; font-family: monospace; margin-top: 12px; }
     .lamps-count span { color: #e94560; }
+
+    .lb-page-btn {
+        padding:8px 18px; border-radius:10px; font-size:0.85em; font-weight:600;
+        border:1px solid rgba(233,69,96,0.35); background:rgba(233,69,96,0.08);
+        color:#e94560; cursor:pointer;
+        transition:background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .lb-page-btn:hover:not(:disabled) {
+        background:rgba(233,69,96,0.18); transform:translateY(-1px);
+        box-shadow: 0 4px 12px rgba(233,69,96,0.15);
+    }
+    .lb-page-btn:disabled { opacity:0.35; cursor:not-allowed; }
 </style>
 
 <!-- Lamps scene (بالای صفحه، بدون padding) -->
@@ -289,9 +316,12 @@
     </div>
 
     <div id="leaderboard-card" style="display:none;">
-        <div class="lb-wrap">
-            <p class="lb-title">LEADERBOARD</p>
-            <div id="leaderboard-list"></div>
+        <div class="lb-toggle-btn" id="lb-toggle-btn" onclick="toggleLeaderboard()">
+            <span>🏆 Leaderboard</span>
+            <span class="chev">▾</span>
+        </div>
+        <div class="lb-wrap" id="lb-wrap">
+            <div id="leaderboard-list"><div class="lb-loading">Tap to load leaderboard…</div></div>
             <div id="lb-pagination" style="display:none; align-items:center; justify-content:center; gap:16px; margin-top:16px;">
                 <button id="lb-prev" onclick="leaderboardPrevPage()" class="lb-page-btn">← Prev</button>
                 <span id="lb-page-indicator" style="color:#999; font-size:0.85em;"></span>
@@ -299,20 +329,6 @@
             </div>
         </div>
     </div>
-
-    <style>
-        .lb-page-btn {
-            padding:8px 18px; border-radius:10px; font-size:0.85em; font-weight:600;
-            border:1px solid rgba(233,69,96,0.35); background:rgba(233,69,96,0.08);
-            color:#e94560; cursor:pointer;
-            transition:background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .lb-page-btn:hover:not(:disabled) {
-            background:rgba(233,69,96,0.18); transform:translateY(-1px);
-            box-shadow: 0 4px 12px rgba(233,69,96,0.15);
-        }
-        .lb-page-btn:disabled { opacity:0.35; cursor:not-allowed; }
-    </style>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
@@ -427,6 +443,8 @@
         } catch (err) { alert("Connection failed: " + err.message); }
     }
 
+    let leaderboardLoadedForNet = null;
+
     async function switchNetwork(net) {
         const config = networks[net];
         try {
@@ -441,9 +459,39 @@
             document.getElementById("gm-card").style.display = "block";
             document.getElementById("leaderboard-card").style.display = "block";
             document.getElementById("tx-status").innerText = "";
+
+            // Reset leaderboard to closed/unloaded state on network switch
+            leaderboardLoadedForNet = null;
+            document.getElementById("lb-wrap").classList.remove("open");
+            document.getElementById("lb-toggle-btn").classList.remove("open");
+            document.getElementById("leaderboard-list").innerHTML = "<div class='lb-loading'>Tap to load leaderboard…</div>";
+            document.getElementById("lb-pagination").style.display = "none";
+            updateLamps(0);
+
             await loadStats();
-            await loadLeaderboard();
         } catch (err) { alert("Network switch failed: " + err.message); }
+    }
+
+    async function toggleLeaderboard() {
+        const wrapEl = document.getElementById("lb-wrap");
+        const btnEl = document.getElementById("lb-toggle-btn");
+        const isOpen = wrapEl.classList.contains("open");
+
+        if (isOpen) {
+            wrapEl.classList.remove("open");
+            btnEl.classList.remove("open");
+            return;
+        }
+
+        wrapEl.classList.add("open");
+        btnEl.classList.add("open");
+
+        // Lazy-load leaderboard data only the first time it's opened per network
+        if (leaderboardLoadedForNet !== currentNet) {
+            document.getElementById("leaderboard-list").innerHTML = "<div class='lb-loading'>Loading leaderboard…</div>";
+            await loadLeaderboard();
+            leaderboardLoadedForNet = currentNet;
+        }
     }
 
     async function sayGM() {
@@ -463,7 +511,10 @@
             await tx.wait();
             document.getElementById("tx-status").innerText = "GM confirmed ✅";
             await loadStats();
-            await loadLeaderboard();
+            // Refresh leaderboard silently if it's currently open
+            if (document.getElementById("lb-wrap").classList.contains("open")) {
+                await loadLeaderboard();
+            }
         } catch (err) {
             const reason = getFriendlyError(err);
             if (reason.includes("Already said GM today")) {
