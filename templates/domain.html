@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+{% block title %}Domains{% endblock %}
+{% block content %}
+<style>
+    .dom-wrap { max-width: 480px; margin: 0 auto; padding: 50px 20px; text-align: center; }
+    .dom-badge {
+        width: 96px; height: 96px; margin: 0 auto 24px;
+        border-radius: 50%; background: #1a1024;
+        border: 1px solid rgba(233,69,96,0.4);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2.4em;
+    }
+    .dom-title { font-size: 2.2em; margin-bottom: 6px; letter-spacing: -0.5px; }
+    .dom-sub { color: #777; font-size: 0.95em; margin-bottom: 28px; }
+    .wallet-pill {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        padding: 9px 18px; border-radius: 30px;
+        font-size: 0.85em; color: #bbb; font-family: monospace;
+    }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+    .section-label {
+        font-size: 0.72em; color: #666; text-transform: uppercase;
+        letter-spacing: 1.5px; margin: 32px 0 12px; text-align: left;
+    }
+    .net-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .net-card {
+        position: relative;
+        background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.09);
+        border-radius: 14px; padding: 16px 18px;
+        cursor: pointer; transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+        text-align: left; overflow: hidden;
+    }
+    .net-card::before {
+        content: "";
+        position: absolute; inset: 0;
+        background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.06), rgba(0,0,0,0) 60%);
+        pointer-events: none;
+    }
+    .net-card:hover {
+        border-color: rgba(233,69,96,0.45);
+        background: linear-gradient(160deg, rgba(233,69,96,0.08), rgba(255,255,255,0.02));
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(233,69,96,0.12);
+    }
+    .net-card.active {
+        border-color: #e94560;
+        background: linear-gradient(160deg, rgba(233,69,96,0.14), rgba(233,69,96,0.03));
+        box-shadow: 0 8px 20px rgba(233,69,96,0.18);
+    }
+    .net-card .symbol {
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 1.2em; font-weight: 700; color: #fff;
+        letter-spacing: 0.03em; position: relative;
+    }
+    .net-card .name {
+        color: rgba(255,255,255,0.4); font-size: 0.78em;
+        margin-top: 3px; position: relative;
+    }
+
+    .search-box {
+        display: flex; align-items: center;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px; padding: 6px 6px 6px 18px;
+        margin-top: 8px;
+    }
+    .search-box input {
+        flex: 1; background: transparent; border: none; outline: none;
+        color: #fff; font-size: 1.05em; padding: 12px 0;
+        font-family: monospace;
+    }
+    .search-box input::placeholder { color: #444; }
+    .search-suffix { color: #666; font-size: 1.05em; padding-right: 8px; font-family: monospace; }
+    .search-btn {
+        background: #e94560; border: none; color: #fff; font-weight: 700;
+        padding: 12px 20px; border-radius: 10px; cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease;
+        white-space: nowrap;
+    }
+    .search-btn:hover:not(:disabled) { background: #d63951; transform: translateY(-1px); }
+    .search-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .avail-msg { min-height: 20px; font-size: 0.85em; margin-top: 12px; }
+    .avail-msg.ok { color: #4ade80; }
+    .avail-msg.taken { color: #e94560; }
+    .avail-msg.invalid { color: #f7b32b; }
+
+    .price-tag {
+        display: inline-block; margin-top: 6px;
+        background: rgba(74,222,128,0.1); color: #4ade80;
+        padding: 4px 12px; border-radius: 20px; font-size: 0.78em; font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .status-msg { min-height: 20px; color: #777; font-size: 0.85em; margin-top: 14px; }
+
+    .my-dom-list { margin-top: 10px; text-align: left; }
+    .my-dom-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 14px; border-radius: 10px; margin-bottom: 6px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .my-dom-row .dname { font-family: monospace; color: #fff; font-size: 0.9em; }
+    .my-dom-row .primary-tag {
+        font-size: 0.65em; color: #ffc400; background: rgba(255,196,0,0.12);
+        padding: 2px 7px; border-radius: 10px; margin-left: 8px;
+    }
+    .my-dom-actions { display: flex; gap: 6px; }
+    .mini-btn {
+        font-size: 0.72em; padding: 5px 10px; border-radius: 8px; cursor: pointer;
+        border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: #bbb;
+        transition: all 0.2s ease;
+    }
+    .mini-btn:hover { border-color: rgba(233,69,96,0.4); color: #e94560; }
+
+    .lb-wrap {
+        background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px; padding: 16px; margin-top: 36px; text-align: left;
+        position: relative; overflow: hidden;
+    }
+    .lb-wrap::before {
+        content: "";
+        position: absolute; top: 0; left: 0; right: 0; height: 2px;
+        background: linear-gradient(90deg, transparent, #e94560, transparent);
+        opacity: 0.6;
+    }
+    .lb-title {
+        font-size: 0.72em; color: #999; margin-bottom: 12px; text-align: center;
+        letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600;
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .lb-title::before, .lb-title::after {
+        content: ""; height: 1px; width: 18px; background: rgba(255,255,255,0.12);
+    }
+    .lb-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 8px 12px; border-radius: 8px; margin-bottom: 5px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.04);
+        transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+    }
+    .lb-row:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.1);
+        transform: translateX(2px);
+    }
+    .lb-addr {
+        font-family: monospace; color: #ccc; font-size: 0.8em;
+        flex: 1; margin: 0 10px; letter-spacing: 0.3px;
+    }
+    .lb-name {
+        color: #4ade80; font-weight: 700; font-size: 0.78em;
+        background: rgba(74,222,128,0.1);
+        padding: 3px 9px; border-radius: 20px;
+        white-space: nowrap; font-family: monospace;
+    }
+</style>
+
+<div class="dom-wrap">
+    <div class="dom-badge">🏷️</div>
+    <h1 class="dom-title">.sgm Domains</h1>
+    <p class="dom-sub">Claim your onchain name. Cheap, permanent, yours.</p>
+
+    <div id="connect-section">
+        <button class="btn" onclick="connectWallet()" style="padding:12px 32px;">Connect wallet</button>
+    </div>
+
+    <div id="wallet-info" style="display:none;">
+        <span class="wallet-pill"><span class="dot"></span><span id="wallet-addr"></span></span>
+    </div>
+
+    <div id="network-card" style="display:none;">
+        <p class="section-label">Choose network</p>
+        <div class="net-grid">
+            <div class="net-card" id="net-lamina1" onclick="switchNetwork('lamina1')">
+                <div class="symbol">L1</div>
+                <div class="name">Lamina1</div>
+            </div>
+            <div class="net-card" id="net-nexus" onclick="switchNetwork('nexus')">
+                <div class="symbol">NEX</div>
+                <div class="name">Nexus</div>
+            </div>
+            <div class="net-card" id="net-ink" onclick="switchNetwork('ink')">
+                <div class="symbol">INK</div>
+                <div class="name">Ink</div>
+            </div>
+            <div class="net-card" id="net-plume" onclick="switchNetwork('plume')">
+                <div class="symbol">PLUME</div>
+                <div class="name">Plume</div>
+            </div>
+            <div class="net-card" id="net-zetachain" onclick="switchNetwork('zetachain')">
+                <div class="symbol">ZETA</div>
+                <div class="name">ZetaChain</div>
+            </div>
+            <div class="net-card" id="net-optimism" onclick="switchNetwork('optimism')">
+                <div class="symbol">OP</div>
+                <div class="name">Optimism</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="register-card" style="display:none;">
+        <p class="section-label">Find your name</p>
+        <div class="search-box">
+            <input type="text" id="name-input" placeholder="yourname" maxlength="20" oninput="checkAvailability()">
+            <span class="search-suffix">.sgm</span>
+            <button class="search-btn" id="register-btn" onclick="doRegister()" disabled>Register</button>
+        </div>
+        <p class="avail-msg" id="avail-msg"></p>
+        <p class="status-msg" id="reg-status"></p>
+
+        <div id="my-domains-section" style="display:none;">
+            <p class="section-label">My domains</p>
+            <div class="my-dom-list" id="my-dom-list"></div>
+        </div>
+    </div>
+
+    <div id="recent-card" style="display:none;">
+        <div class="lb-wrap">
+            <p class="lb-title">RECENTLY REGISTERED</p>
+            <div id="recent-list"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+<script>
+    let provider, signer, account, contract, currentNet;
+
+    const CONTRACT_ADDRESSES = {
+        lamina1:   "0xA0F865285beBC988008FE081a9A4dFC1320E31A7",
+        nexus:     "0xC2B99F200C4523900b73912269652095aFa84AFd",
+        ink:       "0xB3e03b39bB3eAb9B63763A601d1Cb2DB0FA0f5c2",
+        plume:     "0xa7967A3C93281785DF7020717419bEd603da948F",
+        zetachain: "0x678D45B398331A1A1ef484FfB5370A1a2034737d",
+        optimism:  "0x620145Db1914c1F9c327FA282BD95b9039647Bc6"
+    };
+
+    const CONTRACT_ABI = [
+        "function register(string name) public payable",
+        "function transferDomain(string name, address to) public",
+        "function setPrimaryName(string name) public",
+        "function resolve(string name) public view returns (address)",
+        "function nameOf(address holder) public view returns (string)",
+        "function isAvailable(string name) public view returns (bool)",
+        "function priceFor(string name) public view returns (uint256)",
+        "function totalRegistered() public view returns (uint256)",
+        "function getDomains(uint256 start, uint256 count) public view returns (string[] memory, address[] memory, uint256[] memory)"
+    ];
+
+    const networks = {
+        lamina1:   { chainIdHex: "0x" + (10849).toString(16), chainName: "Lamina1",        rpcUrls: ["https://subnets.avax.network/lamina1/mainnet/rpc"], nativeCurrency: { name: "L1",  symbol: "L1",  decimals: 18 }, blockExplorerUrls: ["https://subnets.avax.network/lamina1"] },
+        nexus:     { chainIdHex: "0x" + (3946).toString(16),  chainName: "Nexus",           rpcUrls: ["https://mainnet.rpc.nexus.xyz"],                    nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 }, blockExplorerUrls: ["https://explorer.nexus.xyz"] },
+        ink:       { chainIdHex: "0x" + (57073).toString(16), chainName: "Ink",             rpcUrls: ["https://rpc-gel.inkonchain.com"],                   nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://explorer.inkonchain.com"] },
+        plume:     { chainIdHex: "0x" + (98866).toString(16), chainName: "Plume",           rpcUrls: ["https://rpc.plume.org"],                            nativeCurrency: { name: "PLUME", symbol: "PLUME", decimals: 18 }, blockExplorerUrls: ["https://explorer.plume.org"] },
+        zetachain: { chainIdHex: "0x" + (7000).toString(16),  chainName: "ZetaChain",       rpcUrls: ["https://zetachain-evm.blockpi.network/v1/rpc/public"], nativeCurrency: { name: "ZETA", symbol: "ZETA", decimals: 18 }, blockExplorerUrls: ["https://zetachain.blockscout.com"] },
+        optimism:  { chainIdHex: "0x" + (10).toString(16),    chainName: "Optimism",        rpcUrls: ["https://mainnet.optimism.io"],                      nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://optimistic.etherscan.io"] }
+    };
+
+    async function connectWallet() {
+        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
+        try {
+            provider = new ethers.BrowserProvider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = await provider.getSigner();
+            account = await signer.getAddress();
+            document.getElementById("connect-section").style.display = "none";
+            document.getElementById("wallet-info").style.display = "block";
+            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+            document.getElementById("network-card").style.display = "block";
+        } catch (err) { alert("Connection failed: " + err.message); }
+    }
+
+    async function switchNetwork(net) {
+        const config = networks[net];
+        if (!CONTRACT_ADDRESSES[net]) { alert("This network isn't live yet, coming soon!"); return; }
+        try {
+            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
+            currentNet = net;
+            Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
+            document.getElementById("net-"+net).classList.add("active");
+            provider = new ethers.BrowserProvider(window.ethereum);
+            signer = await provider.getSigner();
+            account = await signer.getAddress();
+            contract = new ethers.Contract(CONTRACT_ADDRESSES[net], CONTRACT_ABI, signer);
+            document.getElementById("register-card").style.display = "block";
+            document.getElementById("recent-card").style.display = "block";
+            document.getElementById("reg-status").innerText = "";
+            document.getElementById("avail-msg").innerText = "";
+            document.getElementById("name-input").value = "";
+            await loadMyDomains();
+            await loadRecent();
+        } catch (err) { alert("Network switch failed: " + err.message); }
+    }
+
+    function isValidNameFormat(name) {
+        return /^[a-z0-9](?:[a-z0-9-]{1,18}[a-z0-9])?$/.test(name) && name.length >= 3 && name.length <= 20;
+    }
+
+    let checkTimer;
+    async function checkAvailability() {
+        const input = document.getElementById("name-input");
+        const msgEl = document.getElementById("avail-msg");
+        const btn = document.getElementById("register-btn");
+        const raw = input.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
+        input.value = raw;
+
+        clearTimeout(checkTimer);
+        btn.disabled = true;
+
+        if (raw.length === 0) { msgEl.innerText = ""; msgEl.className = "avail-msg"; return; }
+        if (!isValidNameFormat(raw)) {
+            msgEl.className = "avail-msg invalid";
+            msgEl.innerText = "3-20 chars, lowercase letters/numbers/hyphens only";
+            return;
+        }
+        if (!contract) return;
+
+        checkTimer = setTimeout(async () => {
+            try {
+                const [available, priceWei] = await Promise.all([
+                    contract.isAvailable(raw),
+                    contract.priceFor(raw)
+                ]);
+                const priceEth = ethers.formatEther(priceWei);
+                if (available) {
+                    msgEl.className = "avail-msg ok";
+                    msgEl.innerHTML = `"${raw}.sgm" is available! <span class="price-tag">${priceEth} ${networks[currentNet].nativeCurrency.symbol}</span>`;
+                    btn.disabled = false;
+                } else {
+                    msgEl.className = "avail-msg taken";
+                    msgEl.innerText = `"${raw}.sgm" is already taken`;
+                    btn.disabled = true;
+                }
+            } catch (err) { console.log(err); }
+        }, 400);
+    }
+
+    async function doRegister() {
+        const input = document.getElementById("name-input");
+        const btn = document.getElementById("register-btn");
+        const statusEl = document.getElementById("reg-status");
+        const name = input.value;
+        btn.disabled = true;
+        statusEl.innerText = "Sending transaction...";
+        try {
+            const priceWei = await contract.priceFor(name);
+            const tx = await contract.register(name, { value: priceWei });
+            statusEl.innerText = "Confirming...";
+            await tx.wait();
+            statusEl.innerText = `"${name}.sgm" is now yours 🎉`;
+            input.value = "";
+            document.getElementById("avail-msg").innerText = "";
+            await loadMyDomains();
+            await loadRecent();
+        } catch (err) {
+            statusEl.innerText = "Failed: " + ((err && (err.reason || err.message)) || "Something went wrong");
+        }
+    }
+
+    async function loadMyDomains() {
+        const sectionEl = document.getElementById("my-domains-section");
+        const listEl = document.getElementById("my-dom-list");
+        try {
+            const primary = await contract.nameOf(account);
+            if (!primary) { sectionEl.style.display = "none"; return; }
+            sectionEl.style.display = "block";
+            listEl.innerHTML = `
+                <div class="my-dom-row">
+                    <span class="dname">${primary}.sgm <span class="primary-tag">PRIMARY</span></span>
+                    <div class="my-dom-actions">
+                        <button class="mini-btn" onclick="promptTransfer('${primary}')">Transfer</button>
+                    </div>
+                </div>
+            `;
+        } catch (err) { console.log(err); }
+    }
+
+    async function promptTransfer(name) {
+        const to = prompt(`Transfer "${name}.sgm" to which address?`);
+        if (!to) return;
+        if (!ethers.isAddress(to)) { alert("Invalid address"); return; }
+        try {
+            const tx = await contract.transferDomain(name, to);
+            document.getElementById("reg-status").innerText = "Transferring...";
+            await tx.wait();
+            document.getElementById("reg-status").innerText = `"${name}.sgm" transferred ✅`;
+            await loadMyDomains();
+            await loadRecent();
+        } catch (err) {
+            document.getElementById("reg-status").innerText = "Transfer failed: " + ((err && (err.reason || err.message)) || "");
+        }
+    }
+
+    async function loadRecent() {
+        const listEl = document.getElementById("recent-list");
+        try {
+            const result = await contract.getDomains(0, 10);
+            const names = result[0], holders = result[1];
+            if (names.length === 0) {
+                listEl.innerHTML = "<p style='color:#666;text-align:center;font-size:0.85em;'>No domains registered yet. Be the first.</p>";
+                return;
+            }
+            listEl.innerHTML = names.map((n, i) => `
+                <div class="lb-row">
+                    <span class="lb-name">${n}.sgm</span>
+                    <span class="lb-addr">${holders[i].slice(0,6)}...${holders[i].slice(-4)}</span>
+                </div>
+            `).join("");
+        } catch (err) { console.log(err); }
+    }
+</script>
+{% endblock %}

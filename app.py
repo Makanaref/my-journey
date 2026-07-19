@@ -132,6 +132,9 @@ def games():
 @app.route("/mint")
 def mint():
     return render_template("mint.html")
+@app.route("/domain")
+def domain():
+    return render_template("domain.html")
 @app.route("/flip")
 def flip():
     return render_template("flip.html")
