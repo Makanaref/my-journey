@@ -117,49 +117,6 @@
         transition: all 0.2s ease;
     }
     .mini-btn:hover { border-color: rgba(233,69,96,0.4); color: #e94560; }
-
-    .lb-wrap {
-        background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 14px; padding: 16px; margin-top: 36px; text-align: left;
-        position: relative; overflow: hidden;
-    }
-    .lb-wrap::before {
-        content: "";
-        position: absolute; top: 0; left: 0; right: 0; height: 2px;
-        background: linear-gradient(90deg, transparent, #e94560, transparent);
-        opacity: 0.6;
-    }
-    .lb-title {
-        font-size: 0.72em; color: #999; margin-bottom: 12px; text-align: center;
-        letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600;
-        display: flex; align-items: center; justify-content: center; gap: 6px;
-    }
-    .lb-title::before, .lb-title::after {
-        content: ""; height: 1px; width: 18px; background: rgba(255,255,255,0.12);
-    }
-    .lb-row {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 8px 12px; border-radius: 8px; margin-bottom: 5px;
-        background: rgba(255,255,255,0.02);
-        border: 1px solid rgba(255,255,255,0.04);
-        transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
-    }
-    .lb-row:hover {
-        background: rgba(255,255,255,0.05);
-        border-color: rgba(255,255,255,0.1);
-        transform: translateX(2px);
-    }
-    .lb-addr {
-        font-family: monospace; color: #ccc; font-size: 0.8em;
-        flex: 1; margin: 0 10px; letter-spacing: 0.3px;
-    }
-    .lb-name {
-        color: #4ade80; font-weight: 700; font-size: 0.78em;
-        background: rgba(74,222,128,0.1);
-        padding: 3px 9px; border-radius: 20px;
-        white-space: nowrap; font-family: monospace;
-    }
 </style>
 
 <div class="dom-wrap">
@@ -218,13 +175,6 @@
         <div id="my-domains-section" style="display:none;">
             <p class="section-label">My domains</p>
             <div class="my-dom-list" id="my-dom-list"></div>
-        </div>
-    </div>
-
-    <div id="recent-card" style="display:none;">
-        <div class="lb-wrap">
-            <p class="lb-title">RECENTLY REGISTERED</p>
-            <div id="recent-list"></div>
         </div>
     </div>
 </div>
@@ -290,12 +240,10 @@
             account = await signer.getAddress();
             contract = new ethers.Contract(CONTRACT_ADDRESSES[net], CONTRACT_ABI, signer);
             document.getElementById("register-card").style.display = "block";
-            document.getElementById("recent-card").style.display = "block";
             document.getElementById("reg-status").innerText = "";
             document.getElementById("avail-msg").innerText = "";
             document.getElementById("name-input").value = "";
             await loadMyDomains();
-            await loadRecent();
         } catch (err) { alert("Network switch failed: " + err.message); }
     }
 
@@ -358,7 +306,6 @@
             input.value = "";
             document.getElementById("avail-msg").innerText = "";
             await loadMyDomains();
-            await loadRecent();
         } catch (err) {
             statusEl.innerText = "Failed: " + ((err && (err.reason || err.message)) || "Something went wrong");
         }
@@ -392,28 +339,9 @@
             await tx.wait();
             document.getElementById("reg-status").innerText = `"${name}.sgm" transferred ✅`;
             await loadMyDomains();
-            await loadRecent();
         } catch (err) {
             document.getElementById("reg-status").innerText = "Transfer failed: " + ((err && (err.reason || err.message)) || "");
         }
-    }
-
-    async function loadRecent() {
-        const listEl = document.getElementById("recent-list");
-        try {
-            const result = await contract.getDomains(0, 10);
-            const names = result[0], holders = result[1];
-            if (names.length === 0) {
-                listEl.innerHTML = "<p style='color:#666;text-align:center;font-size:0.85em;'>No domains registered yet. Be the first.</p>";
-                return;
-            }
-            listEl.innerHTML = names.map((n, i) => `
-                <div class="lb-row">
-                    <span class="lb-name">${n}.sgm</span>
-                    <span class="lb-addr">${holders[i].slice(0,6)}...${holders[i].slice(-4)}</span>
-                </div>
-            `).join("");
-        } catch (err) { console.log(err); }
     }
 </script>
 {% endblock %}
