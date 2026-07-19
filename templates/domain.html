@@ -159,6 +159,10 @@
                 <div class="symbol">OP</div>
                 <div class="name">Optimism</div>
             </div>
+            <div class="net-card" id="net-base" onclick="switchNetwork('base')">
+                <div class="symbol">BASE</div>
+                <div class="name">Base</div>
+            </div>
         </div>
     </div>
 
@@ -189,7 +193,9 @@
         ink:       "0xB3e03b39bB3eAb9B63763A601d1Cb2DB0FA0f5c2",
         plume:     "0xa7967A3C93281785DF7020717419bEd603da948F",
         zetachain: "0x678D45B398331A1A1ef484FfB5370A1a2034737d",
-        optimism:  "0x620145Db1914c1F9c327FA282BD95b9039647Bc6"
+        optimism:  "0x620145Db1914c1F9c327FA282BD95b9039647Bc6",
+        base:      "0x9242fBcF3AF8137cddE0bf7046b9DDb881d105CC"
+        // robinhood coming soon
     };
 
     const CONTRACT_ABI = [
@@ -210,7 +216,8 @@
         ink:       { chainIdHex: "0x" + (57073).toString(16), chainName: "Ink",             rpcUrls: ["https://rpc-gel.inkonchain.com"],                   nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://explorer.inkonchain.com"] },
         plume:     { chainIdHex: "0x" + (98866).toString(16), chainName: "Plume",           rpcUrls: ["https://rpc.plume.org"],                            nativeCurrency: { name: "PLUME", symbol: "PLUME", decimals: 18 }, blockExplorerUrls: ["https://explorer.plume.org"] },
         zetachain: { chainIdHex: "0x" + (7000).toString(16),  chainName: "ZetaChain",       rpcUrls: ["https://zetachain-evm.blockpi.network/v1/rpc/public"], nativeCurrency: { name: "ZETA", symbol: "ZETA", decimals: 18 }, blockExplorerUrls: ["https://zetachain.blockscout.com"] },
-        optimism:  { chainIdHex: "0x" + (10).toString(16),    chainName: "Optimism",        rpcUrls: ["https://mainnet.optimism.io"],                      nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://optimistic.etherscan.io"] }
+        optimism:  { chainIdHex: "0x" + (10).toString(16),    chainName: "Optimism",        rpcUrls: ["https://mainnet.optimism.io"],                      nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://optimistic.etherscan.io"] },
+        base:      { chainIdHex: "0x" + (8453).toString(16),  chainName: "Base",            rpcUrls: ["https://mainnet.base.org"],                         nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://basescan.org"] }
     };
 
     async function connectWallet() {
