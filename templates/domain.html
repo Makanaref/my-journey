@@ -277,6 +277,10 @@
         }
         if (!contract) return;
 
+        // Clear any stale message and show a loading state while we check onchain
+        msgEl.className = "avail-msg";
+        msgEl.innerText = "Checking...";
+
         checkTimer = setTimeout(async () => {
             try {
                 const [available, priceWei] = await Promise.all([
@@ -293,7 +297,11 @@
                     msgEl.innerText = `"${raw}.sgm" is already taken`;
                     btn.disabled = true;
                 }
-            } catch (err) { console.log(err); }
+            } catch (err) {
+                console.log(err);
+                msgEl.className = "avail-msg invalid";
+                msgEl.innerText = "Couldn't reach the network. Try again in a moment.";
+            }
         }, 400);
     }
 
