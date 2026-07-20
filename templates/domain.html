@@ -259,6 +259,18 @@
     }
 
     let checkTimer;
+    async function withRetry(fn, retries = 2, delayMs = 800) {
+        for (let i = 0; i <= retries; i++) {
+            try {
+                return await fn();
+            } catch (err) {
+                if (i === retries) throw err;
+                await new Promise(r => setTimeout(r, delayMs));
+            }
+        }
+    }
+
+    let checkTimer;
     async function checkAvailability() {
         const input = document.getElementById("name-input");
         const msgEl = document.getElementById("avail-msg");
@@ -277,16 +289,15 @@
         }
         if (!contract) return;
 
-        // Clear any stale message and show a loading state while we check onchain
         msgEl.className = "avail-msg";
         msgEl.innerText = "Checking...";
 
         checkTimer = setTimeout(async () => {
             try {
-                const [available, priceWei] = await Promise.all([
+                const [available, priceWei] = await withRetry(() => Promise.all([
                     contract.isAvailable(raw),
                     contract.priceFor(raw)
-                ]);
+                ]));
                 const priceEth = ethers.formatEther(priceWei);
                 if (available) {
                     msgEl.className = "avail-msg ok";
@@ -300,7 +311,7 @@
             } catch (err) {
                 console.log(err);
                 msgEl.className = "avail-msg invalid";
-                msgEl.innerText = "Couldn't reach the network. Try again in a moment.";
+                msgEl.innerText = "Network is slow right now. Try again in a moment.";
             }
         }, 400);
     }
