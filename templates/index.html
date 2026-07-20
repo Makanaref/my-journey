@@ -324,4 +324,145 @@
 
 </div>
 
+<!-- SGM Daily Claim Widget -->
+<style>
+    #sgm-claim-widget {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 999;
+        background: linear-gradient(160deg, rgba(20,20,32,0.92), rgba(14,14,22,0.96));
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(233,69,96,0.3);
+        border-radius: 16px;
+        padding: 14px 16px;
+        width: 220px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+        font-family: inherit;
+    }
+    #sgm-claim-widget .sgm-head {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 0.85em; font-weight: 700; color: #fff; margin-bottom: 4px;
+    }
+    #sgm-claim-widget .sgm-coin {
+        width: 22px; height: 22px; border-radius: 50%;
+        background: rgba(233,69,96,0.15); border: 1px solid rgba(233,69,96,0.4);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.7em; color: #e94560; font-weight: 700; flex-shrink: 0;
+    }
+    #sgm-claim-widget .sgm-sub {
+        font-size: 0.7em; color: #777; margin-bottom: 10px; line-height: 1.4;
+    }
+    #sgm-claim-widget .sgm-btn {
+        width: 100%; padding: 9px; border-radius: 10px; border: none;
+        background: #e94560; color: #fff; font-size: 0.8em; font-weight: 700;
+        cursor: pointer; transition: background 0.2s ease, transform 0.2s ease;
+    }
+    #sgm-claim-widget .sgm-btn:hover:not(:disabled) { background: #d63951; transform: translateY(-1px); }
+    #sgm-claim-widget .sgm-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    #sgm-claim-widget .sgm-status { font-size: 0.68em; color: #666; margin-top: 6px; min-height: 14px; text-align: center; }
+    @media (max-width: 560px) {
+        #sgm-claim-widget { width: calc(100% - 32px); right: 16px; bottom: 16px; }
+    }
+</style>
+<div id="sgm-claim-widget">
+    <div class="sgm-head"><span class="sgm-coin">$</span> Daily SGM Claim</div>
+    <div class="sgm-sub">Said GM on Base today? Claim 1 SGM token.</div>
+    <button class="sgm-btn" id="sgm-claim-btn" onclick="sgmClaimAction()">Connect Wallet</button>
+    <div class="sgm-status" id="sgm-claim-status"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+<script>
+(function () {
+    const BASE_CHAIN_ID_HEX = "0x" + (8453).toString(16);
+    const GM_ADDRESS = "0x0d246A70E2c9ddCDacF690E854E9a528aaE9c3f6";
+    const CLAIM_ADDRESS = "0x1eFfd154CB7adae114F36Af6101a7559c6a98f3F";
+    const TOKEN_ADDRESS = "0xb2000000000000000000002902FC726F3F3505a5";
+
+    const CLAIM_ABI = [
+        "function canClaim(address user) view returns (bool)",
+        "function claim() external"
+    ];
+
+    let sgmProvider, sgmSigner, sgmAccount, sgmClaimContract;
+
+    async function refreshSgmWidget() {
+        const btn = document.getElementById("sgm-claim-btn");
+        const statusEl = document.getElementById("sgm-claim-status");
+        if (!sgmAccount) {
+            btn.innerText = "Connect Wallet";
+            btn.disabled = false;
+            statusEl.innerText = "";
+            return;
+        }
+        try {
+            const network = await sgmProvider.getNetwork();
+            if ("0x" + network.chainId.toString(16) !== BASE_CHAIN_ID_HEX) {
+                btn.innerText = "Switch to Base";
+                btn.disabled = false;
+                statusEl.innerText = "";
+                return;
+            }
+            const eligible = await sgmClaimContract.canClaim(sgmAccount);
+            if (eligible) {
+                btn.innerText = "Claim 1 SGM";
+                btn.disabled = false;
+                statusEl.innerText = "";
+            } else {
+                btn.innerText = "Already claimed / no GM today";
+                btn.disabled = true;
+                statusEl.innerText = "Come back after your next GM";
+            }
+        } catch (err) {
+            console.log(err);
+            statusEl.innerText = "Couldn't check status";
+        }
+    }
+
+    window.sgmClaimAction = async function () {
+        const btn = document.getElementById("sgm-claim-btn");
+        const statusEl = document.getElementById("sgm-claim-status");
+
+        if (!sgmAccount) {
+            if (!window.ethereum) { alert("Please install MetaMask!"); return; }
+            try {
+                sgmProvider = new ethers.BrowserProvider(window.ethereum);
+                await sgmProvider.send("eth_requestAccounts", []);
+                sgmSigner = await sgmProvider.getSigner();
+                sgmAccount = await sgmSigner.getAddress();
+                sgmClaimContract = new ethers.Contract(CLAIM_ADDRESS, CLAIM_ABI, sgmSigner);
+                await refreshSgmWidget();
+            } catch (err) { alert("Connection failed: " + err.message); }
+            return;
+        }
+
+        const network = await sgmProvider.getNetwork();
+        if ("0x" + network.chainId.toString(16) !== BASE_CHAIN_ID_HEX) {
+            try {
+                await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BASE_CHAIN_ID_HEX }] });
+                sgmProvider = new ethers.BrowserProvider(window.ethereum);
+                sgmSigner = await sgmProvider.getSigner();
+                sgmClaimContract = new ethers.Contract(CLAIM_ADDRESS, CLAIM_ABI, sgmSigner);
+                await refreshSgmWidget();
+            } catch (err) { alert("Please switch to Base manually in your wallet."); }
+            return;
+        }
+
+        btn.disabled = true;
+        statusEl.innerText = "Sending transaction...";
+        try {
+            const tx = await sgmClaimContract.claim();
+            statusEl.innerText = "Confirming...";
+            await tx.wait();
+            statusEl.innerText = "1 SGM claimed 🎉";
+            btn.innerText = "Claimed for today";
+        } catch (err) {
+            statusEl.innerText = "Failed: " + ((err && (err.reason || err.message)) || "Try again");
+            btn.disabled = false;
+        }
+    };
+})();
+</script>
+
 {% endblock %}
