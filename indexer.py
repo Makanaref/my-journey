@@ -343,11 +343,12 @@ def scan_all(account):
     tasks = []
 
     for net_key in EXPLORER_APIS:
-        tasks.append(("nft_api", net_key))
         tasks.append(("token_api", net_key))
 
     for net_key in RPC_URLS:
         tasks.append(("rank", net_key))
+        if net_key in NFT_FACTORY_ADDRESSES:
+            tasks.append(("nft_rpc", net_key))
 
     def run_task(task):
         kind, net_key = task
