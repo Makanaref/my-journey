@@ -259,6 +259,7 @@
     }
 
     let checkTimer;
+
     async function withRetry(fn, retries = 2, delayMs = 800) {
         for (let i = 0; i <= retries; i++) {
             try {
@@ -270,7 +271,7 @@
         }
     }
 
-    
+    async function checkAvailability() {
         const input = document.getElementById("name-input");
         const msgEl = document.getElementById("avail-msg");
         const btn = document.getElementById("register-btn");
