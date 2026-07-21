@@ -370,6 +370,12 @@
     <div class="sgm-sub">Said GM on Base today? Claim 1 SGM token.</div>
     <button class="sgm-btn" id="sgm-claim-btn" onclick="sgmClaimAction()">Connect Wallet</button>
     <div class="sgm-status" id="sgm-claim-status"></div>
+
+    <div style="border-top:1px solid rgba(255,255,255,0.08); margin-top:12px; padding-top:12px;">
+        <div class="sgm-sub" style="margin-bottom:8px;">Invite friends, earn 5 SGM per GM they say.</div>
+        <button class="sgm-btn" id="sgm-invite-btn" onclick="sgmCopyInviteLink()" style="background:#1e1e30; border:1px solid rgba(233,69,96,0.35);">Copy my invite link</button>
+        <div class="sgm-status" id="sgm-invite-status"></div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
@@ -379,13 +385,19 @@
     const GM_ADDRESS = "0x0d246A70E2c9ddCDacF690E854E9a528aaE9c3f6";
     const CLAIM_ADDRESS = "0x1eFfd154CB7adae114F36Af6101a7559c6a98f3F";
     const TOKEN_ADDRESS = "0xb2000000000000000000002902FC726F3F3505a5";
+    const REFERRAL_ADDRESS = "0x5baDBBF3dD7DDCaa3a16d04c8e026CB1dCE2835f";
 
     const CLAIM_ABI = [
         "function canClaim(address user) view returns (bool)",
         "function claim() external"
     ];
 
-    let sgmProvider, sgmSigner, sgmAccount, sgmClaimContract;
+    const REFERRAL_ABI = [
+        "function registerReferral(address referrer) external",
+        "function referrerOf(address) view returns (address)"
+    ];
+
+    let sgmProvider, sgmSigner, sgmAccount, sgmClaimContract, sgmReferralContract;
 
     async function refreshSgmWidget() {
         const btn = document.getElementById("sgm-claim-btn");
@@ -420,6 +432,36 @@
         }
     }
 
+    async function trySilentReferralRegister() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const ref = params.get("ref");
+            if (!ref || !ethers.isAddress(ref)) return;
+            if (ref.toLowerCase() === sgmAccount.toLowerCase()) return;
+
+            const existing = await sgmReferralContract.referrerOf(sgmAccount);
+            if (existing && existing !== ethers.ZeroAddress) return;
+
+            const gasPriceHex = await sgmProvider.send("eth_gasPrice", []);
+            const gasPrice = BigInt(gasPriceHex) * 85n / 100n;
+            const tx = await sgmReferralContract.registerReferral(ref, { gasPrice });
+            await tx.wait();
+        } catch (err) {
+            console.log("Referral registration skipped:", err);
+        }
+    }
+
+    window.sgmCopyInviteLink = function () {
+        const statusEl = document.getElementById("sgm-invite-status");
+        if (!sgmAccount) {
+            statusEl.innerText = "Connect your wallet first";
+            return;
+        }
+        const link = window.location.origin + "/?ref=" + sgmAccount;
+        navigator.clipboard.writeText(link);
+        statusEl.innerText = "Link copied! Share it with friends.";
+    };
+
     window.sgmClaimAction = async function () {
         const btn = document.getElementById("sgm-claim-btn");
         const statusEl = document.getElementById("sgm-claim-status");
@@ -432,7 +474,9 @@
                 sgmSigner = await sgmProvider.getSigner();
                 sgmAccount = await sgmSigner.getAddress();
                 sgmClaimContract = new ethers.Contract(CLAIM_ADDRESS, CLAIM_ABI, sgmSigner);
+                sgmReferralContract = new ethers.Contract(REFERRAL_ADDRESS, REFERRAL_ABI, sgmSigner);
                 await refreshSgmWidget();
+                await trySilentReferralRegister();
             } catch (err) { alert("Connection failed: " + err.message); }
             return;
         }
@@ -444,6 +488,7 @@
                 sgmProvider = new ethers.BrowserProvider(window.ethereum);
                 sgmSigner = await sgmProvider.getSigner();
                 sgmClaimContract = new ethers.Contract(CLAIM_ADDRESS, CLAIM_ABI, sgmSigner);
+                sgmReferralContract = new ethers.Contract(REFERRAL_ADDRESS, REFERRAL_ABI, sgmSigner);
                 await refreshSgmWidget();
             } catch (err) { alert("Please switch to Base manually in your wallet."); }
             return;
