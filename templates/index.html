@@ -452,7 +452,10 @@
         btn.disabled = true;
         statusEl.innerText = "Sending transaction...";
         try {
-            const tx = await sgmClaimContract.claim();
+            const gasPriceHex = await sgmProvider.send("eth_gasPrice", []);
+            const networkGasPrice = BigInt(gasPriceHex);
+            const gasPrice = networkGasPrice * 85n / 100n;
+            const tx = await sgmClaimContract.claim({ gasPrice });
             statusEl.innerText = "Confirming...";
             await tx.wait();
             statusEl.innerText = "1 SGM claimed 🎉";
