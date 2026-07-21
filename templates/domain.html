@@ -341,18 +341,49 @@
         const sectionEl = document.getElementById("my-domains-section");
         const listEl = document.getElementById("my-dom-list");
         try {
+            const total = await contract.totalRegistered();
+            const totalNum = Number(total);
+            if (totalNum === 0) { sectionEl.style.display = "none"; return; }
+
+            const result = await contract.getDomains(0, totalNum);
+            const names = result[0], holders = result[1];
             const primary = await contract.nameOf(account);
-            if (!primary) { sectionEl.style.display = "none"; return; }
+
+            const mine = [];
+            for (let i = 0; i < names.length; i++) {
+                if (holders[i].toLowerCase() === account.toLowerCase()) {
+                    mine.push(names[i]);
+                }
+            }
+
+            if (mine.length === 0) { sectionEl.style.display = "none"; return; }
+
             sectionEl.style.display = "block";
-            listEl.innerHTML = `
-                <div class="my-dom-row">
-                    <span class="dname">${primary}.sgm <span class="primary-tag">PRIMARY</span></span>
-                    <div class="my-dom-actions">
-                        <button class="mini-btn" onclick="promptTransfer('${primary}')">Transfer</button>
+            listEl.innerHTML = mine.map(n => {
+                const isPrimary = n === primary;
+                return `
+                    <div class="my-dom-row">
+                        <span class="dname">${n}.sgm ${isPrimary ? '<span class="primary-tag">PRIMARY</span>' : ''}</span>
+                        <div class="my-dom-actions">
+                            ${!isPrimary ? `<button class="mini-btn" onclick="setMainDomain('${n}')">Set as Main</button>` : ''}
+                            <button class="mini-btn" onclick="promptTransfer('${n}')">Transfer</button>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            }).join("");
         } catch (err) { console.log(err); }
+    }
+
+    async function setMainDomain(name) {
+        try {
+            document.getElementById("reg-status").innerText = "Updating main domain...";
+            const tx = await contract.setPrimaryName(name);
+            await tx.wait();
+            document.getElementById("reg-status").innerText = `"${name}.sgm" is now your main domain ✅`;
+            await loadMyDomains();
+        } catch (err) {
+            document.getElementById("reg-status").innerText = "Failed: " + ((err && (err.reason || err.message)) || "");
+        }
     }
 
     async function promptTransfer(name) {
