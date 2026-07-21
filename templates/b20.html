@@ -156,36 +156,37 @@
         "function mint(address to, uint256 amount) public",
         "function burn(uint256 amount) public",
         "function hasRole(bytes32 role, address account) view returns (bool)"
+        "function totalSupply() view returns (uint256)",
+        "function supplyCap() view returns (uint256)"
     ];
 
     // تابع کمکی برای نمایش ارورهای خفن و ساده
     function showUserFriendlyError(error, statusElement) {
         console.error("Raw error:", error);
-        
-        // چک کردن ارور گاز
-        if (error.code === 'CALL_EXCEPTION' || (error.message && error.message.includes('execution reverted'))) {
-            // چک کردن برای ارور گاز
-            if (error.message?.includes('insufficient funds') || 
-                error.message?.includes('gas') ||
-                error.data?.includes('4b344b11')) { // این هگز مخصوص ارور گازه
-                statusElement.innerHTML = '⚠️ <b>Not enough ETH for gas!</b><br>Charge your wallet dude!';
-                return;
-            }
-            
-            // ارورهای دیگه
-            if (error.message && error.message.includes('user rejected')) {
-                statusElement.innerHTML = '⛔ Transaction rejected by user';
-                return;
-            }
+
+        if (error.message && error.message.includes('user rejected')) {
+            statusElement.innerHTML = '⛔ Transaction rejected by user';
+            return;
         }
-        
-        // ارورهای شبکه
+
+        // Precise check for genuinely not having enough ETH to cover gas -
+        // NOT a broad "gas" substring match, since ethers includes the word
+        // "estimateGas" in almost every revert message regardless of cause.
+        const isRealGasIssue =
+            error.code === 'INSUFFICIENT_FUNDS' ||
+            (error.message && error.message.includes('insufficient funds')) ||
+            (error.message && error.message.includes('missing revert data'));
+
+        if (isRealGasIssue) {
+            statusElement.innerHTML = '⚠️ <b>Not enough ETH for gas!</b><br>Charge your wallet dude!';
+            return;
+        }
+
         if (error.code === 'NETWORK_ERROR' || (error.message && error.message.includes('network'))) {
             statusElement.innerHTML = '🌐 Network error! Check your connection.';
             return;
         }
-        
-        // ارورهای دیگه با یه پیام ساده
+
         statusElement.innerHTML = '❌ Transaction failed: ' + (error.reason || error.message || 'Unknown error').slice(0, 100);
     }
 
@@ -269,10 +270,21 @@
         const amount = document.getElementById("mint-amount").value;
         if (!to || !amount) { alert("Fill all fields!"); return; }
         const statusEl = document.getElementById("mint-status");
-        statusEl.innerText = "Minting...";
+        statusEl.innerText = "Checking supply cap...";
         try {
+            const amountWei = ethers.parseUnits(amount, tokenDecimals);
+            const [supply, cap] = await Promise.all([
+                tokenContract.totalSupply(),
+                tokenContract.supplyCap().catch(() => 0n)
+            ]);
+            if (cap && cap > 0n && (supply + amountWei) > cap) {
+                statusEl.innerText = "The amount is more than the Total Supply!";
+                return;
+            }
+
+            statusEl.innerText = "Minting...";
             const feeData = await provider.getFeeData();
-            const tx = await tokenContract.mint(to, ethers.parseUnits(amount, tokenDecimals), { gasPrice: (feeData.gasPrice * 85n / 100n) });
+            const tx = await tokenContract.mint(to, amountWei, { gasPrice: (feeData.gasPrice * 85n / 100n) });
             await tx.wait();
             statusEl.innerText = "Minted ✅";
             await loadToken();
