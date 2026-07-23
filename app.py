@@ -10,6 +10,7 @@ from functools import wraps
 from werkzeug.utils import secure_filename
 import uuid
 import json
+import hmac
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change-this-in-production")
@@ -240,6 +241,15 @@ def upload_nft_image():
     filepath = os.path.join(UPLOAD_DIR, unique_name)
     file.save(filepath)
 
+    # Verify the uploaded file is actually a valid image
+    try:
+        from PIL import Image
+        with Image.open(filepath) as img:
+            img.verify()
+    except Exception:
+        os.remove(filepath)
+        return jsonify({"error": "Invalid image file"}), 400
+
     scheme = "https" if request.headers.get("X-Forwarded-Proto", "http") == "https" else request.scheme
     image_url = f"{scheme}://{request.host}/nft-image/{unique_name}"
     return jsonify({"image_url": image_url})
@@ -348,12 +358,15 @@ def api_contact():
     return jsonify({"success": True})
 
 @app.route("/admin/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def admin_login():
     error = None
     if request.method == "POST":
         username = request.form.get("username", "")
         password = request.form.get("password", "")
-        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+        valid_user = hmac.compare_digest(username, ADMIN_USERNAME)
+        valid_pass = hmac.compare_digest(password, ADMIN_PASSWORD)
+        if valid_user and valid_pass:
             session["is_admin"] = True
             return redirect(url_for("admin_panel"))
         error = "Invalid username or password"
