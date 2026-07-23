@@ -169,6 +169,15 @@ body.light .content img, body.light .content video { filter: invert(1) hue-rotat
             <button class="toggle-btn" onclick="toggleMode()">🌙</button>
         </div>
     </nav>
+    <script>
+    (function () {
+        const params = new URLSearchParams(window.location.search);
+        const ref = params.get("ref");
+        if (ref && !localStorage.getItem("sgm_ref")) {
+            localStorage.setItem("sgm_ref", ref);
+        }
+    })();
+    </script>
     <div class="content">
         {% block content %}{% endblock %}
     </div>
