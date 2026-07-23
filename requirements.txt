@@ -4,3 +4,4 @@ requests
 flask-talisman
 flask-limiter
 web3
+Pillow
