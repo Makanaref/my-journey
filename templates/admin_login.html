@@ -7,6 +7,7 @@
     <p style="color:#e94560; text-align:center; margin-bottom:16px; font-size:0.9em;">{{ error }}</p>
     {% endif %}
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div style="margin-bottom:16px;">
             <label style="font-size:12px; color:#666; display:block; margin-bottom:6px;">Username</label>
             <input type="text" name="username" required style="width:100%; padding:10px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.1); background:#0f3460; color:#fff; font-size:14px;">

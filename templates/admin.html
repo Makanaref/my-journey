@@ -24,10 +24,12 @@
         <div style="display:flex; gap:10px;">
             {% if not m.is_read %}
             <form method="POST" action="/admin/read/{{ m.id }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" style="padding:6px 14px; background:rgba(46,204,113,0.12); border:1px solid rgba(46,204,113,0.35); color:#2ecc71; border-radius:8px; font-size:0.8em; cursor:pointer;">Mark as read</button>
             </form>
             {% endif %}
             <form method="POST" action="/admin/delete/{{ m.id }}" onsubmit="return confirm('Delete this message?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" style="padding:6px 14px; background:rgba(233,69,96,0.08); border:1px solid rgba(233,69,96,0.3); color:#e94560; border-radius:8px; font-size:0.8em; cursor:pointer;">Delete</button>
             </form>
         </div>
