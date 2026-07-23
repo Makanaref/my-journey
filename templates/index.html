@@ -386,6 +386,7 @@
     const CLAIM_ADDRESS = "0x1eFfd154CB7adae114F36Af6101a7559c6a98f3F";
     const TOKEN_ADDRESS = "0xb2000000000000000000002902FC726F3F3505a5";
     const REFERRAL_ADDRESS = "0x5baDBBF3dD7DDCaa3a16d04c8e026CB1dCE2835f";
+    const DOMAIN_ADDRESS = "0x9242fBcF3AF8137cddE0bf7046b9DDb881d105CC";
 
     const CLAIM_ABI = [
         "function canClaim(address user) view returns (bool)",
@@ -395,6 +396,11 @@
     const REFERRAL_ABI = [
         "function registerReferral(address referrer) external",
         "function referrerOf(address) view returns (address)"
+    ];
+
+    const DOMAIN_ABI = [
+        "function resolve(string name) view returns (address)",
+        "function nameOf(address holder) view returns (string)"
     ];
 
     let sgmProvider, sgmSigner, sgmAccount, sgmClaimContract, sgmReferralContract;
@@ -435,8 +441,19 @@
     async function trySilentReferralRegister() {
         try {
             const params = new URLSearchParams(window.location.search);
-            const ref = params.get("ref");
-            if (!ref || !ethers.isAddress(ref)) return;
+            let ref = params.get("ref");
+            if (!ref) return;
+
+            if (!ethers.isAddress(ref)) {
+                const cleanName = ref.toLowerCase().replace(/\.sgm$/, "");
+                try {
+                    const domainContract = new ethers.Contract(DOMAIN_ADDRESS, DOMAIN_ABI, sgmSigner);
+                    const resolved = await domainContract.resolve(cleanName);
+                    if (!resolved || resolved === ethers.ZeroAddress) return;
+                    ref = resolved;
+                } catch (err) { return; }
+            }
+
             if (ref.toLowerCase() === sgmAccount.toLowerCase()) return;
 
             const existing = await sgmReferralContract.referrerOf(sgmAccount);
@@ -451,13 +468,19 @@
         }
     }
 
-    window.sgmCopyInviteLink = function () {
+    window.sgmCopyInviteLink = async function () {
         const statusEl = document.getElementById("sgm-invite-status");
         if (!sgmAccount) {
             statusEl.innerText = "Connect your wallet first";
             return;
         }
-        const link = window.location.origin + "/?ref=" + sgmAccount;
+        let refValue = sgmAccount;
+        try {
+            const domainContract = new ethers.Contract(DOMAIN_ADDRESS, DOMAIN_ABI, sgmSigner);
+            const myDomain = await domainContract.nameOf(sgmAccount);
+            if (myDomain) refValue = myDomain + ".sgm";
+        } catch (err) { console.log(err); }
+        const link = window.location.origin + "/?ref=" + refValue;
         navigator.clipboard.writeText(link);
         statusEl.innerText = "Link copied! Share it with friends.";
     };
