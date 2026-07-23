@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, abort, session, redi
 from flask_talisman import Talisman
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_wtf import CSRFProtect
 import requests
 import os
 import sqlite3
@@ -26,6 +27,9 @@ csp = {
     'frame-src': ["https://transferto.xyz", "https://li.fi", "https://jumper.exchange"],
 }
 Talisman(app, content_security_policy=csp, force_https=False)
+
+# CSRF Protection
+csrf = CSRFProtect(app)
 
 # Rate Limiting
 limiter = Limiter(
@@ -228,6 +232,7 @@ def allowed_image(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXT
 
 @app.route("/api/nft/upload-image", methods=["POST"])
+@csrf.exempt
 @limiter.limit("20 per hour")
 def upload_nft_image():
     if "image" not in request.files:
@@ -268,6 +273,7 @@ def serve_nft_image(filename):
     return send_file(filepath)
 
 @app.route("/api/nft/create-metadata", methods=["POST"])
+@csrf.exempt
 @limiter.limit("20 per hour")
 def create_nft_metadata():
     data = request.get_json(silent=True) or {}
@@ -306,6 +312,7 @@ def serve_nft_metadata(filename):
     return app.response_class(data, mimetype="application/json")
 
 @app.route("/api/shorten", methods=["POST"])
+@csrf.exempt
 @limiter.limit("30 per hour")
 def api_shorten():
     data = request.get_json(silent=True) or {}
@@ -338,6 +345,7 @@ def resolve_short_link(code):
     return redirect(row["target_url"])
 
 @app.route("/api/contact", methods=["POST"])
+@csrf.exempt
 @limiter.limit("10 per hour")
 def api_contact():
     data = request.get_json(silent=True) or request.form

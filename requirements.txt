@@ -5,3 +5,5 @@ flask-talisman
 flask-limiter
 web3
 Pillow
+flask-wtf
+flask-wtf
