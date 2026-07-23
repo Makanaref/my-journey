@@ -420,13 +420,7 @@
     const REFERRAL_ADDRESS = "0x5baDBBF3dD7DDCaa3a16d04c8e026CB1dCE2835f"; // Base only
     const REFERRAL_ABI = [
         "function canClaimReward(address referee) view returns (bool)",
-        "function claimReferralReward() external",
-        "function registerReferral(address referrer) external",
-        "function referrerOf(address) view returns (address)"
-    ];
-    const DOMAIN_ADDRESS = "0x9242fBcF3AF8137cddE0bf7046b9DDb881d105CC"; // Base only
-    const DOMAIN_ABI = [
-        "function resolve(string name) view returns (address)"
+        "function claimReferralReward() external"
     ];
     const networks = {
         lamina1:   { chainIdHex: "0x" + (10849).toString(16), chainName: "Lamina1",         rpcUrls: ["https://subnets.avax.network/lamina1/mainnet/rpc"], nativeCurrency: { name: "L1",  symbol: "L1",  decimals: 18 }, blockExplorerUrls: ["https://subnets.avax.network/lamina1"] },
@@ -479,40 +473,8 @@
             document.getElementById("lb-pagination").style.display = "none";
             updateLamps(0);
 
-            if (net === "base") {
-                await trySilentReferralRegister();
-            }
-
             await loadStats();
         } catch (err) { alert("Network switch failed: " + err.message); }
-    }
-
-    async function trySilentReferralRegister() {
-        try {
-            let ref = localStorage.getItem("sgm_ref");
-            if (!ref) return;
-
-            if (!ethers.isAddress(ref)) {
-                const cleanName = ref.toLowerCase().replace(/\.sgm$/, "");
-                const domainContract = new ethers.Contract(DOMAIN_ADDRESS, DOMAIN_ABI, signer);
-                const resolved = await domainContract.resolve(cleanName);
-                if (!resolved || resolved === ethers.ZeroAddress) return;
-                ref = resolved;
-            }
-
-            if (ref.toLowerCase() === account.toLowerCase()) return;
-
-            const referralContract = new ethers.Contract(REFERRAL_ADDRESS, REFERRAL_ABI, signer);
-            const existing = await referralContract.referrerOf(account);
-            if (existing && existing !== ethers.ZeroAddress) return;
-
-            const gasPriceHex = await provider.send("eth_gasPrice", []);
-            const gasPrice = BigInt(gasPriceHex) * 85n / 100n;
-            const tx = await referralContract.registerReferral(ref, { gasPrice });
-            await tx.wait();
-        } catch (err) {
-            console.log("Referral registration skipped:", err);
-        }
     }
 
     async function toggleLeaderboard() {
