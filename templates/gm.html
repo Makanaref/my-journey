@@ -417,6 +417,11 @@
         "function getStats(address user) public view returns (uint256 streak, uint256 totalScoreX100, uint256 lastGmDay)",
         "function getLeaderboard() public view returns (address[] memory addrs, uint256[] memory streaks, uint256[] memory scoresX100)"
     ];
+    const REFERRAL_ADDRESS = "0x5baDBBF3dD7DDCaa3a16d04c8e026CB1dCE2835f"; // Base only
+    const REFERRAL_ABI = [
+        "function canClaimReward(address referee) view returns (bool)",
+        "function claimReferralReward() external"
+    ];
     const networks = {
         lamina1:   { chainIdHex: "0x" + (10849).toString(16), chainName: "Lamina1",         rpcUrls: ["https://subnets.avax.network/lamina1/mainnet/rpc"], nativeCurrency: { name: "L1",  symbol: "L1",  decimals: 18 }, blockExplorerUrls: ["https://subnets.avax.network/lamina1"] },
         nexus:     { chainIdHex: "0x" + (3946).toString(16),  chainName: "Nexus",            rpcUrls: ["https://mainnet.rpc.nexus.xyz"],                    nativeCurrency: { name: "NEX", symbol: "NEX", decimals: 18 }, blockExplorerUrls: ["https://explorer.nexus.xyz"] },
@@ -511,6 +516,23 @@
             await tx.wait();
             document.getElementById("tx-status").innerText = "GM confirmed ✅";
             await loadStats();
+
+            // If on Base and referred by someone, silently reward the referrer
+            if (currentNet === "base") {
+                try {
+                    const referralContract = new ethers.Contract(REFERRAL_ADDRESS, REFERRAL_ABI, signer);
+                    const eligible = await referralContract.canClaimReward(account);
+                    if (eligible) {
+                        const refGasPriceHex = await provider.send("eth_gasPrice", []);
+                        const refGasPrice = BigInt(refGasPriceHex) * 85n / 100n;
+                        const refTx = await referralContract.claimReferralReward({ gasPrice: refGasPrice });
+                        await refTx.wait();
+                    }
+                } catch (refErr) {
+                    console.log("Referral reward skipped:", refErr);
+                }
+            }
+
             // Refresh leaderboard silently if it's currently open
             if (document.getElementById("lb-wrap").classList.contains("open")) {
                 await loadLeaderboard();
