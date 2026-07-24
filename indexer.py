@@ -1,6 +1,9 @@
 import requests
 import json
 import urllib.request
+import ipaddress
+import socket
+from urllib.parse import urlparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 NETWORK_LABELS = {
@@ -106,6 +109,61 @@ def decode_string(hex_str):
         return ""
 
 
+def _is_private_or_reserved(hostname):
+    """Resolve hostname and check if it points to a private/reserved/loopback IP,
+    to prevent SSRF via NFT metadata URIs pointing at internal infrastructure."""
+    try:
+        infos = socket.getaddrinfo(hostname, None)
+    except Exception:
+        return True  # can't resolve -> treat as unsafe, fail closed
+    for info in infos:
+        ip_str = info[4][0]
+        try:
+            ip = ipaddress.ip_address(ip_str)
+        except ValueError:
+            return True
+        if (ip.is_private or ip.is_loopback or ip.is_link_local
+                or ip.is_multicast or ip.is_reserved or ip.is_unspecified):
+            return True
+    return False
+
+
+def safe_fetch_metadata(uri, timeout=4, max_bytes=262144):
+    """Safely fetch NFT metadata JSON from an arbitrary URI supplied by a
+    (potentially malicious) smart contract. Blocks non-http(s) schemes and
+    requests to private/internal network addresses (SSRF protection), and
+    caps the response size to avoid abuse."""
+    try:
+        parsed = urlparse(uri)
+        if parsed.scheme not in ("http", "https"):
+            return None
+        if not parsed.hostname:
+            return None
+        if _is_private_or_reserved(parsed.hostname):
+            return None
+
+        res = requests.get(uri, timeout=timeout, stream=True, allow_redirects=True)
+        if not res.ok:
+            return None
+
+        # Re-check the final URL after redirects (in case of redirect-based SSRF)
+        final_parsed = urlparse(res.url)
+        if final_parsed.scheme not in ("http", "https"):
+            return None
+        if not final_parsed.hostname or _is_private_or_reserved(final_parsed.hostname):
+            return None
+
+        content_bytes = b""
+        for chunk in res.iter_content(chunk_size=4096):
+            content_bytes += chunk
+            if len(content_bytes) > max_bytes:
+                return None  # response too large, bail out
+
+        return json.loads(content_bytes.decode("utf-8", errors="ignore"))
+    except Exception:
+        return None
+
+
 def get_gm_stats(rpc_url, contract_addr, account):
     sig = "0x" + "getStats(address)".encode().hex()
     from Crypto.Hash import keccak
@@ -191,9 +249,8 @@ def scan_nfts_via_explorer(net_key, account):
                     if result and result != "0x":
                         uri = decode_string(result)
                         if uri:
-                            meta_res = requests.get(uri, timeout=4)
-                            if meta_res.ok:
-                                meta_json = meta_res.json()
+                            meta_json = safe_fetch_metadata(uri)
+                            if meta_json:
                                 image = meta_json.get("image", "")
                                 name = meta_json.get("name", name)
                 except Exception:
@@ -231,9 +288,8 @@ def scan_nfts_via_rpc(net_key, account):
                 try:
                     uri = collection.functions.metadataURI().call()
                     if uri:
-                        meta_res = requests.get(uri, timeout=4)
-                        if meta_res.ok:
-                            meta_json = meta_res.json()
+                        meta_json = safe_fetch_metadata(uri)
+                        if meta_json:
                             image = meta_json.get("image", "")
                             name = meta_json.get("name", name)
                 except Exception:
@@ -242,9 +298,8 @@ def scan_nfts_via_rpc(net_key, account):
                         c2 = w3.eth.contract(address=collection_addr, abi=token_uri_abi)
                         uri = c2.functions.tokenURI(1).call()
                         if uri:
-                            meta_res = requests.get(uri, timeout=4)
-                            if meta_res.ok:
-                                meta_json = meta_res.json()
+                            meta_json = safe_fetch_metadata(uri)
+                            if meta_json:
                                 image = meta_json.get("image", "")
                                 name = meta_json.get("name", name)
                     except Exception:
