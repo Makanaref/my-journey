@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+{% block title %}Paper Trade 📈{% endblock %}
+{% block content %}
+
+<div style="max-width:960px; margin:0 auto; padding:50px 20px 80px;">
+
+    <!-- Header -->
+    <div style="text-align:center; margin-bottom:36px; position:relative;">
+        <div style="position:absolute; top:-30px; left:50%; transform:translateX(-50%); width:420px; height:260px; background:radial-gradient(ellipse, rgba(233,69,96,0.12), rgba(0,0,0,0) 70%); filter:blur(20px); pointer-events:none; z-index:0;"></div>
+        <div style="position:relative; z-index:1;">
+            <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size:2.2em; color:#fff; margin-bottom:8px;">
+                Paper Trading <span style="color:#e94560;">📈</span>
+            </h1>
+            <div style="color:rgba(255,255,255,0.45); font-size:0.95em;">
+                Practice long / short trades with simulated USD balance — zero risk, real prices.
+            </div>
+        </div>
+    </div>
+
+    <!-- Wallet connect / account bar -->
+    <div class="pt-card" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; margin-bottom:24px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div class="pt-icon">👛</div>
+            <div>
+                <div id="pt-wallet-label" style="font-weight:700; color:#fff; font-size:0.95em;">Not connected</div>
+                <div id="pt-wallet-sub" style="color:rgba(255,255,255,0.4); font-size:0.75em;">Connect your wallet to start paper trading</div>
+            </div>
+        </div>
+        <button id="pt-connect-btn" class="pt-btn" onclick="ptConnectWallet()">Connect Wallet</button>
+    </div>
+
+    <!-- Account summary -->
+    <div id="pt-account-section" style="display:none;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:14px; margin-bottom:24px;">
+            <div class="pt-card pt-stat">
+                <div class="pt-stat-label">Balance</div>
+                <div class="pt-stat-value" id="pt-balance">$0.00</div>
+            </div>
+            <div class="pt-card pt-stat">
+                <div class="pt-stat-label">Unrealized PnL</div>
+                <div class="pt-stat-value" id="pt-pnl">$0.00</div>
+            </div>
+            <div class="pt-card pt-stat">
+                <div class="pt-stat-label">Equity</div>
+                <div class="pt-stat-value pt-stat-value-gold" id="pt-equity">$0.00</div>
+            </div>
+        </div>
+
+        <!-- Trade panel -->
+        <div class="pt-card" style="margin-bottom:24px;">
+            <div class="pt-section-title">Open a Position</div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:14px; margin-bottom:16px;">
+                <div>
+                    <label class="pt-label">Symbol</label>
+                    <select id="pt-symbol" class="pt-input" onchange="ptRefreshPrice()">
+                        <option value="BTC">BTC</option>
+                        <option value="ETH">ETH</option>
+                        <option value="SOL">SOL</option>
+                        <option value="BNB">BNB</option>
+                        <option value="MATIC">MATIC</option>
+                        <option value="AVAX">AVAX</option>
+                        <option value="ARB">ARB</option>
+                        <option value="OP">OP</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="pt-label">Direction</label>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" id="pt-dir-long" class="pt-toggle pt-toggle-active-long" onclick="ptSetDirection('long')">Long</button>
+                        <button type="button" id="pt-dir-short" class="pt-toggle" onclick="ptSetDirection('short')">Short</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="pt-label">Order Type</label>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" id="pt-type-market" class="pt-toggle pt-toggle-active" onclick="ptSetEntryType('market')">Market</button>
+                        <button type="button" id="pt-type-limit" class="pt-toggle" onclick="ptSetEntryType('limit')">Limit</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:14px; margin-bottom:16px;">
+                <div>
+                    <label class="pt-label">Size (USD)</label>
+                    <input type="number" id="pt-size" class="pt-input" placeholder="100" min="1" step="any">
+                </div>
+                <div id="pt-limit-price-wrap" style="display:none;">
+                    <label class="pt-label">Limit Entry Price</label>
+                    <input type="number" id="pt-limit-price" class="pt-input" placeholder="0.00" min="0" step="any">
+                </div>
+                <div>
+                    <label class="pt-label">Take Profit <span style="color:rgba(255,255,255,0.3);">(optional)</span></label>
+                    <input type="number" id="pt-tp" class="pt-input" placeholder="0.00" min="0" step="any">
+                </div>
+                <div>
+                    <label class="pt-label">Stop Loss <span style="color:rgba(255,255,255,0.3);">(optional)</span></label>
+                    <input type="number" id="pt-sl" class="pt-input" placeholder="0.00" min="0" step="any">
+                </div>
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+                <div style="color:rgba(255,255,255,0.5); font-size:0.85em;">
+                    Current price: <span id="pt-current-price" style="color:#fff; font-weight:700; font-family:monospace;">—</span>
+                </div>
+                <button id="pt-open-btn" class="pt-btn" onclick="ptOpenPosition()">Open Position</button>
+            </div>
+            <div id="pt-open-status" class="pt-status"></div>
+        </div>
+
+        <!-- Positions -->
+        <div class="pt-card" style="margin-bottom:24px;">
+            <div class="pt-section-title">Positions</div>
+            <div id="pt-positions-list">
+                <div style="color:rgba(255,255,255,0.35); font-size:0.85em; padding:12px 0;">No positions yet.</div>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="pt-card">
+            <div class="pt-section-title">Price Alerts</div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+                <select id="pt-alert-symbol" class="pt-input" style="max-width:120px;">
+                    <option value="BTC">BTC</option>
+                    <option value="ETH">ETH</option>
+                    <option value="SOL">SOL</option>
+                    <option value="BNB">BNB</option>
+                    <option value="MATIC">MATIC</option>
+                    <option value="AVAX">AVAX</option>
+                    <option value="ARB">ARB</option>
+                    <option value="OP">OP</option>
+                </select>
+                <input type="number" id="pt-alert-price" class="pt-input" placeholder="Target price" min="0" step="any" style="max-width:160px;">
+                <button class="pt-btn" onclick="ptCreateAlert()">Add Alert</button>
+            </div>
+            <div id="pt-alerts-list">
+                <div style="color:rgba(255,255,255,0.35); font-size:0.85em;">No active alerts.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pt-card {
+        background: linear-gradient(160deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(233,69,96,0.22);
+        border-radius: 18px;
+        padding: 22px 24px;
+    }
+    .pt-icon {
+        width:44px; height:44px; border-radius:14px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:1.3em;
+        background: rgba(233,69,96,0.1);
+        border:1px solid rgba(233,69,96,0.25);
+        flex-shrink:0;
+    }
+    .pt-btn {
+        padding:11px 20px; border-radius:12px; border:none;
+        background:#e94560; color:#fff; font-weight:700; font-size:0.85em;
+        cursor:pointer; transition: background 0.2s ease, transform 0.2s ease;
+        white-space:nowrap;
+    }
+    .pt-btn:hover:not(:disabled) { background:#d63951; transform:translateY(-1px); }
+    .pt-btn:disabled { opacity:0.45; cursor:not-allowed; }
+
+    .pt-section-title {
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size:1.15em; font-weight:700; color:#fff; margin-bottom:18px;
+    }
+    .pt-label {
+        display:block; font-size:0.72em; color:rgba(255,255,255,0.45);
+        margin-bottom:6px; text-transform:uppercase; letter-spacing:0.03em;
+    }
+    .pt-input {
+        width:100%; padding:10px 12px; border-radius:10px;
+        border:1px solid rgba(255,255,255,0.12);
+        background:rgba(0,0,0,0.25); color:#fff; font-size:0.9em;
+        outline:none; transition:border-color 0.2s ease;
+    }
+    .pt-input:focus { border-color:rgba(233,69,96,0.5); }
+
+    .pt-toggle {
+        flex:1; padding:10px 12px; border-radius:10px; cursor:pointer;
+        border:1px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.25);
+        color:rgba(255,255,255,0.55); font-size:0.85em; font-weight:600;
+        transition: all 0.2s ease;
+    }
+    .pt-toggle-active-long { background:rgba(45,212,191,0.15); border-color:rgba(45,212,191,0.5); color:#5eead4; }
+    .pt-toggle-active-short { background:rgba(233,69,96,0.15); border-color:rgba(233,69,96,0.5); color:#f4879a; }
+    .pt-toggle-active { background:rgba(247,179,43,0.15); border-color:rgba(247,179,43,0.5); color:#f7d98a; }
+
+    .pt-stat { text-align:center; }
+    .pt-stat-label { font-size:0.72em; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:8px; }
+    .pt-stat-value { font-size:1.5em; font-weight:700; color:#fff; font-family:monospace; }
+    .pt-stat-value-gold { color:#f7b32b; }
+
+    .pt-status { margin-top:10px; font-size:0.8em; color:rgba(255,255,255,0.5); min-height:16px; }
+
+    .pt-position-row {
+        display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+        padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.06);
+    }
+    .pt-position-row:last-child { border-bottom:none; }
+    .pt-pill {
+        display:inline-block; padding:3px 10px; border-radius:20px;
+        font-size:0.7em; font-weight:700; text-transform:uppercase;
+    }
+    .pt-pill-long { background:rgba(45,212,191,0.15); color:#5eead4; }
+    .pt-pill-short { background:rgba(233,69,96,0.15); color:#f4879a; }
+    .pt-pill-pending { background:rgba(247,179,43,0.15); color:#f7d98a; }
+
+    .pt-mini-btn {
+        padding:6px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.15);
+        background:transparent; color:rgba(255,255,255,0.7); font-size:0.75em;
+        cursor:pointer; transition: all 0.2s ease;
+    }
+    .pt-mini-btn:hover { border-color:rgba(233,69,96,0.5); color:#fff; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+<script>
+(function () {
+    let ptAccount = null;
+    let ptDirection = "long";
+    let ptEntryType = "market";
+    let ptRefreshTimer = null;
+
+    function ptFmt(n) {
+        if (n === null || n === undefined || isNaN(n)) return "—";
+        return "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    window.ptSetDirection = function (dir) {
+        ptDirection = dir;
+        document.getElementById("pt-dir-long").className = "pt-toggle" + (dir === "long" ? " pt-toggle-active-long" : "");
+        document.getElementById("pt-dir-short").className = "pt-toggle" + (dir === "short" ? " pt-toggle-active-short" : "");
+    };
+
+    window.ptSetEntryType = function (type) {
+        ptEntryType = type;
+        document.getElementById("pt-type-market").className = "pt-toggle" + (type === "market" ? " pt-toggle-active" : "");
+        document.getElementById("pt-type-limit").className = "pt-toggle" + (type === "limit" ? " pt-toggle-active" : "");
+        document.getElementById("pt-limit-price-wrap").style.display = type === "limit" ? "block" : "none";
+    };
+
+    window.ptConnectWallet = async function () {
+        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
+        try {
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            const signer = await provider.getSigner();
+            ptAccount = (await signer.getAddress()).toLowerCase();
+
+            document.getElementById("pt-wallet-label").innerText = ptAccount.slice(0, 6) + "..." + ptAccount.slice(-4);
+            document.getElementById("pt-wallet-sub").innerText = "Connected";
+            document.getElementById("pt-connect-btn").innerText = "Connected";
+            document.getElementById("pt-connect-btn").disabled = true;
+            document.getElementById("pt-account-section").style.display = "block";
+
+            await fetch("/api/paper/start", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ wallet: ptAccount, starting_balance: 1000 })
+            });
+
+            ptRefreshPrice();
+            ptRefreshAccount();
+            ptRefreshAlerts();
+            if (ptRefreshTimer) clearInterval(ptRefreshTimer);
+            ptRefreshTimer = setInterval(() => {
+                ptRefreshAccount();
+                ptRefreshPrice();
+            }, 15000);
+        } catch (err) {
+            alert("Connection failed: " + err.message);
+        }
+    };
+
+    window.ptRefreshPrice = async function () {
+        const symbol = document.getElementById("pt-symbol").value;
+        try {
+            const res = await fetch("/api/paper/price?symbol=" + symbol);
+            const data = await res.json();
+            document.getElementById("pt-current-price").innerText = data.price ? ptFmt(data.price) : "—";
+        } catch (err) {
+            document.getElementById("pt-current-price").innerText = "—";
+        }
+    };
+
+    window.ptRefreshAccount = async function () {
+        if (!ptAccount) return;
+        try {
+            const res = await fetch("/api/paper/account?wallet=" + ptAccount);
+            const data = await res.json();
+            if (data.error) return;
+            document.getElementById("pt-balance").innerText = ptFmt(data.balance);
+            document.getElementById("pt-pnl").innerText = ptFmt(data.unrealized_pnl);
+            document.getElementById("pt-equity").innerText = ptFmt(data.equity);
+            ptRenderPositions(data.open_positions || []);
+        } catch (err) { console.log(err); }
+    };
+
+    function ptRenderPositions(openPositions) {
+        // merge with full history for closed/pending view
+        fetch("/api/paper/positions?wallet=" + ptAccount)
+            .then(r => r.json())
+            .then(all => {
+                const list = document.getElementById("pt-positions-list");
+                if (!all.length) {
+                    list.innerHTML = '<div style="color:rgba(255,255,255,0.35); font-size:0.85em; padding:12px 0;">No positions yet.</div>';
+                    return;
+                }
+                list.innerHTML = all.map(p => {
+                    const pillClass = p.status === "pending" ? "pt-pill-pending" : (p.direction === "long" ? "pt-pill-long" : "pt-pill-short");
+                    const pnlColor = (p.pnl || 0) >= 0 ? "#5eead4" : "#f4879a";
+                    let actions = "";
+                    if (p.status === "open") {
+                        actions = `<button class="pt-mini-btn" onclick="ptClosePosition(${p.id})">Close</button>`;
+                    } else if (p.status === "pending") {
+                        actions = `<button class="pt-mini-btn" onclick="ptCancelPosition(${p.id})">Cancel</button>`;
+                    }
+                    return `
+                        <div class="pt-position-row">
+                            <div>
+                                <span class="pt-pill ${pillClass}">${p.status === "pending" ? "pending" : p.direction}</span>
+                                <span style="color:#fff; font-weight:700; margin-left:8px;">${p.symbol}</span>
+                                <span style="color:rgba(255,255,255,0.4); font-size:0.8em; margin-left:8px;">$${p.size_usd}</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:16px;">
+                                <span style="font-family:monospace; color:${pnlColor}; font-size:0.85em;">
+                                    ${p.pnl !== null && p.pnl !== undefined ? ptFmt(p.pnl) : "—"}
+                                </span>
+                                ${actions}
+                            </div>
+                        </div>`;
+                }).join("");
+            });
+    }
+
+    window.ptOpenPosition = async function () {
+        if (!ptAccount) return;
+        const btn = document.getElementById("pt-open-btn");
+        const status = document.getElementById("pt-open-status");
+        const symbol = document.getElementById("pt-symbol").value;
+        const size = document.getElementById("pt-size").value;
+        const tp = document.getElementById("pt-tp").value;
+        const sl = document.getElementById("pt-sl").value;
+        const limitPrice = document.getElementById("pt-limit-price").value;
+
+        if (!size || Number(size) <= 0) {
+            status.innerText = "Enter a valid size.";
+            return;
+        }
+        if (ptEntryType === "limit" && (!limitPrice || Number(limitPrice) <= 0)) {
+            status.innerText = "Enter a valid limit price.";
+            return;
+        }
+
+        btn.disabled = true;
+        status.innerText = "Opening position...";
+
+        try {
+            // Simulated fee tx hash (paper trading uses no real gas cost;
+            // this hash just satisfies the audit-trail field).
+            const feeHash = "0x" + Array.from(crypto.getRandomValues(new Uint8Array(32)))
+                .map(b => b.toString(16).padStart(2, "0")).join("");
+
+            const res = await fetch("/api/paper/position", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    wallet: ptAccount,
+                    symbol: symbol,
+                    direction: ptDirection,
+                    entry_type: ptEntryType,
+                    size_usd: Number(size),
+                    entry_price: ptEntryType === "limit" ? Number(limitPrice) : null,
+                    take_profit: tp ? Number(tp) : null,
+                    stop_loss: sl ? Number(sl) : null,
+                    network: "paper",
+                    fee_tx_hash: feeHash
+                })
+            });
+            const data = await res.json();
+            if (data.error) {
+                status.innerText = data.error;
+            } else {
+                status.innerText = "Position opened.";
+                document.getElementById("pt-size").value = "";
+                document.getElementById("pt-tp").value = "";
+                document.getElementById("pt-sl").value = "";
+                document.getElementById("pt-limit-price").value = "";
+                ptRefreshAccount();
+            }
+        } catch (err) {
+            status.innerText = "Failed: " + err.message;
+        } finally {
+            btn.disabled = false;
+        }
+    };
+
+    window.ptClosePosition = async function (id) {
+        if (!ptAccount) return;
+        try {
+            await fetch("/api/paper/position/" + id + "/close", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ wallet: ptAccount })
+            });
+            ptRefreshAccount();
+        } catch (err) { console.log(err); }
+    };
+
+    window.ptCancelPosition = async function (id) {
+        if (!ptAccount) return;
+        try {
+            await fetch("/api/paper/position/" + id + "/cancel", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ wallet: ptAccount })
+            });
+            ptRefreshAccount();
+        } catch (err) { console.log(err); }
+    };
+
+    window.ptCreateAlert = async function () {
+        if (!ptAccount) return;
+        const symbol = document.getElementById("pt-alert-symbol").value;
+        const price = document.getElementById("pt-alert-price").value;
+        if (!price || Number(price) <= 0) return;
+        try {
+            await fetch("/api/paper/alert", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ wallet: ptAccount, symbol: symbol, target_price: Number(price) })
+            });
+            document.getElementById("pt-alert-price").value = "";
+            ptRefreshAlerts();
+        } catch (err) { console.log(err); }
+    };
+
+    window.ptRefreshAlerts = async function () {
+        if (!ptAccount) return;
+        try {
+            const res = await fetch("/api/paper/alerts?wallet=" + ptAccount);
+            const data = await res.json();
+            const list = document.getElementById("pt-alerts-list");
+            if (!data.length) {
+                list.innerHTML = '<div style="color:rgba(255,255,255,0.35); font-size:0.85em;">No active alerts.</div>';
+                return;
+            }
+            list.innerHTML = data.map(a => `
+                <div class="pt-position-row">
+                    <div>
+                        <span style="color:#fff; font-weight:700;">${a.symbol}</span>
+                        <span style="color:rgba(255,255,255,0.4); font-size:0.8em; margin-left:8px;">target ${ptFmt(a.target_price)}</span>
+                        ${a.triggered ? '<span class="pt-pill pt-pill-long" style="margin-left:8px;">hit</span>' : ''}
+                    </div>
+                    <button class="pt-mini-btn" onclick="ptDismissAlert(${a.id})">Dismiss</button>
+                </div>`).join("");
+        } catch (err) { console.log(err); }
+    };
+
+    window.ptDismissAlert = async function (id) {
+        if (!ptAccount) return;
+        try {
+            await fetch("/api/paper/alert/" + id + "/dismiss", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ wallet: ptAccount })
+            });
+            ptRefreshAlerts();
+        } catch (err) { console.log(err); }
+    };
+
+    ptRefreshPrice();
+})();
+</script>
+
+{% endblock %}
