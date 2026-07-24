@@ -1,43 +1,74 @@
+"""
+Paper trading backend module.
+
+Provides a simple simulated ("paper") trading system backed by SQLite:
+- per-wallet virtual accounts with a USD balance
+- opening/closing long/short positions on a fixed set of symbols
+- price fetching from CoinGecko with a small in-memory cache
+- take-profit / stop-loss checking via a background thread
+- price alerts
+
+This module is intentionally dependency-light (stdlib + requests) so it
+drops into an existing Flask app without adding new services.
+"""
+
+import os
 import sqlite3
+import threading
 import time
 import datetime
-import threading
+
 import requests
 
-DB_PATH = None
+# ---------------------------------------------------------------------------
+# Config
+# ---------------------------------------------------------------------------
 
 SYMBOL_TO_COINGECKO = {
     "BTC": "bitcoin",
     "ETH": "ethereum",
+    "SOL": "solana",
+    "BNB": "binancecoin",
+    "MATIC": "matic-network",
     "AVAX": "avalanche-2",
+    "ARB": "arbitrum",
     "OP": "optimism",
 }
 
-_price_cache = {}          # symbol -> (price, fetched_at_epoch)
-_last_seen_price = {}      # symbol -> last price observed, used for alert crossing detection
-PRICE_CACHE_SECONDS = 15
+_DB_PATH = None
 
-MAX_BALANCE = 1_000_000
-MAX_BALANCE_ADJUSTMENT = 1_000_000
+# price cache: symbol -> (price, fetched_at_epoch_seconds)
+_price_cache = {}
+_price_cache_lock = threading.Lock()
+_PRICE_CACHE_TTL = 15  # seconds
 
+_checker_thread = None
+_checker_started = False
+
+
+# ---------------------------------------------------------------------------
+# Setup
+# ---------------------------------------------------------------------------
 
 def init_paper_trading(db_path):
-    global DB_PATH
-    DB_PATH = db_path
+    """Store the DB path to use for all paper-trading tables."""
+    global _DB_PATH
+    _DB_PATH = db_path
 
 
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
+def _get_db():
+    conn = sqlite3.connect(_DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_paper_tables():
-    conn = get_db()
+    """Create the paper-trading tables if they don't already exist."""
+    conn = _get_db()
     conn.execute("""
         CREATE TABLE IF NOT EXISTS paper_accounts (
             wallet TEXT PRIMARY KEY,
-            balance_usd REAL NOT NULL,
+            balance REAL NOT NULL,
             created_at TEXT NOT NULL
         )
     """)
@@ -47,18 +78,17 @@ def init_paper_tables():
             wallet TEXT NOT NULL,
             symbol TEXT NOT NULL,
             direction TEXT NOT NULL,
+            entry_type TEXT NOT NULL,
             size_usd REAL NOT NULL,
-            entry_type TEXT NOT NULL,      -- 'market' | 'limit' | 'stop'
             entry_price REAL,
             take_profit REAL,
             stop_loss REAL,
-            status TEXT NOT NULL,          -- 'pending_entry' | 'open' | 'closed' | 'cancelled'
-            close_price REAL,
-            pnl_usd REAL,
+            status TEXT NOT NULL DEFAULT 'pending',
             network TEXT,
             fee_tx_hash TEXT,
+            close_price REAL,
+            pnl REAL,
             created_at TEXT NOT NULL,
-            opened_at TEXT,
             closed_at TEXT
         )
     """)
@@ -68,404 +98,470 @@ def init_paper_tables():
             wallet TEXT NOT NULL,
             symbol TEXT NOT NULL,
             target_price REAL NOT NULL,
-            status TEXT NOT NULL,          -- 'active' | 'triggered' | 'dismissed'
-            created_at TEXT NOT NULL,
-            triggered_at TEXT
+            triggered INTEGER NOT NULL DEFAULT 0,
+            dismissed INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL
         )
     """)
     conn.commit()
     conn.close()
 
 
-# --- Price fetching -----------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Price fetching
+# ---------------------------------------------------------------------------
 
 def get_price(symbol):
+    """Return the current USD price for `symbol`, using a short cache."""
     symbol = symbol.upper()
-    if symbol not in SYMBOL_TO_COINGECKO:
+    coingecko_id = SYMBOL_TO_COINGECKO.get(symbol)
+    if not coingecko_id:
         return None
-    cached = _price_cache.get(symbol)
-    if cached and (time.time() - cached[1]) < PRICE_CACHE_SECONDS:
-        return cached[0]
+
+    now = time.time()
+    with _price_cache_lock:
+        cached = _price_cache.get(symbol)
+        if cached and (now - cached[1]) < _PRICE_CACHE_TTL:
+            return cached[0]
+
     try:
-        cg_id = SYMBOL_TO_COINGECKO[symbol]
-        res = requests.get(
+        resp = requests.get(
             "https://api.coingecko.com/api/v3/simple/price",
-            params={"ids": cg_id, "vs_currencies": "usd"},
-            timeout=5
+            params={"ids": coingecko_id, "vs_currencies": "usd"},
+            timeout=5,
         )
-        data = res.json()
-        price = data.get(cg_id, {}).get("usd")
+        data = resp.json()
+        price = data.get(coingecko_id, {}).get("usd")
         if price is None:
-            return cached[0] if cached else None
-        _price_cache[symbol] = (price, time.time())
-        return price
+            return None
+        price = float(price)
     except Exception:
-        return cached[0] if cached else None
+        with _price_cache_lock:
+            cached = _price_cache.get(symbol)
+            if cached:
+                return cached[0]
+        return None
+
+    with _price_cache_lock:
+        _price_cache[symbol] = (price, now)
+    return price
 
 
-# --- Account -------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Accounts
+# ---------------------------------------------------------------------------
 
-def get_or_create_account(wallet, starting_balance=None):
-    conn = get_db()
-    row = conn.execute("SELECT * FROM paper_accounts WHERE wallet = ?", (wallet,)).fetchone()
-    if row:
-        conn.close()
-        return dict(row)
-    balance = starting_balance if starting_balance and starting_balance > 0 else 1000.0
-    balance = min(balance, MAX_BALANCE)
-    conn.execute(
-        "INSERT INTO paper_accounts (wallet, balance_usd, created_at) VALUES (?, ?, ?)",
-        (wallet, balance, datetime.datetime.now(datetime.timezone.utc).isoformat())
-    )
-    conn.commit()
-    row = conn.execute("SELECT * FROM paper_accounts WHERE wallet = ?", (wallet,)).fetchone()
+def get_or_create_account(wallet, starting_balance=1000):
+    conn = _get_db()
+    row = conn.execute(
+        "SELECT * FROM paper_accounts WHERE wallet = ?", (wallet,)
+    ).fetchone()
+    if row is None:
+        conn.execute(
+            "INSERT INTO paper_accounts (wallet, balance, created_at) VALUES (?, ?, ?)",
+            (wallet, starting_balance, datetime.datetime.utcnow().isoformat()),
+        )
+        conn.commit()
+        row = conn.execute(
+            "SELECT * FROM paper_accounts WHERE wallet = ?", (wallet,)
+        ).fetchone()
     conn.close()
-    return dict(row)
+    return {"wallet": row["wallet"], "balance": row["balance"], "created_at": row["created_at"]}
 
 
 def adjust_balance(wallet, delta):
-    """Add or remove virtual USDT from the paper account at any time.
-    delta can be positive (top-up) or negative (withdraw)."""
-    if delta == 0:
-        return {"error": "Delta cannot be zero"}, 400
-    if abs(delta) > MAX_BALANCE_ADJUSTMENT:
-        return {"error": "Adjustment too large"}, 400
+    conn = _get_db()
+    row = conn.execute(
+        "SELECT * FROM paper_accounts WHERE wallet = ?", (wallet,)
+    ).fetchone()
+    if row is None:
+        conn.close()
+        return {"error": "Account not found"}, 404
 
-    account = get_or_create_account(wallet)
-    new_balance = account["balance_usd"] + delta
+    new_balance = row["balance"] + delta
     if new_balance < 0:
-        return {"error": "Balance cannot go negative"}, 400
-    if new_balance > MAX_BALANCE:
-        return {"error": f"Balance cannot exceed {MAX_BALANCE}"}, 400
+        conn.close()
+        return {"error": "Insufficient balance"}, 400
 
-    conn = get_db()
-    conn.execute("UPDATE paper_accounts SET balance_usd = ? WHERE wallet = ?", (new_balance, wallet))
+    conn.execute(
+        "UPDATE paper_accounts SET balance = ? WHERE wallet = ?", (new_balance, wallet)
+    )
     conn.commit()
     conn.close()
-    return {"balance_usd": new_balance}, 200
-
-
-def _calc_pnl(direction, entry_price, close_price, size_usd):
-    if not entry_price or entry_price <= 0:
-        return 0
-    change_pct = (close_price - entry_price) / entry_price
-    if direction == "short":
-        change_pct = -change_pct
-    return size_usd * change_pct
+    return {"wallet": wallet, "balance": new_balance}, 200
 
 
 def get_account_snapshot(wallet):
-    conn = get_db()
-    account = conn.execute("SELECT * FROM paper_accounts WHERE wallet = ?", (wallet,)).fetchone()
-    if not account:
+    conn = _get_db()
+    account = conn.execute(
+        "SELECT * FROM paper_accounts WHERE wallet = ?", (wallet,)
+    ).fetchone()
+    if account is None:
         conn.close()
         return None
+
     open_positions = conn.execute(
-        "SELECT * FROM paper_positions WHERE wallet = ? AND status = 'open'", (wallet,)
-    ).fetchall()
-    pending_positions = conn.execute(
-        "SELECT * FROM paper_positions WHERE wallet = ? AND status = 'pending_entry'", (wallet,)
+        "SELECT * FROM paper_positions WHERE wallet = ? AND status = 'open' ORDER BY id DESC",
+        (wallet,),
     ).fetchall()
     conn.close()
 
-    positions = []
     unrealized_pnl = 0.0
-    for p in open_positions:
-        price = get_price(p["symbol"]) or p["entry_price"]
-        pnl = _calc_pnl(p["direction"], p["entry_price"], price, p["size_usd"])
+    positions_out = []
+    for pos in open_positions:
+        current_price = get_price(pos["symbol"])
+        pnl = _calc_pnl(pos, current_price) if current_price else 0.0
         unrealized_pnl += pnl
-        positions.append({
-            "id": p["id"], "symbol": p["symbol"], "direction": p["direction"],
-            "size_usd": p["size_usd"], "entry_price": p["entry_price"], "current_price": price,
-            "take_profit": p["take_profit"], "stop_loss": p["stop_loss"],
-            "pnl_usd": pnl, "opened_at": p["opened_at"],
-        })
-
-    pending = [{
-        "id": p["id"], "symbol": p["symbol"], "direction": p["direction"],
-        "size_usd": p["size_usd"], "entry_type": p["entry_type"], "entry_price": p["entry_price"],
-        "take_profit": p["take_profit"], "stop_loss": p["stop_loss"], "created_at": p["created_at"],
-    } for p in pending_positions]
+        positions_out.append(_position_to_dict(pos, current_price=current_price, pnl=pnl))
 
     return {
-        "wallet": wallet,
-        "balance_usd": account["balance_usd"],
-        "open_positions": positions,
-        "pending_positions": pending,
-        "unrealized_pnl_usd": unrealized_pnl,
-        "total_equity_usd": account["balance_usd"] + unrealized_pnl,
+        "wallet": account["wallet"],
+        "balance": account["balance"],
+        "unrealized_pnl": round(unrealized_pnl, 2),
+        "equity": round(account["balance"] + unrealized_pnl, 2),
+        "open_positions": positions_out,
     }
 
 
-# --- Opening / closing positions -----------------------------------------------
+# ---------------------------------------------------------------------------
+# Positions
+# ---------------------------------------------------------------------------
 
-def open_position(wallet, symbol, direction, size_usd, entry_type, entry_price=None,
-                   take_profit=None, stop_loss=None, network=None, fee_tx_hash=None):
+def _position_to_dict(row, current_price=None, pnl=None):
+    return {
+        "id": row["id"],
+        "wallet": row["wallet"],
+        "symbol": row["symbol"],
+        "direction": row["direction"],
+        "entry_type": row["entry_type"],
+        "size_usd": row["size_usd"],
+        "entry_price": row["entry_price"],
+        "take_profit": row["take_profit"],
+        "stop_loss": row["stop_loss"],
+        "status": row["status"],
+        "network": row["network"],
+        "fee_tx_hash": row["fee_tx_hash"],
+        "close_price": row["close_price"],
+        "pnl": row["pnl"] if row["pnl"] is not None else pnl,
+        "current_price": current_price,
+        "created_at": row["created_at"],
+        "closed_at": row["closed_at"],
+    }
+
+
+def _calc_pnl(row, current_price):
+    if row["entry_price"] in (None, 0):
+        return 0.0
+    change = (current_price - row["entry_price"]) / row["entry_price"]
+    if row["direction"] == "short":
+        change = -change
+    return row["size_usd"] * change
+
+
+def open_position(wallet, symbol, direction, size_usd, entry_type,
+                   entry_price=None, take_profit=None, stop_loss=None,
+                   network=None, fee_tx_hash=None):
     symbol = symbol.upper()
-    direction = direction.lower()
-    entry_type = entry_type.lower()
-
     if symbol not in SYMBOL_TO_COINGECKO:
         return {"error": "Unsupported symbol"}, 400
     if direction not in ("long", "short"):
-        return {"error": "Invalid direction"}, 400
-    if entry_type not in ("market", "limit", "stop"):
-        return {"error": "Invalid entry type"}, 400
-    if not size_usd or size_usd <= 0:
+        return {"error": "Direction must be 'long' or 'short'"}, 400
+    if entry_type not in ("market", "limit"):
+        return {"error": "entry_type must be 'market' or 'limit'"}, 400
+    if size_usd is None or size_usd <= 0:
         return {"error": "Invalid position size"}, 400
-    if entry_type in ("limit", "stop") and (not entry_price or entry_price <= 0):
-        return {"error": "Entry price required"}, 400
-    if not fee_tx_hash:
-        return {"error": "Fee transaction hash required"}, 400
 
-    account = get_or_create_account(wallet)
-    if account["balance_usd"] < size_usd:
-        return {"error": "Insufficient paper balance"}, 400
+    conn = _get_db()
+    account = conn.execute(
+        "SELECT * FROM paper_accounts WHERE wallet = ?", (wallet,)
+    ).fetchone()
+    if account is None:
+        conn.close()
+        return {"error": "Account not found"}, 404
+    if account["balance"] < size_usd:
+        conn.close()
+        return {"error": "Insufficient balance"}, 400
 
-    conn = get_db()
-    created_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    status = "pending"
+    resolved_entry_price = entry_price
 
     if entry_type == "market":
-        price = get_price(symbol)
-        if price is None:
+        resolved_entry_price = get_price(symbol)
+        if resolved_entry_price is None:
             conn.close()
             return {"error": "Price unavailable, try again"}, 503
-        conn.execute("UPDATE paper_accounts SET balance_usd = balance_usd - ? WHERE wallet = ?", (size_usd, wallet))
-        cur = conn.execute(
-            """INSERT INTO paper_positions
-               (wallet, symbol, direction, size_usd, entry_type, entry_price, take_profit, stop_loss,
-                status, network, fee_tx_hash, created_at, opened_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?)""",
-            (wallet, symbol, direction, size_usd, entry_type, price, take_profit, stop_loss,
-             network, fee_tx_hash, created_at, created_at)
-        )
-        position_id = cur.lastrowid
-        conn.commit()
-        conn.close()
-        return {"position_id": position_id, "status": "open", "entry_price": price}, 200
+        status = "open"
+    else:
+        if entry_price is None or entry_price <= 0:
+            conn.close()
+            return {"error": "Limit orders require a valid entry_price"}, 400
 
-    # limit or stop: wait for price to reach the trigger before opening
-    conn.execute("UPDATE paper_accounts SET balance_usd = balance_usd - ? WHERE wallet = ?", (size_usd, wallet))
-    cur = conn.execute(
+    now = datetime.datetime.utcnow().isoformat()
+    conn.execute(
         """INSERT INTO paper_positions
-           (wallet, symbol, direction, size_usd, entry_type, entry_price, take_profit, stop_loss,
-            status, network, fee_tx_hash, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending_entry', ?, ?, ?)""",
-        (wallet, symbol, direction, size_usd, entry_type, entry_price, take_profit, stop_loss,
-         network, fee_tx_hash, created_at)
+           (wallet, symbol, direction, entry_type, size_usd, entry_price,
+            take_profit, stop_loss, status, network, fee_tx_hash, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (wallet, symbol, direction, entry_type, size_usd, resolved_entry_price,
+         take_profit, stop_loss, status, network, fee_tx_hash, now),
     )
-    position_id = cur.lastrowid
+    new_balance = account["balance"] - size_usd
+    conn.execute(
+        "UPDATE paper_accounts SET balance = ? WHERE wallet = ?", (new_balance, wallet)
+    )
     conn.commit()
-    conn.close()
-    return {"position_id": position_id, "status": "pending_entry"}, 200
-
-
-def close_position(wallet, position_id, reason="manual"):
-    conn = get_db()
-    p = conn.execute(
-        "SELECT * FROM paper_positions WHERE id = ? AND wallet = ? AND status = 'open'", (position_id, wallet)
+    position_id = conn.execute("SELECT last_insert_rowid() AS id").fetchone()["id"]
+    row = conn.execute(
+        "SELECT * FROM paper_positions WHERE id = ?", (position_id,)
     ).fetchone()
-    if not p:
-        conn.close()
-        return {"error": "Open position not found"}, 404
+    conn.close()
 
-    price = get_price(p["symbol"])
-    if price is None:
+    return _position_to_dict(row, current_price=resolved_entry_price, pnl=0.0), 201
+
+
+def close_position(wallet, position_id):
+    conn = _get_db()
+    pos = conn.execute(
+        "SELECT * FROM paper_positions WHERE id = ? AND wallet = ?",
+        (position_id, wallet),
+    ).fetchone()
+    if pos is None:
+        conn.close()
+        return {"error": "Position not found"}, 404
+    if pos["status"] != "open":
+        conn.close()
+        return {"error": "Position is not open"}, 400
+
+    current_price = get_price(pos["symbol"])
+    if current_price is None:
         conn.close()
         return {"error": "Price unavailable, try again"}, 503
 
-    pnl = _calc_pnl(p["direction"], p["entry_price"], price, p["size_usd"])
-    returned_amount = p["size_usd"] + pnl
+    pnl = _calc_pnl(pos, current_price)
+    payout = pos["size_usd"] + pnl
+    now = datetime.datetime.utcnow().isoformat()
 
-    conn.execute("UPDATE paper_accounts SET balance_usd = balance_usd + ? WHERE wallet = ?", (returned_amount, wallet))
     conn.execute(
-        "UPDATE paper_positions SET status = 'closed', close_price = ?, pnl_usd = ?, closed_at = ? WHERE id = ?",
-        (price, pnl, datetime.datetime.now(datetime.timezone.utc).isoformat(), position_id)
+        """UPDATE paper_positions
+           SET status = 'closed', close_price = ?, pnl = ?, closed_at = ?
+           WHERE id = ?""",
+        (current_price, pnl, now, position_id),
+    )
+    account = conn.execute(
+        "SELECT * FROM paper_accounts WHERE wallet = ?", (wallet,)
+    ).fetchone()
+    new_balance = account["balance"] + max(payout, 0.0)
+    conn.execute(
+        "UPDATE paper_accounts SET balance = ? WHERE wallet = ?", (new_balance, wallet)
     )
     conn.commit()
+    row = conn.execute(
+        "SELECT * FROM paper_positions WHERE id = ?", (position_id,)
+    ).fetchone()
     conn.close()
-    return {"status": "closed", "close_price": price, "pnl_usd": pnl, "reason": reason}, 200
+
+    return _position_to_dict(row, current_price=current_price, pnl=pnl), 200
 
 
 def cancel_pending_position(wallet, position_id):
-    conn = get_db()
-    p = conn.execute(
-        "SELECT * FROM paper_positions WHERE id = ? AND wallet = ? AND status = 'pending_entry'", (position_id, wallet)
+    conn = _get_db()
+    pos = conn.execute(
+        "SELECT * FROM paper_positions WHERE id = ? AND wallet = ?",
+        (position_id, wallet),
     ).fetchone()
-    if not p:
+    if pos is None:
         conn.close()
-        return {"error": "Pending position not found"}, 404
-    conn.execute("UPDATE paper_accounts SET balance_usd = balance_usd + ? WHERE wallet = ?", (p["size_usd"], wallet))
-    conn.execute("UPDATE paper_positions SET status = 'cancelled' WHERE id = ?", (position_id,))
+        return {"error": "Position not found"}, 404
+    if pos["status"] != "pending":
+        conn.close()
+        return {"error": "Only pending positions can be cancelled"}, 400
+
+    now = datetime.datetime.utcnow().isoformat()
+    conn.execute(
+        "UPDATE paper_positions SET status = 'cancelled', closed_at = ? WHERE id = ?",
+        (now, position_id),
+    )
+    account = conn.execute(
+        "SELECT * FROM paper_accounts WHERE wallet = ?", (wallet,)
+    ).fetchone()
+    new_balance = account["balance"] + pos["size_usd"]
+    conn.execute(
+        "UPDATE paper_accounts SET balance = ? WHERE wallet = ?", (new_balance, wallet)
+    )
     conn.commit()
+    row = conn.execute(
+        "SELECT * FROM paper_positions WHERE id = ?", (position_id,)
+    ).fetchone()
     conn.close()
-    return {"status": "cancelled"}, 200
+    return _position_to_dict(row), 200
 
 
 def get_positions(wallet):
-    """Full order/position history for the wallet, newest first."""
-    conn = get_db()
+    conn = _get_db()
     rows = conn.execute(
-        "SELECT * FROM paper_positions WHERE wallet = ? ORDER BY id DESC LIMIT 200", (wallet,)
+        "SELECT * FROM paper_positions WHERE wallet = ? ORDER BY id DESC", (wallet,)
     ).fetchall()
     conn.close()
-    return [dict(r) for r in rows]
+    out = []
+    for row in rows:
+        if row["status"] == "open":
+            current_price = get_price(row["symbol"])
+            pnl = _calc_pnl(row, current_price) if current_price else None
+            out.append(_position_to_dict(row, current_price=current_price, pnl=pnl))
+        else:
+            out.append(_position_to_dict(row))
+    return out
 
 
-# --- Price alerts ("timer" lines on the chart) ---------------------------------
+def process_wallet_positions(wallet):
+    """Check pending limit orders and open TP/SL levels for one wallet."""
+    conn = _get_db()
+    positions = conn.execute(
+        "SELECT * FROM paper_positions WHERE wallet = ? AND status IN ('pending', 'open')",
+        (wallet,),
+    ).fetchall()
+    conn.close()
+    for pos in positions:
+        _process_position(pos)
+
+
+def _process_position(pos):
+    current_price = get_price(pos["symbol"])
+    if current_price is None:
+        return
+
+    if pos["status"] == "pending":
+        should_fill = (
+            (pos["direction"] == "long" and current_price <= pos["entry_price"]) or
+            (pos["direction"] == "short" and current_price >= pos["entry_price"])
+        )
+        if should_fill:
+            conn = _get_db()
+            conn.execute(
+                "UPDATE paper_positions SET status = 'open' WHERE id = ?", (pos["id"],)
+            )
+            conn.commit()
+            conn.close()
+        return
+
+    if pos["status"] == "open":
+        hit_tp = pos["take_profit"] is not None and (
+            (pos["direction"] == "long" and current_price >= pos["take_profit"]) or
+            (pos["direction"] == "short" and current_price <= pos["take_profit"])
+        )
+        hit_sl = pos["stop_loss"] is not None and (
+            (pos["direction"] == "long" and current_price <= pos["stop_loss"]) or
+            (pos["direction"] == "short" and current_price >= pos["stop_loss"])
+        )
+        if hit_tp or hit_sl:
+            close_position(pos["wallet"], pos["id"])
+
+
+# ---------------------------------------------------------------------------
+# Alerts
+# ---------------------------------------------------------------------------
 
 def create_alert(wallet, symbol, target_price):
     symbol = symbol.upper()
     if symbol not in SYMBOL_TO_COINGECKO:
         return {"error": "Unsupported symbol"}, 400
-    if not target_price or target_price <= 0:
+    if target_price is None or target_price <= 0:
         return {"error": "Invalid target price"}, 400
 
-    conn = get_db()
-    cur = conn.execute(
-        "INSERT INTO paper_alerts (wallet, symbol, target_price, status, created_at) VALUES (?, ?, ?, 'active', ?)",
-        (wallet, symbol, target_price, datetime.datetime.now(datetime.timezone.utc).isoformat())
+    conn = _get_db()
+    now = datetime.datetime.utcnow().isoformat()
+    conn.execute(
+        "INSERT INTO paper_alerts (wallet, symbol, target_price, created_at) VALUES (?, ?, ?, ?)",
+        (wallet, symbol, target_price, now),
     )
-    alert_id = cur.lastrowid
     conn.commit()
+    alert_id = conn.execute("SELECT last_insert_rowid() AS id").fetchone()["id"]
+    row = conn.execute("SELECT * FROM paper_alerts WHERE id = ?", (alert_id,)).fetchone()
     conn.close()
-    return {"alert_id": alert_id, "status": "active"}, 200
+    return _alert_to_dict(row), 201
 
 
 def get_alerts(wallet):
-    conn = get_db()
+    conn = _get_db()
     rows = conn.execute(
-        "SELECT * FROM paper_alerts WHERE wallet = ? AND status != 'dismissed' ORDER BY id DESC", (wallet,)
+        "SELECT * FROM paper_alerts WHERE wallet = ? AND dismissed = 0 ORDER BY id DESC",
+        (wallet,),
     ).fetchall()
     conn.close()
-    return [dict(r) for r in rows]
+    return [_alert_to_dict(row) for row in rows]
 
 
 def dismiss_alert(wallet, alert_id):
-    conn = get_db()
-    row = conn.execute("SELECT * FROM paper_alerts WHERE id = ? AND wallet = ?", (alert_id, wallet)).fetchone()
-    if not row:
+    conn = _get_db()
+    row = conn.execute(
+        "SELECT * FROM paper_alerts WHERE id = ? AND wallet = ?", (alert_id, wallet)
+    ).fetchone()
+    if row is None:
         conn.close()
         return {"error": "Alert not found"}, 404
-    conn.execute("UPDATE paper_alerts SET status = 'dismissed' WHERE id = ?", (alert_id,))
+    conn.execute("UPDATE paper_alerts SET dismissed = 1 WHERE id = ?", (alert_id,))
     conn.commit()
     conn.close()
-    return {"status": "dismissed"}, 200
+    return {"success": True}, 200
 
 
-def _check_alerts_for_symbol(conn, symbol, new_price):
-    """Fires alerts whose target price was crossed between the last observed
-    price and this new price (in either direction), so the frontend can beep."""
-    prev_price = _last_seen_price.get(symbol)
-    _last_seen_price[symbol] = new_price
-    if prev_price is None or new_price is None:
-        return
+def _alert_to_dict(row):
+    return {
+        "id": row["id"],
+        "wallet": row["wallet"],
+        "symbol": row["symbol"],
+        "target_price": row["target_price"],
+        "triggered": bool(row["triggered"]),
+        "created_at": row["created_at"],
+    }
 
-    lo, hi = (prev_price, new_price) if prev_price <= new_price else (new_price, prev_price)
-    if lo == hi:
-        return
 
-    active_alerts = conn.execute(
-        "SELECT * FROM paper_alerts WHERE symbol = ? AND status = 'active' AND target_price BETWEEN ? AND ?",
-        (symbol, lo, hi)
+def _check_all_alerts():
+    conn = _get_db()
+    rows = conn.execute(
+        "SELECT * FROM paper_alerts WHERE dismissed = 0 AND triggered = 0"
     ).fetchall()
-    for a in active_alerts:
-        conn.execute(
-            "UPDATE paper_alerts SET status = 'triggered', triggered_at = ? WHERE id = ?",
-            (datetime.datetime.now(datetime.timezone.utc).isoformat(), a["id"])
-        )
-    if active_alerts:
-        conn.commit()
-
-
-# --- Background monitoring: pending entries, TP/SL, alerts ---------------------
-
-def process_wallet_positions(wallet):
-    conn = get_db()
-
-    pending = conn.execute(
-        "SELECT * FROM paper_positions WHERE wallet = ? AND status = 'pending_entry'", (wallet,)
-    ).fetchall()
-    for p in pending:
-        price = get_price(p["symbol"])
+    conn.close()
+    for row in rows:
+        price = get_price(row["symbol"])
         if price is None:
             continue
-        triggered = False
-        if p["entry_type"] == "limit":
-            # Limit: long buys the dip (price falls to/below target), short sells the rally (price rises to/above target)
-            if p["direction"] == "long" and price <= p["entry_price"]:
-                triggered = True
-            elif p["direction"] == "short" and price >= p["entry_price"]:
-                triggered = True
-        elif p["entry_type"] == "stop":
-            # Stop: long enters on a breakout up, short enters on a breakdown down
-            if p["direction"] == "long" and price >= p["entry_price"]:
-                triggered = True
-            elif p["direction"] == "short" and price <= p["entry_price"]:
-                triggered = True
-        if triggered:
+        if price >= row["target_price"]:
+            conn = _get_db()
             conn.execute(
-                "UPDATE paper_positions SET status = 'open', entry_price = ?, opened_at = ? WHERE id = ?",
-                (price, datetime.datetime.now(datetime.timezone.utc).isoformat(), p["id"])
+                "UPDATE paper_alerts SET triggered = 1 WHERE id = ?", (row["id"],)
             )
             conn.commit()
-
-    open_positions = conn.execute(
-        "SELECT * FROM paper_positions WHERE wallet = ? AND status = 'open'", (wallet,)
-    ).fetchall()
-    for p in open_positions:
-        price = get_price(p["symbol"])
-        if price is None:
-            continue
-        hit_tp = p["take_profit"] and (
-            (p["direction"] == "long" and price >= p["take_profit"]) or
-            (p["direction"] == "short" and price <= p["take_profit"])
-        )
-        hit_sl = p["stop_loss"] and (
-            (p["direction"] == "long" and price <= p["stop_loss"]) or
-            (p["direction"] == "short" and price >= p["stop_loss"])
-        )
-        if hit_tp or hit_sl:
-            pnl = _calc_pnl(p["direction"], p["entry_price"], price, p["size_usd"])
-            returned_amount = p["size_usd"] + pnl
-            conn.execute("UPDATE paper_accounts SET balance_usd = balance_usd + ? WHERE wallet = ?",
-                         (returned_amount, wallet))
-            conn.execute(
-                "UPDATE paper_positions SET status = 'closed', close_price = ?, pnl_usd = ?, closed_at = ? WHERE id = ?",
-                (price, pnl, datetime.datetime.now(datetime.timezone.utc).isoformat(), p["id"])
-            )
-            conn.commit()
-
-    conn.close()
+            conn.close()
 
 
-def process_all_wallets():
-    conn = get_db()
-    wallets = [r["wallet"] for r in conn.execute(
-        "SELECT DISTINCT wallet FROM paper_positions WHERE status IN ('pending_entry', 'open')"
-    ).fetchall()]
+# ---------------------------------------------------------------------------
+# Background checker (TP/SL + alerts + pending limit orders)
+# ---------------------------------------------------------------------------
 
-    # Update alert crossing state for every symbol currently in use
-    for symbol in SYMBOL_TO_COINGECKO:
-        price = get_price(symbol)
-        if price is not None:
-            _check_alerts_for_symbol(conn, symbol, price)
-    conn.close()
-
-    for w in wallets:
+def _background_loop():
+    while True:
         try:
-            process_wallet_positions(w)
+            conn = _get_db()
+            rows = conn.execute(
+                "SELECT * FROM paper_positions WHERE status IN ('pending', 'open')"
+            ).fetchall()
+            conn.close()
+            for pos in rows:
+                _process_position(pos)
+            _check_all_alerts()
         except Exception:
+            # Never let the background thread die from a transient error
+            # (e.g. network hiccup or DB lock).
             pass
+        time.sleep(20)
 
 
-def start_background_checker(interval_seconds=15):
-    def loop():
-        while True:
-            time.sleep(interval_seconds)
-            try:
-                process_all_wallets()
-            except Exception:
-                pass
-    t = threading.Thread(target=loop, daemon=True)
-    t.start()
+def start_background_checker():
+    """Start the background TP/SL & alert checker exactly once per process."""
+    global _checker_thread, _checker_started
+    if _checker_started:
+        return
+    _checker_started = True
+    _checker_thread = threading.Thread(target=_background_loop, daemon=True)
+    _checker_thread.start()
