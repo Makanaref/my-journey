@@ -234,6 +234,38 @@
         box-shadow: 0 4px 12px rgba(233,69,96,0.15);
     }
     .lb-page-btn:disabled { opacity:0.35; cursor:not-allowed; }
+
+    .mode-tab {
+        flex: 1;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.09);
+        background: rgba(255,255,255,0.02);
+        color: #888;
+        font-size: 0.85em;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .mode-tab.active {
+        border-color: #e94560;
+        color: #e94560;
+        background: rgba(233,69,96,0.08);
+    }
+    .gmplus-desc {
+        color: #999;
+        font-size: 0.8em;
+        line-height: 1.5;
+        text-align: center;
+        margin-top: 24px;
+        margin-bottom: 18px;
+    }
+    .gmplus-note {
+        text-align: center;
+        color: #666;
+        font-size: 0.8em;
+        margin-top: 16px;
+    }
 </style>
 
 <!-- Lamps scene (بالای صفحه، بدون padding) -->
@@ -298,6 +330,11 @@
         </div>
     </div>
 
+    <div id="gm-tabs" style="display:none; gap:8px; margin-top:8px;">
+        <button class="mode-tab active" id="tab-btn-gm" onclick="switchMode('gm')">GM</button>
+        <button class="mode-tab" id="tab-btn-gmplus" onclick="switchMode('gmplus')">GM+</button>
+    </div>
+
     <div id="gm-card" style="display:none;">
         <div class="gm-action">
             <button class="gm-button" id="gm-button" onclick="sayGM()">GM</button>
@@ -313,6 +350,25 @@
                 <div class="lbl">SCORE</div>
             </div>
         </div>
+    </div>
+
+    <div id="gmplus-card" style="display:none;">
+        <p class="gmplus-desc">Referral only — the inviter gets 5 SGM, the invitee gets 5 SGM too.</p>
+        <button class="btn" id="gmplus-invite-btn" onclick="gmPlusCopyInviteLink()" style="width:100%; padding:12px;">Copy my invite link</button>
+        <p class="status-msg" id="gmplus-invite-status"></p>
+        <div class="stat-row">
+            <div class="stat-box">
+                <div class="num" id="gmplus-total">—</div>
+                <div class="lbl">INVITED</div>
+            </div>
+            <div class="stat-box">
+                <div class="num" id="gmplus-pending">—</div>
+                <div class="lbl">READY TO CLAIM</div>
+            </div>
+        </div>
+        <button class="gm-button" id="gmplus-claim-btn" onclick="gmPlusClaimRewards()" style="width:100%; height:auto; border-radius:14px; padding:16px; margin-top:22px; font-size:1em;" disabled>Claim rewards</button>
+        <p class="status-msg" id="gmplus-claim-status"></p>
+        <p class="gmplus-note" id="gmplus-unsupported" style="display:none;">GM+ isn't live on this network yet.</p>
     </div>
 
     <div id="leaderboard-card" style="display:none;">
@@ -394,10 +450,28 @@
         "function getStats(address user) public view returns (uint256 streak, uint256 totalScoreX100, uint256 lastGmDay)",
         "function getLeaderboard() public view returns (address[] memory addrs, uint256[] memory streaks, uint256[] memory scoresX100)"
     ];
-    const REFERRAL_ADDRESS = "0x5baDBBF3dD7DDCaa3a16d04c8e026CB1dCE2835f"; // Base only
-    const REFERRAL_ABI = [
-        "function canClaimReward(address referee) view returns (bool)",
-        "function claimReferralReward() external"
+    const GMPLUS_ADDRESSES = {
+        ink:       "0x4C8d262cE9602B03D961434162558B7079ef99f9",
+        nexus:     "0x02fFD8C9D9c6ea769cdFd530625eE9154a719786",
+        lamina1:   "0x1E436eC80961b994b3F397092C934a1361EcaF08",
+        optimism:  "0x30E506e27F90bBAb61c9b5B6be673bb5f9FF4dA0",
+        base:      "0x8A42f95c0F577aC0c43B8b9322044f5853008848",
+        zetachain: "0x0adeE88B5587E37CE5516964F2414b015aD73967",
+        avax:      "0x971364BC185a694D817c143865Ec1aF7252ff063",
+        plume:     "0x9d683961235260eB77bAB60c93b33f6205c0fa36"
+        // robinhood not deployed yet
+    };
+    const GMPLUS_ABI = [
+        "function registerReferral(address referrer) external",
+        "function referrerOf(address) view returns (address)",
+        "function pendingRewardCount(address referrer) view returns (uint256)",
+        "function totalReferrals(address referrer) view returns (uint256)",
+        "function claimReferralRewards() external"
+    ];
+    const DOMAIN_ADDRESS = "0x9242fBcF3AF8137cddE0bf7046b9DDb881d105CC"; // Base only, for pretty .sgm invite links
+    const DOMAIN_ABI = [
+        "function resolve(string name) view returns (address)",
+        "function nameOf(address holder) view returns (string)"
     ];
     // networks object now provided by /static/js/dapp-common.js (as NETWORKS)
     const networks = NETWORKS;
@@ -429,9 +503,11 @@
             signer = await provider.getSigner();
             account = await signer.getAddress();
             contract = new ethers.Contract(CONTRACT_ADDRESSES[net], CONTRACT_ABI, signer);
+            document.getElementById("gm-tabs").style.display = "flex";
             document.getElementById("gm-card").style.display = "block";
             document.getElementById("leaderboard-card").style.display = "block";
             document.getElementById("tx-status").innerText = "";
+            switchMode("gm");
 
             // Reset leaderboard to closed/unloaded state on network switch
             leaderboardLoadedForNet = null;
@@ -441,8 +517,106 @@
             document.getElementById("lb-pagination").style.display = "none";
             updateLamps(0);
 
+            await trySilentReferralRegister();
             await loadStats();
         } catch (err) { alert("Network switch failed: " + err.message); }
+    }
+
+    function switchMode(mode) {
+        document.getElementById("tab-btn-gm").classList.toggle("active", mode === "gm");
+        document.getElementById("tab-btn-gmplus").classList.toggle("active", mode === "gmplus");
+        document.getElementById("gm-card").style.display = mode === "gm" ? "block" : "none";
+        document.getElementById("gmplus-card").style.display = mode === "gmplus" ? "block" : "none";
+        if (mode === "gmplus") refreshGMPlusPanel();
+    }
+
+    async function trySilentReferralRegister() {
+        if (!GMPLUS_ADDRESSES[currentNet]) return;
+        try {
+            let ref = localStorage.getItem("sgm_ref");
+            if (!ref) return;
+
+            if (!ethers.isAddress(ref)) {
+                if (currentNet !== "base") return; // .sgm names only resolvable on Base
+                const cleanName = ref.toLowerCase().replace(/\.sgm$/, "");
+                const domainContract = new ethers.Contract(DOMAIN_ADDRESS, DOMAIN_ABI, signer);
+                const resolved = await domainContract.resolve(cleanName);
+                if (!resolved || resolved === ethers.ZeroAddress) return;
+                ref = resolved;
+            }
+
+            if (ref.toLowerCase() === account.toLowerCase()) return;
+
+            const gmPlusContract = new ethers.Contract(GMPLUS_ADDRESSES[currentNet], GMPLUS_ABI, signer);
+            const existing = await gmPlusContract.referrerOf(account);
+            if (existing && existing !== ethers.ZeroAddress) return;
+
+            const gasPriceHex = await provider.send("eth_gasPrice", []);
+            const gasPrice = BigInt(gasPriceHex) * 85n / 100n;
+            const tx = await gmPlusContract.registerReferral(ref, { gasPrice });
+            await tx.wait();
+        } catch (err) {
+            console.log("Referral registration skipped:", err);
+        }
+    }
+
+    async function refreshGMPlusPanel() {
+        const unsupportedEl = document.getElementById("gmplus-unsupported");
+        const claimBtn = document.getElementById("gmplus-claim-btn");
+        const inviteBtn = document.getElementById("gmplus-invite-btn");
+
+        if (!GMPLUS_ADDRESSES[currentNet]) {
+            unsupportedEl.style.display = "block";
+            claimBtn.style.display = "none";
+            inviteBtn.style.display = "none";
+            document.getElementById("gmplus-total").innerText = "—";
+            document.getElementById("gmplus-pending").innerText = "—";
+            return;
+        }
+        unsupportedEl.style.display = "none";
+        claimBtn.style.display = "block";
+        inviteBtn.style.display = "block";
+
+        try {
+            const gmPlusContract = new ethers.Contract(GMPLUS_ADDRESSES[currentNet], GMPLUS_ABI, signer);
+            const [total, pending] = await Promise.all([
+                gmPlusContract.totalReferrals(account),
+                gmPlusContract.pendingRewardCount(account)
+            ]);
+            document.getElementById("gmplus-total").innerText = total.toString();
+            document.getElementById("gmplus-pending").innerText = pending.toString();
+            claimBtn.disabled = Number(pending) === 0;
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    function gmPlusCopyInviteLink() {
+        const statusEl = document.getElementById("gmplus-invite-status");
+        if (!account) { statusEl.innerText = "Connect your wallet first"; return; }
+        const link = window.location.origin + "/?ref=" + account;
+        navigator.clipboard.writeText(link);
+        statusEl.innerText = "Link copied! Share it with friends.";
+    }
+
+    async function gmPlusClaimRewards() {
+        const btn = document.getElementById("gmplus-claim-btn");
+        const statusEl = document.getElementById("gmplus-claim-status");
+        btn.disabled = true;
+        statusEl.innerText = "Sending transaction...";
+        try {
+            const gmPlusContract = new ethers.Contract(GMPLUS_ADDRESSES[currentNet], GMPLUS_ABI, signer);
+            const gasPriceHex = await provider.send("eth_gasPrice", []);
+            const gasPrice = BigInt(gasPriceHex) * 85n / 100n;
+            const tx = await gmPlusContract.claimReferralRewards({ gasPrice });
+            statusEl.innerText = "Confirming...";
+            await tx.wait();
+            statusEl.innerText = "Rewards claimed 🎉";
+            await refreshGMPlusPanel();
+        } catch (err) {
+            statusEl.innerText = "Failed: " + ((err && (err.reason || err.message)) || "Try again");
+            btn.disabled = false;
+        }
     }
 
     async function toggleLeaderboard() {
@@ -484,22 +658,6 @@
             await tx.wait();
             document.getElementById("tx-status").innerText = "GM confirmed ✅";
             await loadStats();
-
-            // If on Base and referred by someone, silently reward the referrer
-            if (currentNet === "base") {
-                try {
-                    const referralContract = new ethers.Contract(REFERRAL_ADDRESS, REFERRAL_ABI, signer);
-                    const eligible = await referralContract.canClaimReward(account);
-                    if (eligible) {
-                        const refGasPriceHex = await provider.send("eth_gasPrice", []);
-                        const refGasPrice = BigInt(refGasPriceHex) * 85n / 100n;
-                        const refTx = await referralContract.claimReferralReward({ gasPrice: refGasPrice });
-                        await refTx.wait();
-                    }
-                } catch (refErr) {
-                    console.log("Referral reward skipped:", refErr);
-                }
-            }
 
             // Refresh leaderboard silently if it's currently open
             if (document.getElementById("lb-wrap").classList.contains("open")) {
