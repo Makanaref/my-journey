@@ -468,7 +468,15 @@
         "function totalReferrals(address referrer) view returns (uint256)",
         "function claimReferralRewards() external"
     ];
-    const DOMAIN_ADDRESS = "0x9242fBcF3AF8137cddE0bf7046b9DDb881d105CC"; // Base only, for pretty .sgm invite links
+    const DOMAIN_ADDRESSES = {
+        lamina1:   "0xA0F865285beBC988008FE081a9A4dFC1320E31A7",
+        nexus:     "0xC2B99F200C4523900b73912269652095aFa84AFd",
+        ink:       "0xB3e03b39bB3eAb9B63763A601d1Cb2DB0FA0f5c2",
+        plume:     "0xa7967A3C93281785DF7020717419bEd603da948F",
+        zetachain: "0x678D45B398331A1A1ef484FfB5370A1a2034737d",
+        optimism:  "0x620145Db1914c1F9c327FA282BD95b9039647Bc6",
+        base:      "0x9242fBcF3AF8137cddE0bf7046b9DDb881d105CC"
+    };
     const DOMAIN_ABI = [
         "function resolve(string name) view returns (address)",
         "function nameOf(address holder) view returns (string)"
@@ -591,10 +599,20 @@
         }
     }
 
-    function gmPlusCopyInviteLink() {
+    async function gmPlusCopyInviteLink() {
         const statusEl = document.getElementById("gmplus-invite-status");
         if (!account) { statusEl.innerText = "Connect your wallet first"; return; }
-        const link = window.location.origin + "/?ref=" + account;
+
+        let refValue = account;
+        if (DOMAIN_ADDRESSES[currentNet]) {
+            try {
+                const domainContract = new ethers.Contract(DOMAIN_ADDRESSES[currentNet], DOMAIN_ABI, signer);
+                const myDomain = await domainContract.nameOf(account);
+                if (myDomain) refValue = myDomain + ".sgm";
+            } catch (err) { console.log(err); }
+        }
+
+        const link = window.location.origin + "/?ref=" + refValue;
         navigator.clipboard.writeText(link);
         statusEl.innerText = "Link copied! Share it with friends.";
     }
