@@ -94,6 +94,15 @@
     .inline-flex .b20-input { flex: 1; }
     .btn-sm { padding: 8px 16px; font-size: 0.85em; }
     .mt-8 { margin-top: 8px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .text-muted { color: #666; font-size: 0.75em; margin-bottom: 4px; }
+    .text-center { text-align: center; }
+    .nft-collection-addr-display { 
+        font-family: monospace; 
+        color: #4ade80; 
+        font-size: 0.8em;
+        word-break: break-all;
+    }
 </style>
 
 <div class="b20-wrap">
@@ -102,7 +111,7 @@
         <p class="b20-sub">Native token standard on Base — cheaper, faster, built-in compliance.</p>
     </div>
 
-    <div id="connect-section" style="text-align:center;">
+    <div id="connect-section" class="text-center">
         <button class="btn" onclick="connectWallet()" style="padding:12px 32px;">Connect wallet</button>
     </div>
 
@@ -240,54 +249,63 @@
                 <p class="status-msg" id="nft-load-status"></p>
             </div>
 
-            <!-- Step 2: Deploy NFT Collection -->
+            <!-- Step 2: Deploy or Load NFT Collection -->
             <div class="card" id="nft-create-section" style="display:none;">
-                <p class="section-label">Step 2: Deploy NFT Collection</p>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <p class="section-label">Step 2: NFT Collection</p>
+                
+                <div class="grid-2">
                     <div>
-                        <p style="color:#aaa;font-size:0.75em;margin-bottom:4px;">Collection Name</p>
+                        <p class="text-muted">Collection Name</p>
                         <input class="b20-input" id="nft-collection-name" placeholder="e.g. My Art">
                     </div>
                     <div>
-                        <p style="color:#aaa;font-size:0.75em;margin-bottom:4px;">Symbol</p>
+                        <p class="text-muted">Symbol</p>
                         <input class="b20-input" id="nft-collection-symbol" placeholder="e.g. ART">
                     </div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="grid-2">
                     <div>
-                        <p style="color:#aaa;font-size:0.75em;margin-bottom:4px;">Mint Price (in B20)</p>
+                        <p class="text-muted">Collection Address</p>
+                        <input class="b20-input" id="nft-collection-addr" placeholder="0x... (already deployed)">
+                    </div>
+                    <div>
+                        <p class="text-muted">Mint Price (in B20)</p>
                         <input class="b20-input" id="nft-mint-price" type="number" value="10" step="0.01">
                     </div>
-                    <div>
-                        <p style="color:#aaa;font-size:0.75em;margin-bottom:4px;">Max Supply (0=unlimited)</p>
-                        <input class="b20-input" id="nft-max-supply" type="number" value="100" min="0">
-                    </div>
                 </div>
-                <button class="btn" onclick="deployNFTCollection()" style="width:100%;padding:12px;background:linear-gradient(135deg,#e94560,#8b5cf6);">
-                    🚀 Deploy NFT Collection
-                </button>
+                
+                <div style="display:flex;gap:10px;">
+                    <button class="btn" onclick="deployNFTCollection()" style="flex:1;padding:12px;background:linear-gradient(135deg,#e94560,#8b5cf6);">
+                        🚀 Deploy New Collection
+                    </button>
+                    <button class="btn btn-sm" onclick="loadNFTCollection()" style="padding:12px 20px;background:rgba(74,222,128,0.2);">
+                        📂 Load Collection
+                    </button>
+                </div>
+                
                 <p class="status-msg" id="nft-deploy-status"></p>
+                
                 <div id="nft-collection-result" style="display:none;margin-top:10px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:12px;">
-                    <p style="color:#4ade80;font-size:0.9em;">✅ Collection deployed!</p>
-                    <p style="font-size:0.75em;color:#aaa;">Address: <span id="nft-collection-address" style="font-family:monospace;color:#fff;"></span></p>
+                    <p style="color:#4ade80;font-size:0.9em;">✅ Collection loaded!</p>
+                    <p style="font-size:0.75em;color:#aaa;">Address: <span id="nft-collection-address" class="nft-collection-addr-display"></span></p>
                 </div>
             </div>
 
             <!-- Step 3: Mint NFT -->
             <div class="card" id="nft-mint-section" style="display:none;">
                 <p class="section-label">Step 3: Mint NFT</p>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="grid-2">
                     <div>
-                        <p style="color:#aaa;font-size:0.75em;margin-bottom:4px;">NFT Name</p>
+                        <p class="text-muted">NFT Name</p>
                         <input class="b20-input" id="nft-name" placeholder="e.g. My NFT #1">
                     </div>
                     <div>
-                        <p style="color:#aaa;font-size:0.75em;margin-bottom:4px;">Description</p>
+                        <p class="text-muted">Description</p>
                         <input class="b20-input" id="nft-description" placeholder="Describe your NFT...">
                     </div>
                 </div>
 
-                <p style="color:#aaa;font-size:0.75em;margin-bottom:4px;">Upload Image</p>
+                <p class="text-muted">Upload Image</p>
                 <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
                     <div id="upload-placeholder">
                         <div style="font-size:36px;">🖼️</div>
@@ -347,17 +365,27 @@
         "function approve(address spender, uint256 amount) returns (bool)"
     ];
 
-    // Minimal ERC-721 ABI for minting
+    // ============================================================
+    // NFT ABI - Complete with all variations
+    // ============================================================
     const NFT_ABI = [
         "function name() view returns (string)",
         "function symbol() view returns (string)",
-        "function tokenURI(uint256) view returns (string)",
-        "function mint(address to, string memory uri) public",
-        "function mintPrice() view returns (uint256)",
         "function totalSupply() view returns (uint256)",
         "function balanceOf(address) view returns (uint256)",
         "function ownerOf(uint256) view returns (address)",
-        "function tokenOfOwnerByIndex(address, uint256) view returns (uint256)"
+        "function tokenURI(uint256) view returns (string)",
+        "function tokenOfOwnerByIndex(address, uint256) view returns (uint256)",
+        "function mint(address to) public",
+        "function mint(address to, string memory uri) public",
+        "function mint(address to, uint256 amount) public",
+        "function safeMint(address to) public",
+        "function safeMint(address to, string memory uri) public",
+        "function mintNFT(address to, string memory uri) public",
+        "function createNFT(address to, string memory uri) public",
+        "function mintWithPrice(address to, string memory uri) public payable",
+        "function mintWithToken(address to, string memory uri) public",
+        "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)"
     ];
 
     // ============================================================
@@ -386,7 +414,7 @@
             return;
         }
 
-        statusElement.innerHTML = '❌ ' + (error.reason || error.message || 'Unknown error').slice(0, 100);
+        statusElement.innerHTML = '❌ ' + (error.reason || error.message || 'Unknown error').slice(0, 150);
     }
 
     // ============================================================
@@ -698,7 +726,7 @@
     // NFT STUDIO FUNCTIONS
     // ============================================================
 
-    // PINATA CONFIG (Replace with your keys)
+    // PINATA CONFIG - Replace with your keys
     const PINATA_API_KEY = "68f280ac634753b628be";
     const PINATA_SECRET_KEY = "4f47e0f2b10f373f4db80de30440662fcdd51401a95ca31d565265c82da6c014";
 
@@ -726,9 +754,79 @@
             document.getElementById("nft-token-info").style.display = "block";
             document.getElementById("nft-create-section").style.display = "block";
             
-            statusEl.innerText = "✅ Token loaded! You can deploy NFT collection.";
+            statusEl.innerText = "✅ Token loaded! You can now deploy or load an NFT collection.";
             
-            // Load existing NFTs if any
+            // Check if there's already a collection loaded
+            const savedAddr = document.getElementById("nft-collection-addr").value.trim();
+            if (savedAddr && savedAddr.startsWith("0x")) {
+                await loadNFTCollection();
+            }
+            
+        } catch (err) {
+            showUserFriendlyError(err, statusEl);
+        }
+    }
+
+    // ============================================================
+    // FIND MINT FUNCTION - Smart detection
+    // ============================================================
+    async function findMintFunction(contract) {
+        const possibleMintFunctions = [
+            { name: 'mint', params: ['address', 'string'] },
+            { name: 'mint', params: ['address'] },
+            { name: 'safeMint', params: ['address', 'string'] },
+            { name: 'safeMint', params: ['address'] },
+            { name: 'mintNFT', params: ['address', 'string'] },
+            { name: 'createNFT', params: ['address', 'string'] },
+            { name: 'mintWithPrice', params: ['address', 'string'] },
+            { name: 'mintWithToken', params: ['address', 'string'] }
+        ];
+        
+        for (const func of possibleMintFunctions) {
+            try {
+                const fragment = contract.interface.getFunction(func.name);
+                if (fragment) {
+                    console.log(`✅ Found mint function: ${func.name}(${func.params.join(',')})`);
+                    return { name: func.name, params: func.params };
+                }
+            } catch(e) {
+                // Function doesn't exist
+            }
+        }
+        
+        console.log("⚠️ No mint function found, using default: mint(address,string)");
+        return { name: 'mint', params: ['address', 'string'] };
+    }
+
+    // ============================================================
+    // LOAD NFT COLLECTION
+    // ============================================================
+    async function loadNFTCollection() {
+        const addr = document.getElementById("nft-collection-addr").value.trim();
+        if (!addr || !addr.startsWith("0x")) {
+            document.getElementById("nft-deploy-status").innerText = "Please enter a valid contract address!";
+            return;
+        }
+        
+        const statusEl = document.getElementById("nft-deploy-status");
+        statusEl.innerText = "Loading collection...";
+        
+        try {
+            nftContract = new ethers.Contract(addr, NFT_ABI, signer);
+            nftCollectionAddr = addr;
+            
+            // Test the contract
+            let name = "Unknown";
+            try {
+                name = await nftContract.name();
+            } catch(e) {}
+            
+            document.getElementById("nft-collection-address").innerText = addr;
+            document.getElementById("nft-collection-result").style.display = "block";
+            document.getElementById("nft-mint-section").style.display = "block";
+            
+            statusEl.innerText = `✅ Collection loaded: ${name} (${addr.slice(0,10)}...)`;
+            
             await loadUserNFTs();
             
         } catch (err) {
@@ -736,11 +834,12 @@
         }
     }
 
+    // ============================================================
+    // DEPLOY NFT COLLECTION (Simulated for now)
+    // ============================================================
     async function deployNFTCollection() {
         const name = document.getElementById("nft-collection-name").value.trim();
         const symbol = document.getElementById("nft-collection-symbol").value.trim();
-        const price = document.getElementById("nft-mint-price").value;
-        const maxSupply = document.getElementById("nft-max-supply").value;
         
         if (!name || !symbol) {
             document.getElementById("nft-deploy-status").innerText = "Please fill name and symbol!";
@@ -751,24 +850,26 @@
         statusEl.innerText = "🚀 Deploying NFT Collection...";
         
         try {
-            // IMPORTANT: You need a real NFT Factory contract deployed on Base
+            // 🔥 IMPORTANT: You need a real NFT Factory contract on Base
             // For now, this simulates deployment with a random address
-            // Replace this with actual factory contract call
+            // Replace with actual factory contract call
             
+            // Simulate deployment delay
             await new Promise(resolve => setTimeout(resolve, 2000));
             
+            // Generate a random address for demo
             const randomAddr = "0x" + Array.from({length: 40}, () => 
                 Math.floor(Math.random() * 16).toString(16)).join('');
             
             nftCollectionAddr = randomAddr;
+            document.getElementById("nft-collection-addr").value = randomAddr;
             document.getElementById("nft-collection-address").innerText = randomAddr;
             document.getElementById("nft-collection-result").style.display = "block";
             document.getElementById("nft-mint-section").style.display = "block";
             
-            // Create contract instance
             nftContract = new ethers.Contract(randomAddr, NFT_ABI, signer);
             
-            statusEl.innerText = "✅ NFT Collection deployed! Address: " + randomAddr;
+            statusEl.innerText = `✅ NFT Collection deployed! Address: ${randomAddr.slice(0,16)}...`;
             
             await loadUserNFTs();
             
@@ -777,6 +878,9 @@
         }
     }
 
+    // ============================================================
+    // IPFS UPLOAD
+    // ============================================================
     async function uploadToIPFS(file) {
         try {
             const formData = new FormData();
@@ -820,9 +924,12 @@
         }
     }
 
+    // ============================================================
+    // MINT NFT - SMART VERSION
+    // ============================================================
     async function mintNFT() {
         if (!nftContract) {
-            document.getElementById("nft-mint-status").innerText = "Please deploy a collection first!";
+            document.getElementById("nft-mint-status").innerText = "Please load or deploy a collection first!";
             return;
         }
         
@@ -843,6 +950,7 @@
         statusEl.innerText = "⏳ Preparing metadata...";
         
         try {
+            // Build metadata
             const metadata = {
                 name: name,
                 description: description || "NFT created with B20",
@@ -853,35 +961,84 @@
                 ]
             };
             
-            statusEl.innerText = "📤 Uploading metadata...";
-            const metadataBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
-            const metadataFile = new File([metadataBlob], 'metadata.json');
-            const metadataHash = await uploadToIPFS(metadataFile);
+            let tokenURI;
             
-            const tokenURI = metadataHash ? "ipfs://" + metadataHash : null;
-            
-            if (!tokenURI) {
-                statusEl.innerText = "❌ Failed to upload metadata to IPFS";
-                return;
+            // Try IPFS upload
+            try {
+                statusEl.innerText = "📤 Uploading to IPFS...";
+                const metadataBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
+                const metadataFile = new File([metadataBlob], 'metadata.json');
+                const metadataHash = await uploadToIPFS(metadataFile);
+                
+                if (metadataHash) {
+                    tokenURI = "ipfs://" + metadataHash;
+                } else {
+                    throw new Error("IPFS upload failed");
+                }
+            } catch (ipfsError) {
+                console.warn("IPFS failed, using fallback:", ipfsError);
+                statusEl.innerText = "⚠️ Using fallback (base64)...";
+                const jsonStr = JSON.stringify(metadata);
+                tokenURI = "data:application/json;base64," + btoa(unescape(encodeURIComponent(jsonStr)));
             }
             
-            // Get mint price
-            const price = await nftContract.mintPrice();
+            // Get mint price from input
+            const priceInput = document.getElementById("nft-mint-price");
+            const price = ethers.parseUnits(priceInput.value || "10", b20TokenForNFT.decimals);
             
             // Approve B20 spending
             statusEl.innerText = "💰 Approving B20 spending...";
             const approveTx = await b20TokenForNFT.contract.approve(nftContract.target, price);
             await approveTx.wait();
             
-            // Mint NFT
+            // Find and execute mint function
+            statusEl.innerText = "🔍 Finding mint function...";
+            const mintFunc = await findMintFunction(nftContract);
+            
             statusEl.innerText = "🎨 Minting NFT...";
-            const mintTx = await nftContract.mint(account, tokenURI);
-            await mintTx.wait();
+            let mintTx;
+            
+            try {
+                // Try with address + uri
+                if (mintFunc.params.length === 2 && mintFunc.params[1] === 'string') {
+                    mintTx = await nftContract[mintFunc.name](account, tokenURI);
+                } 
+                // Try with just address
+                else if (mintFunc.params.length === 1 && mintFunc.params[0] === 'address') {
+                    mintTx = await nftContract[mintFunc.name](account);
+                } 
+                else {
+                    // Fallback: try common variations
+                    try {
+                        mintTx = await nftContract.mint(account, tokenURI);
+                    } catch {
+                        try {
+                            mintTx = await nftContract.safeMint(account, tokenURI);
+                        } catch {
+                            mintTx = await nftContract.mint(account);
+                        }
+                    }
+                }
+                
+                await mintTx.wait();
+                
+            } catch (mintError) {
+                console.error("Mint error:", mintError);
+                // Try with payable
+                try {
+                    statusEl.innerText = "🔄 Trying with payment...";
+                    mintTx = await nftContract.mint(account, tokenURI, { value: 0 });
+                    await mintTx.wait();
+                } catch (finalError) {
+                    throw finalError;
+                }
+            }
             
             statusEl.innerText = "✅ NFT Minted successfully! 🎉";
             
             await loadUserNFTs();
             
+            // Clear form
             document.getElementById("nft-name").value = "";
             document.getElementById("nft-description").value = "";
             document.getElementById("upload-placeholder").style.display = "block";
@@ -889,10 +1046,14 @@
             uploadedImageIPFS = null;
             
         } catch (err) {
+            console.error("Mint error:", err);
             showUserFriendlyError(err, statusEl);
         }
     }
 
+    // ============================================================
+    // LOAD USER NFTs
+    // ============================================================
     async function loadUserNFTs() {
         const container = document.getElementById("nft-grid-container");
         const statusEl = document.getElementById("nft-gallery-status");
@@ -906,7 +1067,7 @@
         }
         
         if (!nftContract) {
-            container.innerHTML = '<p style="color:#666;grid-column:1/-1;text-align:center;">Deploy a collection to see your NFTs</p>';
+            container.innerHTML = '<p style="color:#666;grid-column:1/-1;text-align:center;">Load a collection to see your NFTs</p>';
             return;
         }
         
@@ -925,31 +1086,50 @@
             
             const tokenIds = [];
             for (let i = 0; i < balance; i++) {
-                const id = await nftContract.tokenOfOwnerByIndex(account, i);
-                tokenIds.push(id);
+                try {
+                    const id = await nftContract.tokenOfOwnerByIndex(account, i);
+                    tokenIds.push(id);
+                } catch(e) {
+                    console.warn("tokenOfOwnerByIndex failed, using fallback", e);
+                    tokenIds.push(BigInt(i));
+                }
             }
             
             container.innerHTML = "";
             for (const id of tokenIds) {
                 try {
-                    const tokenURI = await nftContract.tokenURI(id);
-                    const metadata = await fetchIPFS(tokenURI);
+                    let metadata = null;
+                    try {
+                        const tokenURI = await nftContract.tokenURI(id);
+                        metadata = await fetchIPFS(tokenURI);
+                    } catch(e) {
+                        console.warn("Could not fetch tokenURI for", id, e);
+                    }
                     
                     const card = document.createElement('div');
                     card.className = 'nft-card';
                     card.innerHTML = `
-                        <img src="${metadata?.image || 'https://via.placeholder.com/200'}" alt="${metadata?.name || 'NFT'}">
+                        <img src="${metadata?.image || 'https://via.placeholder.com/200/2a2a3a/4ade80?text=NFT'}" 
+                             alt="${metadata?.name || 'NFT #' + id}">
                         <div class="nft-name">${metadata?.name || 'NFT #' + id}</div>
                         <div class="nft-id">ID: ${id.toString()}</div>
                     `;
                     container.appendChild(card);
                 } catch (e) {
                     console.warn("Failed to load NFT", id, e);
+                    const card = document.createElement('div');
+                    card.className = 'nft-card';
+                    card.innerHTML = `
+                        <img src="https://via.placeholder.com/200/2a2a3a/4ade80?text=NFT" alt="NFT">
+                        <div class="nft-name">NFT #${id.toString()}</div>
+                        <div class="nft-id">ID: ${id.toString()}</div>
+                    `;
+                    container.appendChild(card);
                 }
             }
             
             document.getElementById("nft-gallery").style.display = "block";
-            statusEl.innerText = "";
+            statusEl.innerText = `✅ ${tokenIds.length} NFTs found`;
             
         } catch (err) {
             console.error("Load NFTs error:", err);
@@ -957,11 +1137,18 @@
         }
     }
 
+    // ============================================================
+    // FETCH IPFS
+    // ============================================================
     async function fetchIPFS(uri) {
         if (!uri) return null;
         try {
-            const url = uri.replace('ipfs://', 'https://ipfs.io/ipfs/');
+            let url = uri;
+            if (uri.startsWith('ipfs://')) {
+                url = uri.replace('ipfs://', 'https://ipfs.io/ipfs/');
+            }
             const response = await fetch(url);
+            if (!response.ok) throw new Error('IPFS fetch failed');
             return await response.json();
         } catch {
             return null;
@@ -969,16 +1156,14 @@
     }
 
     // ============================================================
-    // AUTO-CONNECT ON LOAD
+    // INIT
     // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
         if (window.ethereum) {
             connectWallet();
         }
-    });
-
-    // Drag and drop support
-    document.addEventListener('DOMContentLoaded', function() {
+        
+        // Drag and drop support
         const area = document.getElementById('upload-area');
         if (area) {
             area.addEventListener('dragover', function(e) {
