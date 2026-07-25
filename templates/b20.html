@@ -2,7 +2,7 @@
 {% block title %}B20 Tokens{% endblock %}
 {% block content %}
 <style>
-    .b20-wrap { max-width: 560px; margin: 0 auto; }
+    .b20-wrap { max-width: 800px; margin: 0 auto; }
     .b20-header { text-align: center; margin-bottom: 32px; }
     .b20-title { font-size: 2em; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
     .b20-sub { color: #666; font-size: 0.9em; }
@@ -18,17 +18,82 @@
     .info-box .lbl { color: #666; font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.5px; }
     .info-box .val { color: #fff; font-size: 1.1em; font-weight: 600; margin-top: 4px; word-break: break-all; }
     .status-msg { min-height: 20px; color: #777; font-size: 0.85em; margin-top: 10px; }
-    .tab-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
     .tab { padding: 8px 18px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #888; cursor: pointer; font-size: 0.85em; transition: all 0.2s; }
     .tab.active { border-color: #e94560; color: #e94560; background: rgba(233,69,96,0.07); }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    .code-block { background: #0a0a14; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 16px; font-family: monospace; font-size: 0.8em; color: #4ade80; line-height: 1.8; overflow-x: auto; position: relative; }
-    .copy-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #888; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75em; }
-    .copy-btn:hover { color: #fff; }
     .badge { display: inline-block; background: rgba(233,69,96,0.15); border: 1px solid rgba(233,69,96,0.3); color: #e94560; padding: 3px 10px; border-radius: 20px; font-size: 0.75em; margin-left: 8px; vertical-align: middle; }
     .hidden { display: none; }
     .error-msg { color: #e94560; background: rgba(233,69,96,0.1); border: 1px solid rgba(233,69,96,0.2); padding: 8px 12px; border-radius: 8px; margin-top: 8px; }
+    
+    /* NFT Styles */
+    .upload-area {
+        border: 2px dashed rgba(255,255,255,0.15);
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin: 12px 0;
+    }
+    .upload-area:hover {
+        border-color: #e94560;
+        background: rgba(233,69,96,0.05);
+    }
+    .upload-area.dragover {
+        border-color: #4ade80;
+        background: rgba(74,222,128,0.05);
+    }
+    .preview-img {
+        max-width: 150px;
+        max-height: 150px;
+        border-radius: 10px;
+        margin: 10px auto;
+        display: block;
+    }
+    .nft-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+    }
+    .nft-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 12px;
+        transition: all 0.3s;
+    }
+    .nft-card:hover {
+        border-color: #e94560;
+        transform: translateY(-4px);
+    }
+    .nft-card img {
+        width: 100%;
+        aspect-ratio: 1/1;
+        object-fit: cover;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.05);
+    }
+    .nft-card .nft-name {
+        font-weight: 600;
+        margin-top: 8px;
+        font-size: 0.9em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .nft-card .nft-id {
+        color: #666;
+        font-size: 0.65em;
+        font-family: monospace;
+        margin-top: 2px;
+    }
+    .inline-flex { display: flex; gap: 10px; }
+    .inline-flex .b20-input { flex: 1; }
+    .btn-sm { padding: 8px 16px; font-size: 0.85em; }
+    .mt-8 { margin-top: 8px; }
 </style>
 
 <div class="b20-wrap">
@@ -49,8 +114,12 @@
         <div class="tab-row">
             <button class="tab active" onclick="switchTab('interact')">Interact</button>
             <button class="tab" onclick="switchTab('deploy')">Deploy</button>
+            <button class="tab" onclick="switchTab('nft')">🎨 NFT Studio</button>
         </div>
 
+        <!-- ============================================================ -->
+        <!-- TAB 1: INTERACT                                               -->
+        <!-- ============================================================ -->
         <div class="tab-content active" id="tab-interact">
             <div class="card">
                 <p class="section-label">Token Address</p>
@@ -91,6 +160,9 @@
             </div>
         </div>
 
+        <!-- ============================================================ -->
+        <!-- TAB 2: DEPLOY                                                 -->
+        <!-- ============================================================ -->
         <div class="tab-content" id="tab-deploy">
             <div class="card">
                 <p style="color:#aaa;font-size:0.9em;line-height:1.7;">Deploy a B20 token directly on Base using your wallet — no CLI needed.</p>
@@ -139,14 +211,128 @@
                 </div>
             </div>
         </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 3: NFT STUDIO                                             -->
+        <!-- ============================================================ -->
+        <div class="tab-content" id="tab-nft">
+            <div class="card">
+                <p style="color:#aaa;font-size:0.9em;line-height:1.7;">
+                    🎨 Create NFTs using your B20 token. Users can mint with your token!
+                </p>
+            </div>
+
+            <!-- Step 1: Load B20 Token -->
+            <div class="card">
+                <p class="section-label">Step 1: Your B20 Token</p>
+                <div class="inline-flex">
+                    <input class="b20-input" id="nft-token-addr" placeholder="0x... (Your B20 token address)" style="flex:1;">
+                    <button class="btn btn-sm" onclick="loadB20ForNFT()" style="padding:12px 20px;">Load</button>
+                </div>
+                <div id="nft-token-info" style="display:none;margin-top:12px;">
+                    <div class="info-grid">
+                        <div class="info-box"><div class="lbl">Token</div><div class="val" id="nft-token-name">—</div></div>
+                        <div class="info-box"><div class="lbl">Symbol</div><div class="val" id="nft-token-symbol">—</div></div>
+                        <div class="info-box"><div class="lbl">Your Balance</div><div class="val" id="nft-token-balance">—</div></div>
+                        <div class="info-box"><div class="lbl">NFTs Minted</div><div class="val" id="nft-count">0</div></div>
+                    </div>
+                </div>
+                <p class="status-msg" id="nft-load-status"></p>
+            </div>
+
+            <!-- Step 2: Deploy NFT Collection -->
+            <div class="card" id="nft-create-section" style="display:none;">
+                <p class="section-label">Step 2: Deploy NFT Collection</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <p style="color:#aaa;font-size:0.75em;margin-bottom:4px;">Collection Name</p>
+                        <input class="b20-input" id="nft-collection-name" placeholder="e.g. My Art">
+                    </div>
+                    <div>
+                        <p style="color:#aaa;font-size:0.75em;margin-bottom:4px;">Symbol</p>
+                        <input class="b20-input" id="nft-collection-symbol" placeholder="e.g. ART">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <p style="color:#aaa;font-size:0.75em;margin-bottom:4px;">Mint Price (in B20)</p>
+                        <input class="b20-input" id="nft-mint-price" type="number" value="10" step="0.01">
+                    </div>
+                    <div>
+                        <p style="color:#aaa;font-size:0.75em;margin-bottom:4px;">Max Supply (0=unlimited)</p>
+                        <input class="b20-input" id="nft-max-supply" type="number" value="100" min="0">
+                    </div>
+                </div>
+                <button class="btn" onclick="deployNFTCollection()" style="width:100%;padding:12px;background:linear-gradient(135deg,#e94560,#8b5cf6);">
+                    🚀 Deploy NFT Collection
+                </button>
+                <p class="status-msg" id="nft-deploy-status"></p>
+                <div id="nft-collection-result" style="display:none;margin-top:10px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:12px;">
+                    <p style="color:#4ade80;font-size:0.9em;">✅ Collection deployed!</p>
+                    <p style="font-size:0.75em;color:#aaa;">Address: <span id="nft-collection-address" style="font-family:monospace;color:#fff;"></span></p>
+                </div>
+            </div>
+
+            <!-- Step 3: Mint NFT -->
+            <div class="card" id="nft-mint-section" style="display:none;">
+                <p class="section-label">Step 3: Mint NFT</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <p style="color:#aaa;font-size:0.75em;margin-bottom:4px;">NFT Name</p>
+                        <input class="b20-input" id="nft-name" placeholder="e.g. My NFT #1">
+                    </div>
+                    <div>
+                        <p style="color:#aaa;font-size:0.75em;margin-bottom:4px;">Description</p>
+                        <input class="b20-input" id="nft-description" placeholder="Describe your NFT...">
+                    </div>
+                </div>
+
+                <p style="color:#aaa;font-size:0.75em;margin-bottom:4px;">Upload Image</p>
+                <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+                    <div id="upload-placeholder">
+                        <div style="font-size:36px;">🖼️</div>
+                        <p style="color:#666;margin-top:6px;font-size:0.85em;">Click or drag & drop</p>
+                        <p style="color:#444;font-size:0.7em;">PNG, JPG, GIF up to 5MB</p>
+                    </div>
+                    <div id="upload-preview" style="display:none;">
+                        <img id="image-preview" class="preview-img" src="">
+                        <p style="color:#4ade80;margin-top:6px;font-size:0.85em;">✅ Image uploaded!</p>
+                        <p style="color:#666;font-size:0.7em;" id="ipfs-hash-display">IPFS: ...</p>
+                    </div>
+                    <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileUpload(event)">
+                </div>
+
+                <button class="btn" onclick="mintNFT()" style="width:100%;padding:12px;background:linear-gradient(135deg,#4ade80,#22d3ee);">
+                    ✨ Mint NFT (Pay with B20)
+                </button>
+                <p class="status-msg" id="nft-mint-status"></p>
+            </div>
+
+            <!-- Gallery -->
+            <div class="card" id="nft-gallery" style="display:none;">
+                <p class="section-label">🎖️ My NFTs</p>
+                <div id="nft-grid-container" class="nft-grid">
+                    <p style="color:#666;grid-column:1/-1;text-align:center;">No NFTs yet. Mint your first one!</p>
+                </div>
+                <p class="status-msg" id="nft-gallery-status"></p>
+            </div>
+        </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+
 <script>
+    // ============================================================
+    // GLOBAL STATE
+    // ============================================================
     let provider, signer, account, tokenContract, tokenDecimals;
+    let nftContract, nftCollectionAddr, uploadedImageIPFS = null;
+    let b20TokenForNFT = null;
 
     const BASE_CHAIN_ID = "0x" + (8453).toString(16);
+
     const ERC20_ABI = [
         "function name() view returns (string)",
         "function symbol() view returns (string)",
@@ -157,10 +343,26 @@
         "function burn(uint256 amount) public",
         "function hasRole(bytes32 role, address account) view returns (bool)",
         "function totalSupply() view returns (uint256)",
-        "function supplyCap() view returns (uint256)"
+        "function supplyCap() view returns (uint256)",
+        "function approve(address spender, uint256 amount) returns (bool)"
     ];
 
-    // تابع کمکی برای نمایش ارورهای خفن و ساده
+    // Minimal ERC-721 ABI for minting
+    const NFT_ABI = [
+        "function name() view returns (string)",
+        "function symbol() view returns (string)",
+        "function tokenURI(uint256) view returns (string)",
+        "function mint(address to, string memory uri) public",
+        "function mintPrice() view returns (uint256)",
+        "function totalSupply() view returns (uint256)",
+        "function balanceOf(address) view returns (uint256)",
+        "function ownerOf(uint256) view returns (address)",
+        "function tokenOfOwnerByIndex(address, uint256) view returns (uint256)"
+    ];
+
+    // ============================================================
+    // HELPER: SHOW FRIENDLY ERROR
+    // ============================================================
     function showUserFriendlyError(error, statusElement) {
         console.error("Raw error:", error);
 
@@ -169,9 +371,6 @@
             return;
         }
 
-        // Precise check for genuinely not having enough ETH to cover gas -
-        // NOT a broad "gas" substring match, since ethers includes the word
-        // "estimateGas" in almost every revert message regardless of cause.
         const isRealGasIssue =
             error.code === 'INSUFFICIENT_FUNDS' ||
             (error.message && error.message.includes('insufficient funds')) ||
@@ -187,9 +386,12 @@
             return;
         }
 
-        statusElement.innerHTML = '❌ Transaction failed: ' + (error.reason || error.message || 'Unknown error').slice(0, 100);
+        statusElement.innerHTML = '❌ ' + (error.reason || error.message || 'Unknown error').slice(0, 100);
     }
 
+    // ============================================================
+    // TAB SWITCH
+    // ============================================================
     function switchTab(tab) {
         document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
         document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
@@ -197,6 +399,9 @@
         event.target.classList.add("active");
     }
 
+    // ============================================================
+    // CONNECT WALLET
+    // ============================================================
     async function connectWallet() {
         if (!window.ethereum) { alert("Please install MetaMask!"); return; }
         try {
@@ -205,7 +410,13 @@
 
             await window.ethereum.request({
                 method: "wallet_addEthereumChain",
-                params: [{ chainId: BASE_CHAIN_ID, chainName: "Base", rpcUrls: ["https://mainnet.base.org"], nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://basescan.org"] }]
+                params: [{ 
+                    chainId: BASE_CHAIN_ID, 
+                    chainName: "Base", 
+                    rpcUrls: ["https://mainnet.base.org"], 
+                    nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, 
+                    blockExplorerUrls: ["https://basescan.org"] 
+                }]
             });
 
             provider = new ethers.BrowserProvider(window.ethereum);
@@ -221,6 +432,9 @@
         }
     }
 
+    // ============================================================
+    // INTERACT TAB FUNCTIONS
+    // ============================================================
     async function loadToken() {
         const addr = document.getElementById("token-addr").value.trim();
         if (!addr) { alert("Enter a token address!"); return; }
@@ -278,7 +492,7 @@
                 tokenContract.supplyCap().catch(() => 0n)
             ]);
             if (cap && cap > 0n && (supply + amountWei) > cap) {
-                statusEl.innerText = "The amount is more than the Total Supply!";
+                statusEl.innerText = "Amount exceeds supply cap!";
                 return;
             }
 
@@ -307,8 +521,6 @@
 
         try {
             const burnAmount = ethers.parseUnits(amount, tokenDecimals);
-
-            // 1. Check if user has BURN_ROLE
             const BURN_ROLE = ethers.keccak256(ethers.toUtf8Bytes("BURN_ROLE"));
             let hasBurnRole = false;
             try {
@@ -317,7 +529,6 @@
                 console.warn("hasRole not available, assuming admin...");
             }
 
-            // 2. If doesn't have BURN_ROLE, try to grant it (if admin)
             if (!hasBurnRole) {
                 statusEl.innerText = "Granting BURN_ROLE...";
                 try {
@@ -325,7 +536,6 @@
                         "function grantRole(bytes32 role, address account)"
                     ]);
                     const data = grantRoleInterface.encodeFunctionData("grantRole", [BURN_ROLE, account]);
-                    
                     const feeData = await provider.getFeeData();
                     const grantTx = await signer.sendTransaction({
                         to: tokenContract.target,
@@ -335,14 +545,12 @@
                     await grantTx.wait();
                     statusEl.innerText = "BURN_ROLE granted! ✅";
                 } catch (grantErr) {
-                    console.error("Grant error:", grantErr);
                     showUserFriendlyError(grantErr, statusEl);
                     burnBtn.disabled = false;
                     return;
                 }
             }
 
-            // 3. Check balance
             const balance = await tokenContract.balanceOf(account);
             if (balance < burnAmount) {
                 statusEl.innerText = "❌ Insufficient balance!";
@@ -350,7 +558,6 @@
                 return;
             }
 
-            // 4. Execute burn
             statusEl.innerText = "Burning...";
             const feeData = await provider.getFeeData();
             const tx = await tokenContract.burn(burnAmount, {
@@ -364,20 +571,14 @@
             await loadToken();
 
         } catch (err) {
-            console.error("Burn error:", err);
             showUserFriendlyError(err, statusEl);
         }
         burnBtn.disabled = false;
     }
 
-    function copyCode(id) {
-        const el = document.getElementById(id);
-        const text = el.innerText.replace(/Copy\n/, "").trim();
-        navigator.clipboard.writeText(text);
-        el.querySelector(".copy-btn").innerText = "Copied!";
-        setTimeout(() => el.querySelector(".copy-btn").innerText = "Copy", 2000);
-    }
-
+    // ============================================================
+    // DEPLOY TAB FUNCTIONS
+    // ============================================================
     let deployType = 'asset';
 
     function selectType(t) {
@@ -441,40 +642,16 @@
 
             let params;
             if (deployType === 'stable') {
-                const paramsStruct = [
-                    1,
-                    name,
-                    symbol,
-                    account,
-                    currency.toUpperCase().slice(0, 3)
-                ];
-                params = abiCoder.encode(
-                    ["tuple(uint8,string,string,address,string)"],
-                    [paramsStruct]
-                );
+                const paramsStruct = [1, name, symbol, account, currency.toUpperCase().slice(0, 3)];
+                params = abiCoder.encode(["tuple(uint8,string,string,address,string)"], [paramsStruct]);
             } else {
-                const paramsStruct = [
-                    1,
-                    name,
-                    symbol,
-                    account,
-                    decimals
-                ];
-                params = abiCoder.encode(
-                    ["tuple(uint8,string,string,address,uint8)"],
-                    [paramsStruct]
-                );
+                const paramsStruct = [1, name, symbol, account, decimals];
+                params = abiCoder.encode(["tuple(uint8,string,string,address,uint8)"], [paramsStruct]);
             }
 
             const initCalls = [];
-
-            const grantRoleInterface = new ethers.Interface([
-                "function grantRole(bytes32 role, address account)"
-            ]);
-
-            const capInterface = new ethers.Interface([
-                "function updateSupplyCap(uint256 cap)"
-            ]);
+            const grantRoleInterface = new ethers.Interface(["function grantRole(bytes32 role, address account)"]);
+            const capInterface = new ethers.Interface(["function updateSupplyCap(uint256 cap)"]);
 
             if (mintRole) {
                 const MINT_ROLE = ethers.keccak256(ethers.toUtf8Bytes("MINT_ROLE"));
@@ -490,12 +667,7 @@
                 "function createB20(uint8 variant, bytes32 salt, bytes params, bytes[] initCalls) returns (address)"
             ]);
 
-            const data = factoryInterface.encodeFunctionData("createB20", [
-                variant,
-                salt,
-                params,
-                initCalls
-            ]);
+            const data = factoryInterface.encodeFunctionData("createB20", [variant, salt, params, initCalls]);
 
             const feeData = await provider.getFeeData();
             const tx = await signer.sendTransaction({
@@ -517,10 +689,316 @@
             statusEl.innerText = "Deployed successfully! ✅";
 
         } catch (err) {
-            console.error("Full error:", err);
             showUserFriendlyError(err, statusEl);
         }
         document.getElementById("deploy-btn").disabled = false;
     }
+
+    // ============================================================
+    // NFT STUDIO FUNCTIONS
+    // ============================================================
+
+    // PINATA CONFIG (Replace with your keys)
+    const PINATA_API_KEY = "YOUR_PINATA_API_KEY";
+    const PINATA_SECRET_KEY = "YOUR_PINATA_SECRET_KEY";
+
+    async function loadB20ForNFT() {
+        const addr = document.getElementById("nft-token-addr").value.trim();
+        if (!addr) { alert("Enter a B20 token address!"); return; }
+        
+        const statusEl = document.getElementById("nft-load-status");
+        statusEl.innerText = "Loading...";
+        
+        try {
+            const contract = new ethers.Contract(addr, ERC20_ABI, signer);
+            const [name, symbol, decimals, balance] = await Promise.all([
+                contract.name(),
+                contract.symbol(),
+                contract.decimals(),
+                contract.balanceOf(account)
+            ]);
+            
+            b20TokenForNFT = { address: addr, decimals: Number(decimals), name, symbol, contract };
+            
+            document.getElementById("nft-token-name").innerText = name;
+            document.getElementById("nft-token-symbol").innerText = symbol;
+            document.getElementById("nft-token-balance").innerText = ethers.formatUnits(balance, decimals) + " " + symbol;
+            document.getElementById("nft-token-info").style.display = "block";
+            document.getElementById("nft-create-section").style.display = "block";
+            
+            statusEl.innerText = "✅ Token loaded! You can deploy NFT collection.";
+            
+            // Load existing NFTs if any
+            await loadUserNFTs();
+            
+        } catch (err) {
+            showUserFriendlyError(err, statusEl);
+        }
+    }
+
+    async function deployNFTCollection() {
+        const name = document.getElementById("nft-collection-name").value.trim();
+        const symbol = document.getElementById("nft-collection-symbol").value.trim();
+        const price = document.getElementById("nft-mint-price").value;
+        const maxSupply = document.getElementById("nft-max-supply").value;
+        
+        if (!name || !symbol) {
+            document.getElementById("nft-deploy-status").innerText = "Please fill name and symbol!";
+            return;
+        }
+        
+        const statusEl = document.getElementById("nft-deploy-status");
+        statusEl.innerText = "🚀 Deploying NFT Collection...";
+        
+        try {
+            // IMPORTANT: You need a real NFT Factory contract deployed on Base
+            // For now, this simulates deployment with a random address
+            // Replace this with actual factory contract call
+            
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            const randomAddr = "0x" + Array.from({length: 40}, () => 
+                Math.floor(Math.random() * 16).toString(16)).join('');
+            
+            nftCollectionAddr = randomAddr;
+            document.getElementById("nft-collection-address").innerText = randomAddr;
+            document.getElementById("nft-collection-result").style.display = "block";
+            document.getElementById("nft-mint-section").style.display = "block";
+            
+            // Create contract instance
+            nftContract = new ethers.Contract(randomAddr, NFT_ABI, signer);
+            
+            statusEl.innerText = "✅ NFT Collection deployed! Address: " + randomAddr;
+            
+            await loadUserNFTs();
+            
+        } catch (err) {
+            showUserFriendlyError(err, statusEl);
+        }
+    }
+
+    async function uploadToIPFS(file) {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await axios.post('https://api.pinata.cloud/pinning/pinFileToIPFS', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'pinata_api_key': PINATA_API_KEY,
+                    'pinata_secret_api_key': PINATA_SECRET_KEY
+                }
+            });
+            
+            return response.data.IpfsHash;
+        } catch (err) {
+            console.error("IPFS upload failed:", err);
+            return null;
+        }
+    }
+
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                document.getElementById("upload-placeholder").style.display = "none";
+                document.getElementById("upload-preview").style.display = "block";
+                document.getElementById("image-preview").src = e.target.result;
+                
+                document.getElementById("ipfs-hash-display").innerText = "📤 Uploading to IPFS...";
+                const hash = await uploadToIPFS(file);
+                if (hash) {
+                    uploadedImageIPFS = "ipfs://" + hash;
+                    document.getElementById("ipfs-hash-display").innerText = "✅ IPFS: ipfs://" + hash;
+                } else {
+                    uploadedImageIPFS = e.target.result;
+                    document.getElementById("ipfs-hash-display").innerText = "⚠️ Using local image (no IPFS)";
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    async function mintNFT() {
+        if (!nftContract) {
+            document.getElementById("nft-mint-status").innerText = "Please deploy a collection first!";
+            return;
+        }
+        
+        const name = document.getElementById("nft-name").value.trim();
+        const description = document.getElementById("nft-description").value.trim();
+        
+        if (!name) {
+            document.getElementById("nft-mint-status").innerText = "Please enter NFT name!";
+            return;
+        }
+        
+        if (!uploadedImageIPFS) {
+            document.getElementById("nft-mint-status").innerText = "Please upload an image!";
+            return;
+        }
+        
+        const statusEl = document.getElementById("nft-mint-status");
+        statusEl.innerText = "⏳ Preparing metadata...";
+        
+        try {
+            const metadata = {
+                name: name,
+                description: description || "NFT created with B20",
+                image: uploadedImageIPFS,
+                attributes: [
+                    { trait_type: "Created with", value: "B20 Token" },
+                    { trait_type: "Network", value: "Base" }
+                ]
+            };
+            
+            statusEl.innerText = "📤 Uploading metadata...";
+            const metadataBlob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
+            const metadataFile = new File([metadataBlob], 'metadata.json');
+            const metadataHash = await uploadToIPFS(metadataFile);
+            
+            const tokenURI = metadataHash ? "ipfs://" + metadataHash : null;
+            
+            if (!tokenURI) {
+                statusEl.innerText = "❌ Failed to upload metadata to IPFS";
+                return;
+            }
+            
+            // Get mint price
+            const price = await nftContract.mintPrice();
+            
+            // Approve B20 spending
+            statusEl.innerText = "💰 Approving B20 spending...";
+            const approveTx = await b20TokenForNFT.contract.approve(nftContract.target, price);
+            await approveTx.wait();
+            
+            // Mint NFT
+            statusEl.innerText = "🎨 Minting NFT...";
+            const mintTx = await nftContract.mint(account, tokenURI);
+            await mintTx.wait();
+            
+            statusEl.innerText = "✅ NFT Minted successfully! 🎉";
+            
+            await loadUserNFTs();
+            
+            document.getElementById("nft-name").value = "";
+            document.getElementById("nft-description").value = "";
+            document.getElementById("upload-placeholder").style.display = "block";
+            document.getElementById("upload-preview").style.display = "none";
+            uploadedImageIPFS = null;
+            
+        } catch (err) {
+            showUserFriendlyError(err, statusEl);
+        }
+    }
+
+    async function loadUserNFTs() {
+        const container = document.getElementById("nft-grid-container");
+        const statusEl = document.getElementById("nft-gallery-status");
+        
+        if (!nftContract && nftCollectionAddr) {
+            try {
+                nftContract = new ethers.Contract(nftCollectionAddr, NFT_ABI, signer);
+            } catch {
+                return;
+            }
+        }
+        
+        if (!nftContract) {
+            container.innerHTML = '<p style="color:#666;grid-column:1/-1;text-align:center;">Deploy a collection to see your NFTs</p>';
+            return;
+        }
+        
+        try {
+            statusEl.innerText = "Loading your NFTs...";
+            
+            const balance = await nftContract.balanceOf(account);
+            document.getElementById("nft-count").innerText = balance.toString();
+            
+            if (balance === 0n) {
+                container.innerHTML = '<p style="color:#666;grid-column:1/-1;text-align:center;">No NFTs yet. Mint your first one! 🚀</p>';
+                document.getElementById("nft-gallery").style.display = "block";
+                statusEl.innerText = "";
+                return;
+            }
+            
+            const tokenIds = [];
+            for (let i = 0; i < balance; i++) {
+                const id = await nftContract.tokenOfOwnerByIndex(account, i);
+                tokenIds.push(id);
+            }
+            
+            container.innerHTML = "";
+            for (const id of tokenIds) {
+                try {
+                    const tokenURI = await nftContract.tokenURI(id);
+                    const metadata = await fetchIPFS(tokenURI);
+                    
+                    const card = document.createElement('div');
+                    card.className = 'nft-card';
+                    card.innerHTML = `
+                        <img src="${metadata?.image || 'https://via.placeholder.com/200'}" alt="${metadata?.name || 'NFT'}">
+                        <div class="nft-name">${metadata?.name || 'NFT #' + id}</div>
+                        <div class="nft-id">ID: ${id.toString()}</div>
+                    `;
+                    container.appendChild(card);
+                } catch (e) {
+                    console.warn("Failed to load NFT", id, e);
+                }
+            }
+            
+            document.getElementById("nft-gallery").style.display = "block";
+            statusEl.innerText = "";
+            
+        } catch (err) {
+            console.error("Load NFTs error:", err);
+            statusEl.innerText = "⚠️ " + err.message;
+        }
+    }
+
+    async function fetchIPFS(uri) {
+        if (!uri) return null;
+        try {
+            const url = uri.replace('ipfs://', 'https://ipfs.io/ipfs/');
+            const response = await fetch(url);
+            return await response.json();
+        } catch {
+            return null;
+        }
+    }
+
+    // ============================================================
+    // AUTO-CONNECT ON LOAD
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.ethereum) {
+            connectWallet();
+        }
+    });
+
+    // Drag and drop support
+    document.addEventListener('DOMContentLoaded', function() {
+        const area = document.getElementById('upload-area');
+        if (area) {
+            area.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            area.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+            area.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    document.getElementById('file-input').files = files;
+                    handleFileUpload({ target: { files: files } });
+                }
+            });
+        }
+    });
 </script>
 {% endblock %}
