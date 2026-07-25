@@ -535,17 +535,20 @@
             document.getElementById("lb-pagination").style.display = "none";
             updateLamps(0);
 
-            await trySilentReferralRegister();
+           
             await loadStats();
         } catch (err) { alert("Network switch failed: " + err.message); }
     }
 
-    function switchMode(mode) {
+    async function switchMode(mode) {
         document.getElementById("tab-btn-gm").classList.toggle("active", mode === "gm");
         document.getElementById("tab-btn-gmplus").classList.toggle("active", mode === "gmplus");
         document.getElementById("gm-card").style.display = mode === "gm" ? "block" : "none";
         document.getElementById("gmplus-card").style.display = mode === "gmplus" ? "block" : "none";
-        if (mode === "gmplus") refreshGMPlusPanel();
+        if (mode === "gmplus") {
+            await trySilentReferralRegister();
+            await refreshGMPlusPanel();
+        }
     }
 
     async function trySilentReferralRegister() {
