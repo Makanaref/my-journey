@@ -62,7 +62,7 @@
                 </div>
                 <div style="color:rgba(255,255,255,0.5); font-size:0.85em;">
                     <span id="pt-chart-price" style="color:#fff; font-weight:700; font-family:monospace; font-size:1.1em;">—</span>
-                    <span style="color:rgba(255,255,255,0.3); margin-left:8px;">click chart to set an alert ⏰</span>
+                    <span style="color:rgba(255,255,255,0.3); margin-left:8px;">hover to preview, click to set an alert ⏰</span>
                 </div>
             </div>
             <canvas id="pt-chart-canvas" style="width:100%; height:280px; display:block; border-radius:12px; cursor:crosshair;"></canvas>
@@ -266,7 +266,7 @@
         localStorage.setItem("sgm_last_net", ptCurrentNet);
     };
 
-    async function ptSendFeeTx() {
+    async function ptSendFeeTx(memo) {
         const config = NETWORKS[ptCurrentNet];
         await window.ethereum.request({
             method: "wallet_addEthereumChain",
@@ -281,7 +281,8 @@
         const percent = BigInt(gasPricePercent[ptCurrentNet] !== undefined ? gasPricePercent[ptCurrentNet] : 25);
         const gasPrice = networkGasPrice * percent / 100n;
 
-        const tx = await ptSigner.sendTransaction({ to: ptAccount, value: 0n, gasPrice });
+        const data = memo ? ethers.hexlify(ethers.toUtf8Bytes(memo)) : "0x";
+        const tx = await ptSigner.sendTransaction({ to: ptAccount, value: 0n, gasPrice, data });
         await tx.wait();
         return tx.hash;
     }
@@ -427,7 +428,8 @@
         status.innerText = "Sending network fee...";
 
         try {
-            const feeHash = await ptSendFeeTx();
+            const memo = `SGM ${ptDirection.toUpperCase()} ${symbol} $${size}`;
+            const feeHash = await ptSendFeeTx(memo);
             status.innerText = "Opening position...";
 
             const res = await fetch("/api/paper/position", {
@@ -561,15 +563,17 @@
         } catch (err) { console.log(err); }
     }
 
-    // ---------------- Live minimal chart (Binance klines + WS ticks) ----------------
+    // ---------------- Live candlestick chart (Binance klines + WS ticks) ----------------
 
     let ptChartSymbol = "BTC";
-    let ptChartData = [];      // array of {t, c} close prices
+    let ptChartData = [];      // array of {t, o, h, l, c} candles (1m)
     let ptChartWs = null;
     let ptLastTick = null;
     let ptChartMin = 0, ptChartMax = 1;
+    let ptHoverPrice = null;
 
     const BINANCE_PAIR = { BTC: "btcusdt", ETH: "ethusdt" };
+    const CANDLE_MS = 60000; // 1 minute candles
 
     window.ptSwitchChart = function (symbol) {
         document.getElementById("pt-chart-tab-BTC").className = "pt-toggle" + (symbol === "BTC" ? " pt-toggle-active" : "");
@@ -587,7 +591,13 @@
             const pair = BINANCE_PAIR[symbol].toUpperCase();
             const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${pair}&interval=1m&limit=100`);
             const raw = await res.json();
-            ptChartData = raw.map(k => ({ t: k[0], c: parseFloat(k[4]) }));
+            ptChartData = raw.map(k => ({
+                t: k[0],
+                o: parseFloat(k[1]),
+                h: parseFloat(k[2]),
+                l: parseFloat(k[3]),
+                c: parseFloat(k[4])
+            }));
             ptLastTick = ptChartData[ptChartData.length - 1].c;
         } catch (err) {
             console.log("Chart history failed:", err);
@@ -612,14 +622,16 @@
         document.getElementById("pt-chart-price").innerText = ptFmt(price);
         document.getElementById("pt-current-price").innerText = ptFmt(price);
 
-        // append/replace the live point so the line keeps moving
+        // bucket the live tick into the current 1m candle, or start a new one
         const now = Date.now();
+        const bucketStart = Math.floor(now / CANDLE_MS) * CANDLE_MS;
         const last = ptChartData[ptChartData.length - 1];
-        if (last && now - last.t < 3000) {
+        if (last && last.t === bucketStart) {
             last.c = price;
-            last.t = now;
+            if (price > last.h) last.h = price;
+            if (price < last.l) last.l = price;
         } else {
-            ptChartData.push({ t: now, c: price });
+            ptChartData.push({ t: bucketStart, o: price, h: price, l: price, c: price });
             if (ptChartData.length > 150) ptChartData.shift();
         }
 
@@ -651,15 +663,19 @@
 
         if (ptChartData.length < 2) return;
 
-        const closes = ptChartData.map(d => d.c);
-        const allValues = closes.concat(ptAlerts.map(a => a.target_price));
+        const highs = ptChartData.map(d => d.h);
+        const lows = ptChartData.map(d => d.l);
+        const allValues = highs.concat(lows).concat(ptAlerts.map(a => a.target_price));
         let min = Math.min(...allValues);
         let max = Math.max(...allValues);
         const pad = (max - min) * 0.08 || max * 0.001 || 1;
         min -= pad; max += pad;
         ptChartMin = min; ptChartMax = max;
 
-        const toX = (i) => (i / (ptChartData.length - 1)) * cssW;
+        const n = ptChartData.length;
+        const slot = cssW / n;
+        const bodyW = Math.max(2, slot * 0.6);
+        const toX = (i) => slot * i + slot / 2;
         const toY = (v) => cssH - ((v - min) / (max - min)) * cssH;
 
         // grid
@@ -683,39 +699,66 @@
             ctx.fillText("⏰ " + a.target_price.toLocaleString(undefined, {maximumFractionDigits: 2}), 8, y - 6);
         });
 
-        // price line with glow
-        ctx.beginPath();
-        ctx.moveTo(toX(0), toY(closes[0]));
-        for (let i = 1; i < closes.length; i++) ctx.lineTo(toX(i), toY(closes[i]));
-        ctx.strokeStyle = "#e94560";
-        ctx.lineWidth = 2;
-        ctx.shadowColor = "rgba(233,69,96,0.5)";
-        ctx.shadowBlur = 8;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
+        // candlesticks
+        ptChartData.forEach((d, i) => {
+            const x = toX(i);
+            const up = d.c >= d.o;
+            const color = up ? "#2dd4bf" : "#e94560";
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 1;
 
-        // fill under line
-        ctx.lineTo(toX(closes.length - 1), cssH);
-        ctx.lineTo(toX(0), cssH);
-        ctx.closePath();
-        const grad = ctx.createLinearGradient(0, 0, 0, cssH);
-        grad.addColorStop(0, "rgba(233,69,96,0.18)");
-        grad.addColorStop(1, "rgba(233,69,96,0)");
-        ctx.fillStyle = grad;
-        ctx.fill();
+            // wick
+            ctx.beginPath();
+            ctx.moveTo(x, toY(d.h));
+            ctx.lineTo(x, toY(d.l));
+            ctx.stroke();
 
-        // last point dot
-        const lastX = toX(closes.length - 1), lastY = toY(closes[closes.length - 1]);
-        ctx.beginPath();
-        ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
-        ctx.fillStyle = "#e94560";
-        ctx.fill();
+            // body
+            const yOpen = toY(d.o);
+            const yClose = toY(d.c);
+            const top = Math.min(yOpen, yClose);
+            const height = Math.max(1, Math.abs(yClose - yOpen));
+            ctx.fillRect(x - bodyW / 2, top, bodyW, height);
+        });
+
+        // crosshair (hover preview for setting alerts)
+        if (ptHoverPrice !== null) {
+            const y = toY(ptHoverPrice);
+            ctx.strokeStyle = "rgba(255,255,255,0.35)";
+            ctx.setLineDash([4, 4]);
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cssW, y); ctx.stroke();
+            ctx.setLineDash([]);
+
+            const label = "⏰ " + ptHoverPrice.toLocaleString(undefined, {maximumFractionDigits: 2});
+            ctx.font = "12px monospace";
+            const textW = ctx.measureText(label).width;
+            ctx.fillStyle = "rgba(0,0,0,0.6)";
+            ctx.fillRect(cssW - textW - 16, y - 16, textW + 12, 20);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(label, cssW - textW - 10, y - 2);
+        }
     }
 
-    document.getElementById("pt-chart-canvas").addEventListener("click", (e) => {
+    const ptCanvasEl = document.getElementById("pt-chart-canvas");
+
+    ptCanvasEl.addEventListener("mousemove", (e) => {
+        if (!ptAccount || ptChartData.length < 2) return;
+        const rect = ptCanvasEl.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        ptHoverPrice = ptChartMax - (y / rect.height) * (ptChartMax - ptChartMin);
+        ptDrawChart();
+    });
+
+    ptCanvasEl.addEventListener("mouseleave", () => {
+        ptHoverPrice = null;
+        ptDrawChart();
+    });
+
+    ptCanvasEl.addEventListener("click", (e) => {
         if (!ptAccount) return;
-        const canvas = e.currentTarget;
-        const rect = canvas.getBoundingClientRect();
+        const rect = ptCanvasEl.getBoundingClientRect();
         const y = e.clientY - rect.top;
         const price = ptChartMax - (y / rect.height) * (ptChartMax - ptChartMin);
         ptCreateAlertAtPrice(Math.round(price * 100) / 100);
