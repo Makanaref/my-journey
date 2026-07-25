@@ -540,15 +540,12 @@
         } catch (err) { alert("Network switch failed: " + err.message); }
     }
 
-    async function switchMode(mode) {
+    function switchMode(mode) {
         document.getElementById("tab-btn-gm").classList.toggle("active", mode === "gm");
         document.getElementById("tab-btn-gmplus").classList.toggle("active", mode === "gmplus");
         document.getElementById("gm-card").style.display = mode === "gm" ? "block" : "none";
         document.getElementById("gmplus-card").style.display = mode === "gmplus" ? "block" : "none";
-        if (mode === "gmplus") {
-            await trySilentReferralRegister();
-            await refreshGMPlusPanel();
-        }
+        if (mode === "gmplus") refreshGMPlusPanel();
     }
 
     async function trySilentReferralRegister() {
@@ -615,6 +612,9 @@
     async function gmPlusCopyInviteLink() {
         const statusEl = document.getElementById("gmplus-invite-status");
         if (!account) { statusEl.innerText = "Connect your wallet first"; return; }
+
+        await trySilentReferralRegister();
+        await refreshGMPlusPanel();
 
         let refValue = account;
         if (DOMAIN_ADDRESSES[currentNet]) {
