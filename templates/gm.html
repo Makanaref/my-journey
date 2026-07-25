@@ -545,9 +545,9 @@
             if (!ref) return;
 
             if (!ethers.isAddress(ref)) {
-                if (currentNet !== "base") return; // .sgm names only resolvable on Base
+                if (!DOMAIN_ADDRESSES[currentNet]) return; // no domain registry on this net
                 const cleanName = ref.toLowerCase().replace(/\.sgm$/, "");
-                const domainContract = new ethers.Contract(DOMAIN_ADDRESS, DOMAIN_ABI, signer);
+                const domainContract = new ethers.Contract(DOMAIN_ADDRESSES[currentNet], DOMAIN_ABI, signer);
                 const resolved = await domainContract.resolve(cleanName);
                 if (!resolved || resolved === ethers.ZeroAddress) return;
                 ref = resolved;
