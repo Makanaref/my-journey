@@ -613,9 +613,6 @@
         const statusEl = document.getElementById("gmplus-invite-status");
         if (!account) { statusEl.innerText = "Connect your wallet first"; return; }
 
-        await trySilentReferralRegister();
-        await refreshGMPlusPanel();
-
         let refValue = account;
         if (DOMAIN_ADDRESSES[currentNet]) {
             try {
@@ -689,6 +686,7 @@
             await tx.wait();
             document.getElementById("tx-status").innerText = "GM confirmed ✅";
             await loadStats();
+            trySilentReferralRegister();
 
             // Refresh leaderboard silently if it's currently open
             if (document.getElementById("lb-wrap").classList.contains("open")) {
