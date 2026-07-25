@@ -266,8 +266,8 @@ def open_position(wallet, symbol, direction, size_usd, entry_type,
         return {"error": "Unsupported symbol"}, 400
     if direction not in ("long", "short"):
         return {"error": "Direction must be 'long' or 'short'"}, 400
-    if entry_type not in ("market", "limit"):
-        return {"error": "entry_type must be 'market' or 'limit'"}, 400
+    if entry_type not in ("market", "limit", "stop"):
+        return {"error": "entry_type must be 'market', 'limit', or 'stop'"}, 400
     if size_usd is None or size_usd <= 0:
         return {"error": "Invalid position size"}, 400
 
@@ -294,7 +294,7 @@ def open_position(wallet, symbol, direction, size_usd, entry_type,
     else:
         if entry_price is None or entry_price <= 0:
             conn.close()
-            return {"error": "Limit orders require a valid entry_price"}, 400
+            return {"error": "Limit/stop orders require a valid entry_price"}, 400
 
     now = datetime.datetime.utcnow().isoformat()
     conn.execute(
@@ -414,7 +414,7 @@ def get_positions(wallet):
 
 
 def process_wallet_positions(wallet):
-    """Check pending limit orders and open TP/SL levels for one wallet."""
+    """Check pending limit/stop orders and open TP/SL levels for one wallet."""
     conn = _get_db()
     positions = conn.execute(
         "SELECT * FROM paper_positions WHERE wallet = ? AND status IN ('pending', 'open')",
@@ -431,10 +431,19 @@ def _process_position(pos):
         return
 
     if pos["status"] == "pending":
-        should_fill = (
-            (pos["direction"] == "long" and current_price <= pos["entry_price"]) or
-            (pos["direction"] == "short" and current_price >= pos["entry_price"])
-        )
+        entry_type = pos["entry_type"]
+        if entry_type == "limit":
+            should_fill = (
+                (pos["direction"] == "long" and current_price <= pos["entry_price"]) or
+                (pos["direction"] == "short" and current_price >= pos["entry_price"])
+            )
+        elif entry_type == "stop":
+            should_fill = (
+                (pos["direction"] == "long" and current_price >= pos["entry_price"]) or
+                (pos["direction"] == "short" and current_price <= pos["entry_price"])
+            )
+        else:
+            should_fill = False
         if should_fill:
             conn = _get_db()
             conn.execute(
