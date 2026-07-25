@@ -173,8 +173,8 @@ body.light .content img, body.light .content video { filter: invert(1) hue-rotat
     (function () {
         const params = new URLSearchParams(window.location.search);
         const ref = params.get("ref");
-        if (ref && !localStorage.getItem("sgm_ref")) {
-            localStorage.setItem("sgm_ref", ref);
+        if (ref) {
+            localStorage.setItem("sgm_ref_pending", ref);
         }
     })();
     </script>

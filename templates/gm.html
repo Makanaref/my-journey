@@ -491,11 +491,21 @@
             await provider.send("eth_requestAccounts", []);
             signer = await provider.getSigner();
             account = await signer.getAddress();
+            claimPendingRefForAccount();
             document.getElementById("connect-section").style.display = "none";
             document.getElementById("wallet-info").style.display = "block";
             document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
             document.getElementById("network-card").style.display = "block";
         } catch (err) { alert("Connection failed: " + err.message); }
+    }
+
+    function claimPendingRefForAccount() {
+        const pending = localStorage.getItem("sgm_ref_pending");
+        if (!pending || !account) return;
+        const accountKey = "sgm_ref_" + account.toLowerCase();
+        if (!localStorage.getItem(accountKey)) {
+            localStorage.setItem(accountKey, pending);
+        }
     }
 
     let leaderboardLoadedForNet = null;
@@ -541,7 +551,7 @@
     async function trySilentReferralRegister() {
         if (!GMPLUS_ADDRESSES[currentNet]) return;
         try {
-            let ref = localStorage.getItem("sgm_ref");
+            let ref = localStorage.getItem("sgm_ref_" + account.toLowerCase());
             if (!ref) return;
 
             if (!ethers.isAddress(ref)) {
