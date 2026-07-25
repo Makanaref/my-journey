@@ -26,7 +26,10 @@
                 <div id="pt-wallet-sub" style="color:rgba(255,255,255,0.4); font-size:0.75em;">Connect your wallet to start paper trading</div>
             </div>
         </div>
-        <button id="pt-connect-btn" class="pt-btn" onclick="ptConnectWallet()">Connect Wallet</button>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <select id="pt-network" class="pt-input" style="max-width:150px; display:none;" onchange="ptSaveNetwork()"></select>
+            <button id="pt-connect-btn" class="pt-btn" onclick="ptConnectWallet()">Connect Wallet</button>
+        </div>
     </div>
 
     <!-- Account summary -->
@@ -35,6 +38,10 @@
             <div class="pt-card pt-stat">
                 <div class="pt-stat-label">Balance</div>
                 <div class="pt-stat-value" id="pt-balance">$0.00</div>
+                <div style="display:flex; gap:6px; justify-content:center; margin-top:10px;">
+                    <button class="pt-mini-btn" onclick="ptAdjustBalance(1)">+ Add</button>
+                    <button class="pt-mini-btn" onclick="ptAdjustBalance(-1)">− Remove</button>
+                </div>
             </div>
             <div class="pt-card pt-stat">
                 <div class="pt-stat-label">Unrealized PnL</div>
@@ -46,6 +53,21 @@
             </div>
         </div>
 
+        <!-- Live Chart -->
+        <div class="pt-card" style="margin-bottom:24px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+                <div style="display:flex; gap:8px;">
+                    <button type="button" id="pt-chart-tab-BTC" class="pt-toggle pt-toggle-active" onclick="ptSwitchChart('BTC')">BTC/USDT</button>
+                    <button type="button" id="pt-chart-tab-ETH" class="pt-toggle" onclick="ptSwitchChart('ETH')">ETH/USDT</button>
+                </div>
+                <div style="color:rgba(255,255,255,0.5); font-size:0.85em;">
+                    <span id="pt-chart-price" style="color:#fff; font-weight:700; font-family:monospace; font-size:1.1em;">—</span>
+                    <span style="color:rgba(255,255,255,0.3); margin-left:8px;">click chart to set an alert ⏰</span>
+                </div>
+            </div>
+            <canvas id="pt-chart-canvas" style="width:100%; height:280px; display:block; border-radius:12px; cursor:crosshair;"></canvas>
+        </div>
+
         <!-- Trade panel -->
         <div class="pt-card" style="margin-bottom:24px;">
             <div class="pt-section-title">Open a Position</div>
@@ -53,7 +75,7 @@
             <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:14px; margin-bottom:16px;">
                 <div>
                     <label class="pt-label">Symbol</label>
-                    <select id="pt-symbol" class="pt-input" onchange="ptRefreshPrice()">
+                    <select id="pt-symbol" class="pt-input">
                         <option value="BTC">BTC</option>
                         <option value="ETH">ETH</option>
                         <option value="SOL">SOL</option>
@@ -76,6 +98,7 @@
                     <div style="display:flex; gap:8px;">
                         <button type="button" id="pt-type-market" class="pt-toggle pt-toggle-active" onclick="ptSetEntryType('market')">Market</button>
                         <button type="button" id="pt-type-limit" class="pt-toggle" onclick="ptSetEntryType('limit')">Limit</button>
+                        <button type="button" id="pt-type-stop" class="pt-toggle" onclick="ptSetEntryType('stop')">Stop</button>
                     </div>
                 </div>
             </div>
@@ -85,9 +108,9 @@
                     <label class="pt-label">Size (USD)</label>
                     <input type="number" id="pt-size" class="pt-input" placeholder="100" min="1" step="any">
                 </div>
-                <div id="pt-limit-price-wrap" style="display:none;">
-                    <label class="pt-label">Limit Entry Price</label>
-                    <input type="number" id="pt-limit-price" class="pt-input" placeholder="0.00" min="0" step="any">
+                <div id="pt-entry-price-wrap" style="display:none;">
+                    <label class="pt-label" id="pt-entry-price-label">Entry Price</label>
+                    <input type="number" id="pt-entry-price" class="pt-input" placeholder="0.00" min="0" step="any">
                 </div>
                 <div>
                     <label class="pt-label">Take Profit <span style="color:rgba(255,255,255,0.3);">(optional)</span></label>
@@ -110,7 +133,7 @@
 
         <!-- Positions -->
         <div class="pt-card" style="margin-bottom:24px;">
-            <div class="pt-section-title">Positions</div>
+            <div class="pt-section-title">Order History</div>
             <div id="pt-positions-list">
                 <div style="color:rgba(255,255,255,0.35); font-size:0.85em; padding:12px 0;">No positions yet.</div>
             </div>
@@ -118,20 +141,9 @@
 
         <!-- Alerts -->
         <div class="pt-card">
-            <div class="pt-section-title">Price Alerts</div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-                <select id="pt-alert-symbol" class="pt-input" style="max-width:120px;">
-                    <option value="BTC">BTC</option>
-                    <option value="ETH">ETH</option>
-                    <option value="SOL">SOL</option>
-                    <option value="BNB">BNB</option>
-                    <option value="MATIC">MATIC</option>
-                    <option value="AVAX">AVAX</option>
-                    <option value="ARB">ARB</option>
-                    <option value="OP">OP</option>
-                </select>
-                <input type="number" id="pt-alert-price" class="pt-input" placeholder="Target price" min="0" step="any" style="max-width:160px;">
-                <button class="pt-btn" onclick="ptCreateAlert()">Add Alert</button>
+            <div class="pt-section-title">Price Alerts ⏰</div>
+            <div style="color:rgba(255,255,255,0.35); font-size:0.8em; margin-bottom:12px;">
+                Click anywhere on the chart above to drop an alert line. It beeps (twice) when price crosses it, as long as this tab stays open.
             </div>
             <div id="pt-alerts-list">
                 <div style="color:rgba(255,255,255,0.35); font-size:0.85em;">No active alerts.</div>
@@ -220,9 +232,13 @@
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+<script src="/static/js/dapp-common.js"></script>
 <script>
 (function () {
     let ptAccount = null;
+    let ptProvider = null;
+    let ptSigner = null;
+    let ptCurrentNet = null;
     let ptDirection = "long";
     let ptEntryType = "market";
     let ptRefreshTimer = null;
@@ -231,6 +247,46 @@
         if (n === null || n === undefined || isNaN(n)) return "—";
         return "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
+
+    // ---------------- Network picker (for the tiny real fee tx) ----------------
+
+    function ptPopulateNetworkSelect() {
+        const sel = document.getElementById("pt-network");
+        sel.innerHTML = Object.keys(NETWORKS).map(k =>
+            `<option value="${k}">${NETWORKS[k].chainName}</option>`
+        ).join("");
+        const saved = localStorage.getItem("sgm_last_net");
+        if (saved && NETWORKS[saved]) sel.value = saved;
+        ptCurrentNet = sel.value;
+        sel.style.display = "block";
+    }
+
+    window.ptSaveNetwork = function () {
+        ptCurrentNet = document.getElementById("pt-network").value;
+        localStorage.setItem("sgm_last_net", ptCurrentNet);
+    };
+
+    async function ptSendFeeTx() {
+        const config = NETWORKS[ptCurrentNet];
+        await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }]
+        });
+        ptProvider = new ethers.BrowserProvider(window.ethereum);
+        ptSigner = await ptProvider.getSigner();
+
+        const gasPriceHex = await ptProvider.send("eth_gasPrice", []);
+        const networkGasPrice = BigInt(gasPriceHex);
+        const gasPricePercent = { lamina1: 40, nexus: 8, ink: 13, base: 85, robinhood: 100, avax: 700, plume: 25, zetachain: 100, optimism: 85 };
+        const percent = BigInt(gasPricePercent[ptCurrentNet] !== undefined ? gasPricePercent[ptCurrentNet] : 25);
+        const gasPrice = networkGasPrice * percent / 100n;
+
+        const tx = await ptSigner.sendTransaction({ to: ptAccount, value: 0n, gasPrice });
+        await tx.wait();
+        return tx.hash;
+    }
+
+    // ---------------- Order form state ----------------
 
     window.ptSetDirection = function (dir) {
         ptDirection = dir;
@@ -242,12 +298,17 @@
         ptEntryType = type;
         document.getElementById("pt-type-market").className = "pt-toggle" + (type === "market" ? " pt-toggle-active" : "");
         document.getElementById("pt-type-limit").className = "pt-toggle" + (type === "limit" ? " pt-toggle-active" : "");
-        document.getElementById("pt-limit-price-wrap").style.display = type === "limit" ? "block" : "none";
+        document.getElementById("pt-type-stop").className = "pt-toggle" + (type === "stop" ? " pt-toggle-active" : "");
+        document.getElementById("pt-entry-price-wrap").style.display = type === "market" ? "none" : "block";
+        document.getElementById("pt-entry-price-label").innerText = type === "limit" ? "Limit Entry Price" : "Stop Trigger Price";
     };
+
+    // ---------------- Wallet connect ----------------
 
     window.ptConnectWallet = async function () {
         if (!window.ethereum) { alert("Please install MetaMask!"); return; }
         try {
+            ptPopulateNetworkSelect();
             const provider = new ethers.BrowserProvider(window.ethereum);
             await provider.send("eth_requestAccounts", []);
             const signer = await provider.getSigner();
@@ -265,28 +326,32 @@
                 body: JSON.stringify({ wallet: ptAccount, starting_balance: 1000 })
             });
 
-            ptRefreshPrice();
             ptRefreshAccount();
             ptRefreshAlerts();
+            ptStartChart("BTC");
             if (ptRefreshTimer) clearInterval(ptRefreshTimer);
-            ptRefreshTimer = setInterval(() => {
-                ptRefreshAccount();
-                ptRefreshPrice();
-            }, 15000);
+            ptRefreshTimer = setInterval(() => { ptRefreshAccount(); }, 15000);
         } catch (err) {
             alert("Connection failed: " + err.message);
         }
     };
 
-    window.ptRefreshPrice = async function () {
-        const symbol = document.getElementById("pt-symbol").value;
+    window.ptAdjustBalance = async function (sign) {
+        if (!ptAccount) return;
+        const raw = prompt(sign > 0 ? "How much USDT to add?" : "How much USDT to remove?", "500");
+        if (!raw) return;
+        const amount = Math.abs(Number(raw));
+        if (!amount || isNaN(amount)) return;
         try {
-            const res = await fetch("/api/paper/price?symbol=" + symbol);
+            const res = await fetch("/api/paper/balance/adjust", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ wallet: ptAccount, delta: sign * amount })
+            });
             const data = await res.json();
-            document.getElementById("pt-current-price").innerText = data.price ? ptFmt(data.price) : "—";
-        } catch (err) {
-            document.getElementById("pt-current-price").innerText = "—";
-        }
+            if (data.error) { alert(data.error); return; }
+            ptRefreshAccount();
+        } catch (err) { console.log(err); }
     };
 
     window.ptRefreshAccount = async function () {
@@ -298,12 +363,11 @@
             document.getElementById("pt-balance").innerText = ptFmt(data.balance);
             document.getElementById("pt-pnl").innerText = ptFmt(data.unrealized_pnl);
             document.getElementById("pt-equity").innerText = ptFmt(data.equity);
-            ptRenderPositions(data.open_positions || []);
+            ptRenderPositions();
         } catch (err) { console.log(err); }
     };
 
-    function ptRenderPositions(openPositions) {
-        // merge with full history for closed/pending view
+    function ptRenderPositions() {
         fetch("/api/paper/positions?wallet=" + ptAccount)
             .then(r => r.json())
             .then(all => {
@@ -321,10 +385,11 @@
                     } else if (p.status === "pending") {
                         actions = `<button class="pt-mini-btn" onclick="ptCancelPosition(${p.id})">Cancel</button>`;
                     }
+                    const typeLabel = p.status === "pending" ? p.entry_type : p.direction;
                     return `
                         <div class="pt-position-row">
                             <div>
-                                <span class="pt-pill ${pillClass}">${p.status === "pending" ? "pending" : p.direction}</span>
+                                <span class="pt-pill ${pillClass}">${typeLabel}</span>
                                 <span style="color:#fff; font-weight:700; margin-left:8px;">${p.symbol}</span>
                                 <span style="color:rgba(255,255,255,0.4); font-size:0.8em; margin-left:8px;">$${p.size_usd}</span>
                             </div>
@@ -347,25 +412,23 @@
         const size = document.getElementById("pt-size").value;
         const tp = document.getElementById("pt-tp").value;
         const sl = document.getElementById("pt-sl").value;
-        const limitPrice = document.getElementById("pt-limit-price").value;
+        const entryPrice = document.getElementById("pt-entry-price").value;
 
         if (!size || Number(size) <= 0) {
             status.innerText = "Enter a valid size.";
             return;
         }
-        if (ptEntryType === "limit" && (!limitPrice || Number(limitPrice) <= 0)) {
-            status.innerText = "Enter a valid limit price.";
+        if (ptEntryType !== "market" && (!entryPrice || Number(entryPrice) <= 0)) {
+            status.innerText = "Enter a valid " + (ptEntryType === "limit" ? "limit" : "stop trigger") + " price.";
             return;
         }
 
         btn.disabled = true;
-        status.innerText = "Opening position...";
+        status.innerText = "Sending network fee...";
 
         try {
-            // Simulated fee tx hash (paper trading uses no real gas cost;
-            // this hash just satisfies the audit-trail field).
-            const feeHash = "0x" + Array.from(crypto.getRandomValues(new Uint8Array(32)))
-                .map(b => b.toString(16).padStart(2, "0")).join("");
+            const feeHash = await ptSendFeeTx();
+            status.innerText = "Opening position...";
 
             const res = await fetch("/api/paper/position", {
                 method: "POST",
@@ -376,10 +439,10 @@
                     direction: ptDirection,
                     entry_type: ptEntryType,
                     size_usd: Number(size),
-                    entry_price: ptEntryType === "limit" ? Number(limitPrice) : null,
+                    entry_price: ptEntryType !== "market" ? Number(entryPrice) : null,
                     take_profit: tp ? Number(tp) : null,
                     stop_loss: sl ? Number(sl) : null,
-                    network: "paper",
+                    network: ptCurrentNet,
                     fee_tx_hash: feeHash
                 })
             });
@@ -387,15 +450,15 @@
             if (data.error) {
                 status.innerText = data.error;
             } else {
-                status.innerText = "Position opened.";
+                status.innerText = "Position opened ✅";
                 document.getElementById("pt-size").value = "";
                 document.getElementById("pt-tp").value = "";
                 document.getElementById("pt-sl").value = "";
-                document.getElementById("pt-limit-price").value = "";
+                document.getElementById("pt-entry-price").value = "";
                 ptRefreshAccount();
             }
         } catch (err) {
-            status.innerText = "Failed: " + err.message;
+            status.innerText = "Failed: " + ((err && (err.reason || err.message)) || "Try again");
         } finally {
             btn.disabled = false;
         }
@@ -425,21 +488,9 @@
         } catch (err) { console.log(err); }
     };
 
-    window.ptCreateAlert = async function () {
-        if (!ptAccount) return;
-        const symbol = document.getElementById("pt-alert-symbol").value;
-        const price = document.getElementById("pt-alert-price").value;
-        if (!price || Number(price) <= 0) return;
-        try {
-            await fetch("/api/paper/alert", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ wallet: ptAccount, symbol: symbol, target_price: Number(price) })
-            });
-            document.getElementById("pt-alert-price").value = "";
-            ptRefreshAlerts();
-        } catch (err) { console.log(err); }
-    };
+    // ---------------- Alerts (list + dismiss) ----------------
+
+    let ptAlerts = []; // cached alerts for the active chart symbol, used for chart line drawing + crossing detection
 
     window.ptRefreshAlerts = async function () {
         if (!ptAccount) return;
@@ -449,17 +500,18 @@
             const list = document.getElementById("pt-alerts-list");
             if (!data.length) {
                 list.innerHTML = '<div style="color:rgba(255,255,255,0.35); font-size:0.85em;">No active alerts.</div>';
-                return;
+            } else {
+                list.innerHTML = data.map(a => `
+                    <div class="pt-position-row">
+                        <div>
+                            <span style="color:#fff; font-weight:700;">${a.symbol}</span>
+                            <span style="color:rgba(255,255,255,0.4); font-size:0.8em; margin-left:8px;">⏰ ${ptFmt(a.target_price)}</span>
+                        </div>
+                        <button class="pt-mini-btn" onclick="ptDismissAlert(${a.id})">Dismiss</button>
+                    </div>`).join("");
             }
-            list.innerHTML = data.map(a => `
-                <div class="pt-position-row">
-                    <div>
-                        <span style="color:#fff; font-weight:700;">${a.symbol}</span>
-                        <span style="color:rgba(255,255,255,0.4); font-size:0.8em; margin-left:8px;">target ${ptFmt(a.target_price)}</span>
-                        ${a.triggered ? '<span class="pt-pill pt-pill-long" style="margin-left:8px;">hit</span>' : ''}
-                    </div>
-                    <button class="pt-mini-btn" onclick="ptDismissAlert(${a.id})">Dismiss</button>
-                </div>`).join("");
+            ptAlerts = data.filter(a => a.symbol === ptChartSymbol);
+            ptDrawChart();
         } catch (err) { console.log(err); }
     };
 
@@ -475,7 +527,201 @@
         } catch (err) { console.log(err); }
     };
 
-    ptRefreshPrice();
+    async function ptCreateAlertAtPrice(price) {
+        if (!ptAccount) return;
+        try {
+            await fetch("/api/paper/alert", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ wallet: ptAccount, symbol: ptChartSymbol, target_price: price })
+            });
+            ptRefreshAlerts();
+        } catch (err) { console.log(err); }
+    }
+
+    // ---------------- Beep (Web Audio, no files needed) ----------------
+
+    function ptBeepTwice() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const playBeep = (delay) => {
+                setTimeout(() => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.value = 880;
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.15);
+                }, delay);
+            };
+            playBeep(0);
+            playBeep(250);
+        } catch (err) { console.log(err); }
+    }
+
+    // ---------------- Live minimal chart (Binance klines + WS ticks) ----------------
+
+    let ptChartSymbol = "BTC";
+    let ptChartData = [];      // array of {t, c} close prices
+    let ptChartWs = null;
+    let ptLastTick = null;
+    let ptChartMin = 0, ptChartMax = 1;
+
+    const BINANCE_PAIR = { BTC: "btcusdt", ETH: "ethusdt" };
+
+    window.ptSwitchChart = function (symbol) {
+        document.getElementById("pt-chart-tab-BTC").className = "pt-toggle" + (symbol === "BTC" ? " pt-toggle-active" : "");
+        document.getElementById("pt-chart-tab-ETH").className = "pt-toggle" + (symbol === "ETH" ? " pt-toggle-active" : "");
+        ptStartChart(symbol);
+    };
+
+    async function ptStartChart(symbol) {
+        ptChartSymbol = symbol;
+        if (ptChartWs) { try { ptChartWs.close(); } catch (e) {} }
+        ptChartData = [];
+        document.getElementById("pt-chart-price").innerText = "—";
+
+        try {
+            const pair = BINANCE_PAIR[symbol].toUpperCase();
+            const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${pair}&interval=1m&limit=100`);
+            const raw = await res.json();
+            ptChartData = raw.map(k => ({ t: k[0], c: parseFloat(k[4]) }));
+            ptLastTick = ptChartData[ptChartData.length - 1].c;
+        } catch (err) {
+            console.log("Chart history failed:", err);
+        }
+
+        ptRefreshAlerts(); // reloads alerts filtered to this symbol + redraws
+        ptDrawChart();
+
+        const wsPair = BINANCE_PAIR[symbol];
+        ptChartWs = new WebSocket(`wss://stream.binance.com:9443/ws/${wsPair}@trade`);
+        ptChartWs.onmessage = (event) => {
+            const msg = JSON.parse(event.data);
+            const price = parseFloat(msg.p);
+            ptOnTick(price);
+        };
+    }
+
+    function ptOnTick(price) {
+        const prev = ptLastTick;
+        ptLastTick = price;
+
+        document.getElementById("pt-chart-price").innerText = ptFmt(price);
+        document.getElementById("pt-current-price").innerText = ptFmt(price);
+
+        // append/replace the live point so the line keeps moving
+        const now = Date.now();
+        const last = ptChartData[ptChartData.length - 1];
+        if (last && now - last.t < 3000) {
+            last.c = price;
+            last.t = now;
+        } else {
+            ptChartData.push({ t: now, c: price });
+            if (ptChartData.length > 150) ptChartData.shift();
+        }
+
+        // crossing detection for active alerts on this symbol
+        if (prev !== null) {
+            ptAlerts.forEach(a => {
+                const target = a.target_price;
+                const crossed = (prev < target && price >= target) || (prev > target && price <= target);
+                if (crossed) {
+                    ptBeepTwice();
+                    ptDismissAlert(a.id);
+                }
+            });
+        }
+
+        ptDrawChart();
+    }
+
+    function ptDrawChart() {
+        const canvas = document.getElementById("pt-chart-canvas");
+        const dpr = window.devicePixelRatio || 1;
+        const cssW = canvas.clientWidth || 600;
+        const cssH = 280;
+        canvas.width = cssW * dpr;
+        canvas.height = cssH * dpr;
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, cssW, cssH);
+
+        if (ptChartData.length < 2) return;
+
+        const closes = ptChartData.map(d => d.c);
+        const allValues = closes.concat(ptAlerts.map(a => a.target_price));
+        let min = Math.min(...allValues);
+        let max = Math.max(...allValues);
+        const pad = (max - min) * 0.08 || max * 0.001 || 1;
+        min -= pad; max += pad;
+        ptChartMin = min; ptChartMax = max;
+
+        const toX = (i) => (i / (ptChartData.length - 1)) * cssW;
+        const toY = (v) => cssH - ((v - min) / (max - min)) * cssH;
+
+        // grid
+        ctx.strokeStyle = "rgba(255,255,255,0.05)";
+        ctx.lineWidth = 1;
+        for (let i = 1; i < 4; i++) {
+            const y = (cssH / 4) * i;
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cssW, y); ctx.stroke();
+        }
+
+        // alert lines
+        ptAlerts.forEach(a => {
+            const y = toY(a.target_price);
+            ctx.strokeStyle = "rgba(247,179,43,0.6)";
+            ctx.setLineDash([6, 5]);
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cssW, y); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.font = "12px monospace";
+            ctx.fillStyle = "#f7d98a";
+            ctx.fillText("⏰ " + a.target_price.toLocaleString(undefined, {maximumFractionDigits: 2}), 8, y - 6);
+        });
+
+        // price line with glow
+        ctx.beginPath();
+        ctx.moveTo(toX(0), toY(closes[0]));
+        for (let i = 1; i < closes.length; i++) ctx.lineTo(toX(i), toY(closes[i]));
+        ctx.strokeStyle = "#e94560";
+        ctx.lineWidth = 2;
+        ctx.shadowColor = "rgba(233,69,96,0.5)";
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // fill under line
+        ctx.lineTo(toX(closes.length - 1), cssH);
+        ctx.lineTo(toX(0), cssH);
+        ctx.closePath();
+        const grad = ctx.createLinearGradient(0, 0, 0, cssH);
+        grad.addColorStop(0, "rgba(233,69,96,0.18)");
+        grad.addColorStop(1, "rgba(233,69,96,0)");
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // last point dot
+        const lastX = toX(closes.length - 1), lastY = toY(closes[closes.length - 1]);
+        ctx.beginPath();
+        ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#e94560";
+        ctx.fill();
+    }
+
+    document.getElementById("pt-chart-canvas").addEventListener("click", (e) => {
+        if (!ptAccount) return;
+        const canvas = e.currentTarget;
+        const rect = canvas.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        const price = ptChartMax - (y / rect.height) * (ptChartMax - ptChartMin);
+        ptCreateAlertAtPrice(Math.round(price * 100) / 100);
+    });
+
+    window.addEventListener("resize", () => ptDrawChart());
 })();
 </script>
 
