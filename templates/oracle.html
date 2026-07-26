@@ -338,7 +338,7 @@
             document.getElementById("btn-down").classList.remove("selected");
             await loadQuestion();
             await loadMyStats();
-        } catch (err) { {
+        } catch (err) {
             const errMsg = err.reason || err.message || "";
             if (errMsg.includes("missing revert") || errMsg.includes("estimateGas") || errMsg.includes("insufficient")) {
                 document.getElementById("vote-status").innerText = "Charge gas on that poor wallet man!";
