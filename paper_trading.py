@@ -5,6 +5,8 @@ Provides a simple simulated ("paper") trading system backed by SQLite:
 - per-wallet virtual accounts with a USD balance
 - opening/closing long/short positions on a fixed set of symbols
 - price fetching from CoinGecko with a small in-memory cache
+- server-side proxied live prices/candles from Binance (so a visitor's
+  geo-blocked browser never has to contact Binance directly)
 - take-profit / stop-loss checking via a background thread
 - price alerts
 
@@ -34,6 +36,92 @@ SYMBOL_TO_COINGECKO = {
     "ARB": "arbitrum",
     "OP": "optimism",
 }
+
+SYMBOL_TO_BINANCE_PAIR = {
+    "BTC": "BTCUSDT",
+    "ETH": "ETHUSDT",
+}
+
+_klines_cache = {}
+_klines_cache_lock = threading.Lock()
+_KLINES_CACHE_TTL = 5  # seconds - short, since this backs a "live" chart
+
+
+def get_klines(symbol, limit=100):
+    """Server-side fetch of 1m OHLC candles from Binance.
+
+    Done from our own server (not the visitor's browser) so it works even
+    for visitors whose country/ISP is geo-blocked by Binance directly.
+    """
+    symbol = symbol.upper()
+    pair = SYMBOL_TO_BINANCE_PAIR.get(symbol)
+    if not pair:
+        return None
+
+    now = time.time()
+    with _klines_cache_lock:
+        cached = _klines_cache.get(symbol)
+        if cached and (now - cached[1]) < _KLINES_CACHE_TTL:
+            return cached[0]
+
+    try:
+        resp = requests.get(
+            "https://api.binance.com/api/v3/klines",
+            params={"symbol": pair, "interval": "1m", "limit": limit},
+            timeout=6,
+        )
+        raw = resp.json()
+        candles = [
+            {"t": k[0], "o": float(k[1]), "h": float(k[2]), "l": float(k[3]), "c": float(k[4])}
+            for k in raw
+        ]
+    except Exception:
+        with _klines_cache_lock:
+            cached = _klines_cache.get(symbol)
+            if cached:
+                return cached[0]
+        return None
+
+    with _klines_cache_lock:
+        _klines_cache[symbol] = (candles, now)
+    return candles
+
+
+_ticker_cache = {}
+_ticker_cache_lock = threading.Lock()
+_TICKER_CACHE_TTL = 2  # seconds - short poll interval for a "live" feel
+
+
+def get_live_ticker_price(symbol):
+    """Server-side proxied Binance ticker price, for smooth chart polling."""
+    symbol = symbol.upper()
+    pair = SYMBOL_TO_BINANCE_PAIR.get(symbol)
+    if not pair:
+        return None
+
+    now = time.time()
+    with _ticker_cache_lock:
+        cached = _ticker_cache.get(symbol)
+        if cached and (now - cached[1]) < _TICKER_CACHE_TTL:
+            return cached[0]
+
+    try:
+        resp = requests.get(
+            "https://api.binance.com/api/v3/ticker/price",
+            params={"symbol": pair},
+            timeout=4,
+        )
+        price = float(resp.json()["price"])
+    except Exception:
+        with _ticker_cache_lock:
+            cached = _ticker_cache.get(symbol)
+            if cached:
+                return cached[0]
+        return None
+
+    with _ticker_cache_lock:
+        _ticker_cache[symbol] = (price, now)
+    return price
 
 _DB_PATH = None
 
