@@ -17,7 +17,6 @@ import paper_trading
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change-this-in-production")
 
-# Security Headers
 csp = {
     'default-src': "'self'",
     'style-src': ["'self'", "'unsafe-inline'"],
@@ -29,10 +28,8 @@ csp = {
 }
 Talisman(app, content_security_policy=csp, force_https=False)
 
-# CSRF Protection
 csrf = CSRFProtect(app)
 
-# Rate Limiting
 limiter = Limiter(
     get_remote_address,
     app=app,
@@ -251,7 +248,6 @@ def upload_nft_image():
     filepath = os.path.join(UPLOAD_DIR, unique_name)
     file.save(filepath)
 
-    # Verify the uploaded file is actually a valid image
     try:
         from PIL import Image
         with Image.open(filepath) as img:
@@ -450,6 +446,30 @@ def api_paper_price():
     if symbol not in paper_trading.SYMBOL_TO_COINGECKO:
         return jsonify({"error": "Unsupported symbol"}), 400
     price = paper_trading.get_price(symbol)
+    if price is None:
+        return jsonify({"error": "Price unavailable"}), 503
+    return jsonify({"symbol": symbol, "price": price})
+
+
+@app.route("/api/paper/klines")
+@limiter.limit("60 per minute")
+def api_paper_klines():
+    symbol = request.args.get("symbol", "").strip().upper()
+    if symbol not in ("BTC", "ETH"):
+        return jsonify({"error": "Unsupported symbol"}), 400
+    candles = paper_trading.get_klines(symbol)
+    if candles is None:
+        return jsonify({"error": "Chart data unavailable"}), 503
+    return jsonify({"symbol": symbol, "candles": candles})
+
+
+@app.route("/api/paper/live-price")
+@limiter.limit("120 per minute")
+def api_paper_live_price():
+    symbol = request.args.get("symbol", "").strip().upper()
+    if symbol not in ("BTC", "ETH"):
+        return jsonify({"error": "Unsupported symbol"}), 400
+    price = paper_trading.get_live_ticker_price(symbol)
     if price is None:
         return jsonify({"error": "Price unavailable"}), 503
     return jsonify({"symbol": symbol, "price": price})
