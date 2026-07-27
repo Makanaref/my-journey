@@ -563,17 +563,17 @@
         } catch (err) { console.log(err); }
     }
 
-    // ---------------- Live candlestick chart (Binance klines + WS ticks) ----------------
+    // ---------------- Live candlestick chart (server-proxied Binance data) ----------------
 
     let ptChartSymbol = "BTC";
     let ptChartData = [];      // array of {t, o, h, l, c} candles (1m)
-    let ptChartWs = null;
+    let ptLivePollTimer = null;
     let ptLastTick = null;
     let ptChartMin = 0, ptChartMax = 1;
     let ptHoverPrice = null;
 
-    const BINANCE_PAIR = { BTC: "btcusdt", ETH: "ethusdt" };
     const CANDLE_MS = 60000; // 1 minute candles
+    const LIVE_POLL_MS = 2500;
 
     window.ptSwitchChart = function (symbol) {
         document.getElementById("pt-chart-tab-BTC").className = "pt-toggle" + (symbol === "BTC" ? " pt-toggle-active" : "");
@@ -583,22 +583,17 @@
 
     async function ptStartChart(symbol) {
         ptChartSymbol = symbol;
-        if (ptChartWs) { try { ptChartWs.close(); } catch (e) {} }
+        if (ptLivePollTimer) { clearInterval(ptLivePollTimer); ptLivePollTimer = null; }
         ptChartData = [];
         document.getElementById("pt-chart-price").innerText = "—";
 
         try {
-            const pair = BINANCE_PAIR[symbol].toUpperCase();
-            const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${pair}&interval=1m&limit=100`);
-            const raw = await res.json();
-            ptChartData = raw.map(k => ({
-                t: k[0],
-                o: parseFloat(k[1]),
-                h: parseFloat(k[2]),
-                l: parseFloat(k[3]),
-                c: parseFloat(k[4])
-            }));
-            ptLastTick = ptChartData[ptChartData.length - 1].c;
+            const res = await fetch(`/api/paper/klines?symbol=${symbol}`);
+            const data = await res.json();
+            if (data.candles) {
+                ptChartData = data.candles;
+                ptLastTick = ptChartData[ptChartData.length - 1].c;
+            }
         } catch (err) {
             console.log("Chart history failed:", err);
         }
@@ -606,13 +601,17 @@
         ptRefreshAlerts(); // reloads alerts filtered to this symbol + redraws
         ptDrawChart();
 
-        const wsPair = BINANCE_PAIR[symbol];
-        ptChartWs = new WebSocket(`wss://stream.binance.com:9443/ws/${wsPair}@trade`);
-        ptChartWs.onmessage = (event) => {
-            const msg = JSON.parse(event.data);
-            const price = parseFloat(msg.p);
-            ptOnTick(price);
+        // Poll our own server for the live price (server is not geo-blocked
+        // by exchanges the way a visitor's browser/IP might be).
+        const poll = async () => {
+            try {
+                const res = await fetch(`/api/paper/live-price?symbol=${ptChartSymbol}`);
+                const data = await res.json();
+                if (data.price) ptOnTick(data.price);
+            } catch (err) { console.log(err); }
         };
+        poll();
+        ptLivePollTimer = setInterval(poll, LIVE_POLL_MS);
     }
 
     function ptOnTick(price) {
