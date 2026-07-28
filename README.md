@@ -2,12 +2,13 @@
 Onchain daily check-in app built on Ink - say GM, earn rewards, and explore a full suite of onchain tools.
 
 ## Features
-- [GM Board](/gm) - Say GM every day and earn SGM tokens
-- [Mint NFT](/mint-nft) - Create and mint your own NFT
-- [Mint Token](/mint) - Create and manage your own token
-- [Register Domain](/domain) - Register your onchain domain
-- [Onchain Games](/games) - Play small onchain experiments
-- [B20](/b20) - Explore the B20 module
+- [GM Board](https://sgm.up.railway.app/gm) - Say GM every day and earn SGM tokens
+- [Games 🎮](https://sgm.up.railway.app/games) - Play small onchain experiments
+- [Mint Token](https://sgm.up.railway.app/mint) - Create and manage your own token
+- [Mint NFT](https://sgm.up.railway.app/mint-nft) - Create and mint your own NFT
+- [Domains](https://sgm.up.railway.app/domain) - Register your onchain domain
+- [B20 Tokens](https://sgm.up.railway.app/b20) - Explore the B20 module
+- [Cross-Chain Swap](https://sgm.up.railway.app/swap) - Swap tokens across chains
 
 ## What It Does
 ### Daily Engagement
@@ -24,7 +25,7 @@ Onchain daily check-in app built on Ink - say GM, earn rewards, and explore a fu
 
 ## Stats
 - Built with Python and Flask
-- 6 core modules
+- 7 core modules
 - Fully onchain interactions
 
 ## Version
