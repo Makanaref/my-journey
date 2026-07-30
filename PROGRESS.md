@@ -10,10 +10,10 @@
 - Git, Python, Flask
 - HTML, CSS, JavaScript
 - REST APIs, JSON
-- Deploy to Railway
+- Deploy to Cloudflare
 
 ## Live Website
-my-journey-production.up.railway.app
+sgmhub.ir
 
 ## Version History
 - v1.0 - First 30 days
