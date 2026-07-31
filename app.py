@@ -65,6 +65,18 @@ def init_db():
             created_at TEXT NOT NULL
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS bids (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            network TEXT NOT NULL,
+            nft_contract TEXT NOT NULL,
+            token_id TEXT NOT NULL,
+            bidder_address TEXT NOT NULL,
+            amount TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            created_at TEXT NOT NULL
+        )
+    """)
     conn.commit()
     conn.close()
 
@@ -84,6 +96,69 @@ def login_required(f):
             return redirect(url_for("admin_login"))
         return f(*args, **kwargs)
     return decorated
+@app.route("/api/bid/place", methods=["POST"])
+@limiter.limit("30 per hour")
+def place_bid():
+    data = request.get_json(force=True, silent=True) or {}
+    network = (data.get("network") or "").strip()
+    nft_contract = (data.get("nft_contract") or "").strip()
+    token_id = str(data.get("token_id") or "").strip()
+    bidder_address = (data.get("bidder_address") or "").strip()
+    amount = (data.get("amount") or "").strip()
+
+    if not all([network, nft_contract, token_id, bidder_address, amount]):
+        return jsonify({"error": "Missing fields"}), 400
+    try:
+        if float(amount) <= 0:
+            return jsonify({"error": "Invalid amount"}), 400
+    except ValueError:
+        return jsonify({"error": "Invalid amount"}), 400
+
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO bids (network, nft_contract, token_id, bidder_address, amount, status, created_at) VALUES (?,?,?,?,?,?,?)",
+        (network, nft_contract.lower(), token_id, bidder_address.lower(), amount, "pending", datetime.datetime.utcnow().isoformat())
+    )
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
+@app.route("/api/bid/list")
+def list_bids():
+    network = (request.args.get("network") or "").strip()
+    nft_contract = (request.args.get("nft_contract") or "").strip().lower()
+    token_id = str(request.args.get("token_id") or "").strip()
+
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT id, bidder_address, amount, status, created_at FROM bids WHERE network=? AND nft_contract=? AND token_id=? ORDER BY id DESC",
+        (network, nft_contract, token_id)
+    ).fetchall()
+    conn.close()
+    return jsonify({"bids": [dict(r) for r in rows]})
+
+@app.route("/api/bid/respond", methods=["POST"])
+@limiter.limit("30 per hour")
+def respond_bid():
+    data = request.get_json(force=True, silent=True) or {}
+    bid_id = data.get("bid_id")
+    action = (data.get("action") or "").strip()
+    seller_address = (data.get("seller_address") or "").strip().lower()
+
+    if not bid_id or action not in ("accept", "reject"):
+        return jsonify({"error": "Invalid request"}), 400
+
+    conn = get_db()
+    bid = conn.execute("SELECT * FROM bids WHERE id=?", (bid_id,)).fetchone()
+    if not bid:
+        conn.close()
+        return jsonify({"error": "Bid not found"}), 404
+
+    new_status = "accepted" if action == "accept" else "rejected"
+    conn.execute("UPDATE bids SET status=? WHERE id=?", (new_status, bid_id))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True, "status": new_status})
 
 @app.route("/")
 def home():
