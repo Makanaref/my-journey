@@ -424,6 +424,14 @@
         padding: 10px;
         font-size: 0.9em;
     }
+    .cancel-btn {
+        width: 100%;
+        padding: 10px;
+        font-size: 0.9em;
+        background: rgba(255,255,255,0.08) !important;
+        border: 1px solid rgba(255,255,255,0.15);
+        color: #ccc;
+    }
 </style>
 
 <script src="/static/js/dapp-common.js"></script>
@@ -592,7 +600,9 @@
                             <span class="price">${priceEth}</span>
                             <span class="price-symbol">${NETWORKS[currentNet].nativeCurrency.symbol}</span>
                         </div>
-                        <button class="btn buy-btn" onclick="buyListing(${item.id})">Buy now</button>
+                        ${item.seller.toLowerCase() === account.toLowerCase()
+                            ? `<button class="btn cancel-btn" onclick="cancelListing(${item.id})">Cancel listing</button>`
+                            : `<button class="btn buy-btn" onclick="buyListing(${item.id})">Buy now</button>`}
                     </div>
                 `;
                 gridEl.appendChild(card);
@@ -615,7 +625,17 @@
             statusEl.innerText = getFriendlyError(err);
         }
     }
-
+    async function cancelListing(listingId) {
+        if (!confirm("Cancel this listing? Your NFT will stay in your wallet.")) return;
+        try {
+            const tx = await marketplaceContract.cancelListing(listingId);
+            await tx.wait();
+            alert("Listing cancelled!");
+            loadListings();
+        } catch (err) {
+            alert(getFriendlyError(err));
+        }
+    }
     async function buyListing(listingId) {
         try {
             const listing = await marketplaceContract.getListing(listingId);
