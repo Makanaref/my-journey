@@ -432,6 +432,61 @@
         border: 1px solid rgba(255,255,255,0.15);
         color: #ccc;
     }
+     .info-toggle {
+        width: 100%;
+        padding: 8px;
+        font-size: 0.78em;
+        margin-top: 8px;
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        color: #999;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        transition: all 0.2s ease;
+    }
+    .info-toggle:hover { border-color: rgba(126,200,227,0.4); color: #ccc; }
+    .info-panel {
+        display: none;
+        margin-top: 10px;
+        padding: 12px;
+        background: rgba(0,0,0,0.25);
+        border-radius: 10px;
+        font-size: 0.76em;
+    }
+    .info-panel.open { display: block; }
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        gap: 8px;
+    }
+    .info-row:first-child { border-top: none; }
+    .info-row span:first-child { color: #666; flex-shrink: 0; }
+    .info-row span:last-child { color: #ccc; text-align: right; word-break: break-all; }
+    .info-desc {
+        color: #aaa;
+        padding: 6px 0;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        margin-top: 4px;
+        line-height: 1.4;
+    }
+    .info-explorer-link {
+        display: block;
+        text-align: center;
+        margin-top: 10px;
+        padding: 7px;
+        border-radius: 7px;
+        background: rgba(126,200,227,0.08);
+        border: 1px solid rgba(126,200,227,0.25);
+        color: #7ec8e3;
+        text-decoration: none;
+        font-weight: 600;
+    }
 </style>
 
 <script src="/static/js/dapp-common.js"></script>
@@ -488,10 +543,10 @@
                 meta = await res.json();
             }
             console.log("metadata:", meta);
-            return { name: meta.name || null, image: resolveUri(meta.image) };
+            return { name: meta.name || null, image: resolveUri(meta.image), description: meta.description || null };
         } catch (err) {
             console.error("fetchNftMetadata error:", err);
-            return { name: null, image: null };
+            return { name: null, image: null, description: null };
         }
     }
 
@@ -603,6 +658,16 @@
                         ${item.seller.toLowerCase() === account.toLowerCase()
                             ? `<button class="btn cancel-btn" onclick="cancelListing(${item.id})">Cancel listing</button>`
                             : `<button class="btn buy-btn" onclick="buyListing(${item.id})">Buy now</button>`}
+                        <button class="info-toggle" onclick="toggleInfo(${item.id})">ℹ️ NFT info</button>
+                        <div class="info-panel" id="info-panel-${item.id}">
+                            <div class="info-desc" id="info-desc-${item.id}" style="display:none;"></div>
+                            <div class="info-row"><span>Contract</span><span>${item.nftContract.slice(0,8)}...${item.nftContract.slice(-6)}</span></div>
+                            <div class="info-row"><span>Token ID</span><span>#${item.tokenId}</span></div>
+                            <div class="info-row"><span>Network</span><span>${NETWORKS[currentNet].chainName}</span></div>
+                            <div class="info-row"><span>Seller</span><span>${item.seller.slice(0,8)}...${item.seller.slice(-6)}</span></div>
+                            <div class="info-row"><span>Total supply</span><span id="info-supply-${item.id}">Loading...</span></div>
+                            <a class="info-explorer-link" href="${getExplorerUrl(item.nftContract, item.tokenId) || '#'}" target="_blank" rel="noopener">View on Explorer ↗</a>
+                        </div>
                     </div>
                 `;
                 gridEl.appendChild(card);
@@ -617,6 +682,15 @@
                         skel.innerText = "🖼️";
                     }
                     if (meta.name) document.getElementById("name-" + item.id).innerText = meta.name;
+                    if (meta.description) {
+                        const descEl = document.getElementById("info-desc-" + item.id);
+                        descEl.innerText = meta.description;
+                        descEl.style.display = "block";
+                    }
+                });
+                fetchTotalSupply(item.nftContract).then(total => {
+                    const el = document.getElementById("info-supply-" + item.id);
+                    if (el) el.innerText = total || "Unknown";
                 });
             });
         } catch (err) {
@@ -624,6 +698,29 @@
             console.error("loadListings error:", err);
             statusEl.innerText = getFriendlyError(err);
         }
+    }
+    async function fetchTotalSupply(nftContract) {
+        try {
+            const c = new ethers.Contract(nftContract, ["function totalSupply() view returns (uint256)"], provider);
+            const total = await c.totalSupply();
+            return total.toString();
+        } catch (err) {
+            return null;
+        }
+    }
+
+    function getExplorerUrl(nftContract, tokenId) {
+        try {
+            const base = NETWORKS[currentNet].blockExplorerUrls[0].replace(/\/$/, "");
+            return `${base}/token/${nftContract}/instance/${tokenId}`;
+        } catch (err) {
+            return null;
+        }
+    }
+
+    function toggleInfo(id) {
+        const panel = document.getElementById("info-panel-" + id);
+        panel.classList.toggle("open");
     }
     async function cancelListing(listingId) {
         if (!confirm("Cancel this listing? Your NFT will stay in your wallet.")) return;
