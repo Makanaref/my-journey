@@ -22,15 +22,16 @@ start_server
 while true; do
   sleep 5
 
-  # check github
-  git fetch origin main --quiet
-  LOCAL=$(git rev-parse HEAD)
-  REMOTE=$(git rev-parse origin/main)
-  if [ "$LOCAL" != "$REMOTE" ]; then
-    echo "New update found on github..."
-    git pull --quiet
-    restart_server
-    continue
+  # check github (only act if fetch succeeds)
+  if git fetch origin main --quiet 2>/dev/null; then
+    LOCAL=$(git rev-parse HEAD)
+    REMOTE=$(git rev-parse origin/main)
+    if [ "$LOCAL" != "$REMOTE" ]; then
+      echo "New update found on github..."
+      git pull --quiet
+      restart_server
+      continue
+    fi
   fi
 
   # check manual signal

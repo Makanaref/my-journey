@@ -313,7 +313,9 @@ def serve_nft_metadata(filename):
         abort(404)
     with open(filepath, "r", encoding="utf-8") as f:
         data = f.read()
-    return app.response_class(data, mimetype="application/json")
+    response = app.response_class(data, mimetype="application/json")
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    return response
 
 @app.route("/api/shorten", methods=["POST"])
 @csrf.exempt
