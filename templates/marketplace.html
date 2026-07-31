@@ -60,7 +60,7 @@
                 <button class="btn" onclick="loadListings()">Refresh listings</button>
             </div>
             <div id="listings-status" style="text-align:center; color:#999; margin-bottom:16px;"></div>
-            <div id="listings-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:20px;"></div>
+            <div id="listings-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:20px; align-items:start;"></div>
         </div>
 
         <!-- SELL TAB -->
@@ -658,7 +658,10 @@
                         ${item.seller.toLowerCase() === account.toLowerCase()
                             ? `<button class="btn cancel-btn" onclick="cancelListing(${item.id})">Cancel listing</button>`
                             : `<button class="btn buy-btn" onclick="buyListing(${item.id})">Buy now</button>`}
-                        <button class="info-toggle" onclick="toggleInfo(${item.id})">ℹ️ NFT info</button>
+                        <button class="info-toggle" onclick="toggleInfo(${item.id})">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 11v5M12 8v.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                            NFT info
+                        </button>
                         <div class="info-panel" id="info-panel-${item.id}">
                             <div class="info-desc" id="info-desc-${item.id}" style="display:none;"></div>
                             <div class="info-row"><span>Contract</span><span>${item.nftContract.slice(0,8)}...${item.nftContract.slice(-6)}</span></div>
