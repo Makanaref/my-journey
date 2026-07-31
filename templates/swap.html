@@ -3,51 +3,56 @@
 
 {% block content %}
 <style>
+    /* ============================================================
+       SWAP PAGE - ULTRA PROFESSIONAL
+       ============================================================ */
     .swap-wrapper {
-        max-width: 480px;
-        margin: 40px auto;
+        max-width: 520px;
+        margin: 30px auto;
         padding: 0 16px;
     }
 
+    /* ----- HEADER ----- */
     .swap-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 24px;
+        margin-bottom: 28px;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 12px;
     }
 
     .swap-header h1 {
-        font-size: 24px;
-        font-weight: 700;
+        font-size: 26px;
+        font-weight: 800;
         color: #fff;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         flex-wrap: wrap;
         letter-spacing: -0.5px;
     }
 
+    /* SVG icon - keep untouched as requested */
     .swap-header h1 svg {
         color: #e94560;
         flex-shrink: 0;
-        transition: transform 0.3s ease;
+        transition: transform 0.4s ease;
     }
-
     .swap-header h1 svg:hover {
         transform: rotate(180deg);
     }
 
     .swap-header h1 .badge {
-        background: rgba(233,69,96,0.12);
+        background: rgba(233,69,96,0.1);
         color: #e94560;
         font-size: 10px;
-        padding: 3px 12px;
+        padding: 3px 14px;
         border-radius: 30px;
-        border: 1px solid rgba(233,69,96,0.12);
-        font-weight: 500;
-        letter-spacing: 0.3px;
+        border: 1px solid rgba(233,69,96,0.1);
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
     }
 
     .member-badge {
@@ -55,10 +60,11 @@
         background: rgba(74,222,128,0.08);
         color: #4ade80;
         font-size: 10px;
-        padding: 3px 12px;
+        padding: 3px 14px;
         border-radius: 30px;
         border: 1px solid rgba(74,222,128,0.08);
-        font-weight: 500;
+        font-weight: 600;
+        animation: fadeIn 0.4s ease;
     }
 
     .discount-badge {
@@ -66,9 +72,9 @@
         background: rgba(74,222,128,0.06);
         color: #4ade80;
         font-size: 11px;
-        padding: 2px 10px;
+        padding: 2px 12px;
         border-radius: 30px;
-        font-weight: 500;
+        font-weight: 600;
     }
 
     .header-right {
@@ -84,20 +90,26 @@
         gap: 8px;
         font-size: 12px;
         color: #4ade80;
-        background: rgba(74,222,128,0.04);
-        padding: 5px 14px 5px 12px;
+        background: rgba(74,222,128,0.03);
+        padding: 5px 16px 5px 12px;
         border-radius: 30px;
-        border: 1px solid rgba(74,222,128,0.06);
+        border: 1px solid rgba(74,222,128,0.04);
         transition: all 0.3s;
         cursor: default;
+        backdrop-filter: blur(4px);
+    }
+    .chain-indicator:hover {
+        border-color: rgba(74,222,128,0.08);
+        background: rgba(74,222,128,0.05);
     }
 
     .chain-indicator .dot {
-        width: 6px;
-        height: 6px;
+        width: 7px;
+        height: 7px;
         border-radius: 50%;
         background: #4ade80;
         animation: pulse 2s infinite;
+        flex-shrink: 0;
     }
 
     @keyframes pulse {
@@ -107,82 +119,86 @@
     }
 
     .chain-indicator img {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         border-radius: 50%;
         object-fit: cover;
+        flex-shrink: 0;
     }
 
     .chain-indicator .chain-name {
         font-weight: 500;
     }
 
+    /* ----- MAIN SWAP CARD (Glassmorphism) ----- */
     .swap-box {
-        background: linear-gradient(145deg, #16213e, #1a1a2e);
-        border-radius: 24px;
+        background: rgba(22, 33, 62, 0.5);
+        backdrop-filter: blur(16px) saturate(1.2);
+        -webkit-backdrop-filter: blur(16px) saturate(1.2);
+        border-radius: 28px;
         border: 1px solid rgba(233,69,96,0.06);
-        padding: 24px;
+        padding: 28px 26px;
         transition: all 0.4s ease;
-        box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+        box-shadow: 0 8px 40px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.02);
     }
-
     .swap-box:hover {
-        border-color: rgba(233,69,96,0.1);
-        box-shadow: 0 12px 50px rgba(0,0,0,0.3);
+        border-color: rgba(233,69,96,0.08);
+        box-shadow: 0 12px 60px rgba(0,0,0,0.3), inset 0 1px 0 rgba(233,69,96,0.03);
     }
 
+    /* ----- SWAP ROWS ----- */
     .swap-row {
-        background: rgba(15,26,46,0.6);
-        backdrop-filter: blur(10px);
-        border-radius: 16px;
+        background: rgba(15, 26, 46, 0.4);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: 18px;
         padding: 16px 18px;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
         transition: all 0.3s ease;
         border: 1px solid transparent;
     }
-
     .swap-row:focus-within {
-        border-color: rgba(233,69,96,0.15);
-        box-shadow: 0 0 0 4px rgba(233,69,96,0.03);
-        background: rgba(15,26,46,0.8);
+        border-color: rgba(233,69,96,0.12);
+        box-shadow: 0 0 0 4px rgba(233,69,96,0.03), inset 0 0 0 1px rgba(233,69,96,0.02);
+        background: rgba(15, 26, 46, 0.6);
     }
 
     .swap-row .label-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 10px;
+        align-items: center;
+        margin-bottom: 8px;
     }
-
     .swap-row .label-row .label {
-        font-size: 11px;
-        color: #666;
-        font-weight: 600;
-        letter-spacing: 0.5px;
+        font-size: 10px;
+        color: rgba(255,255,255,0.2);
+        font-weight: 700;
+        letter-spacing: 0.8px;
         text-transform: uppercase;
     }
-
     .swap-row .label-row .balance {
-        font-size: 12px;
-        color: #555;
+        font-size: 11px;
+        color: rgba(255,255,255,0.15);
         font-weight: 500;
         cursor: pointer;
-        transition: color 0.2s;
-        padding: 2px 8px;
-        border-radius: 12px;
+        transition: all 0.2s;
+        padding: 2px 10px;
+        border-radius: 14px;
         background: rgba(255,255,255,0.02);
+        border: 1px solid transparent;
+        user-select: none;
     }
-
     .swap-row .label-row .balance:hover {
-        color: #888;
+        color: rgba(255,255,255,0.35);
+        background: rgba(255,255,255,0.03);
+        border-color: rgba(255,255,255,0.03);
     }
-
     .swap-row .label-row .balance .num {
-        color: #aaa;
+        color: rgba(255,255,255,0.3);
         font-weight: 600;
     }
-
     .swap-row .label-row .balance .currency {
-        color: #666;
+        color: rgba(255,255,255,0.15);
         font-weight: 400;
     }
 
@@ -191,33 +207,29 @@
         align-items: center;
         gap: 12px;
     }
-
     .swap-input-group input {
         flex: 1;
         background: none;
         border: none;
         color: #fff;
-        font-size: 28px;
+        font-size: 30px;
         font-weight: 600;
         outline: none;
         min-width: 0;
         width: 100%;
-        font-family: inherit;
+        font-family: 'Inter', sans-serif;
         letter-spacing: -0.5px;
         padding: 2px 0;
     }
-
     .swap-input-group input::placeholder {
-        color: #3a3a5a;
+        color: rgba(255,255,255,0.08);
         font-weight: 400;
-        font-size: 26px;
+        font-size: 28px;
     }
-
     .swap-input-group input:read-only {
         color: #e94560;
         cursor: default;
     }
-
     .swap-input-group input[type="number"]::-webkit-inner-spin-button,
     .swap-input-group input[type="number"]::-webkit-outer-spin-button {
         -webkit-appearance: none;
@@ -227,131 +239,137 @@
         -moz-appearance: textfield;
     }
 
+    /* Token Button */
     .token-btn {
         display: flex;
         align-items: center;
         gap: 10px;
-        background: rgba(26,26,62,0.8);
+        background: rgba(26, 26, 62, 0.6);
         border: 1px solid rgba(255,255,255,0.04);
         border-radius: 40px;
-        padding: 6px 14px 6px 8px;
+        padding: 6px 16px 6px 8px;
         cursor: pointer;
         transition: all 0.3s ease;
         white-space: nowrap;
         flex-shrink: 0;
-        min-width: 80px;
+        min-width: 82px;
+        backdrop-filter: blur(4px);
     }
-
     .token-btn:hover {
-        border-color: rgba(233,69,96,0.15);
-        background: rgba(30,30,74,0.9);
+        border-color: rgba(233,69,96,0.12);
+        background: rgba(30, 30, 74, 0.7);
         transform: scale(1.02);
+        box-shadow: 0 0 20px rgba(233,69,96,0.02);
     }
-
     .token-btn:active {
-        transform: scale(0.97);
+        transform: scale(0.96);
     }
-
     .token-btn img {
-        width: 28px;
-        height: 28px;
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
-        background: #1a1a3e;
+        background: rgba(26, 26, 62, 0.4);
         object-fit: cover;
         flex-shrink: 0;
         border: 1px solid rgba(255,255,255,0.03);
     }
-
     .token-btn .symbol {
         font-size: 15px;
         font-weight: 600;
         color: #fff;
         letter-spacing: -0.2px;
     }
-
     .token-btn .arrow {
-        color: #555;
+        color: rgba(255,255,255,0.15);
         font-size: 11px;
-        transition: transform 0.3s ease;
+        transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
         margin-left: 2px;
     }
-
     .token-btn .arrow.open {
         transform: rotate(180deg);
     }
 
     .token-img-placeholder {
-        width: 28px;
-        height: 28px;
+        width: 30px;
+        height: 30px;
         border-radius: 50%;
         background: linear-gradient(135deg, #1a1a3e, #2a2a4a);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 700;
-        color: #666;
+        color: rgba(255,255,255,0.15);
         flex-shrink: 0;
-        border: 1px solid rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.02);
     }
 
     .usd-value {
         font-size: 12px;
-        color: #444;
-        margin-top: 6px;
+        color: rgba(255,255,255,0.08);
+        margin-top: 4px;
         min-height: 18px;
         letter-spacing: 0.2px;
         font-weight: 400;
+        transition: color 0.3s;
+    }
+    .usd-value.has-value {
+        color: rgba(255,255,255,0.15);
     }
 
+    /* Swap Arrow Button */
     .swap-arrow-btn {
         text-align: center;
         cursor: pointer;
-        padding: 8px;
-        color: #444;
-        font-size: 22px;
-        transition: all 0.4s ease;
+        padding: 6px;
+        color: rgba(255,255,255,0.08);
+        font-size: 24px;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         background: none;
         border: none;
         width: 100%;
         display: block;
         margin: 2px 0;
         position: relative;
+        letter-spacing: 2px;
     }
-
     .swap-arrow-btn:hover {
         color: #e94560;
-        transform: scale(1.1);
+        transform: scale(1.15);
+    }
+    .swap-arrow-btn:active {
+        transform: scale(0.9);
     }
 
+    /* ----- TOKEN PICKER (Glass) ----- */
     .token-picker {
         display: none;
-        background: rgba(10,10,26,0.9);
-        backdrop-filter: blur(12px);
-        border-radius: 16px;
-        padding: 14px 16px;
-        margin: 12px 0 16px 0;
+        background: rgba(10, 10, 26, 0.85);
+        backdrop-filter: blur(20px) saturate(1.3);
+        -webkit-backdrop-filter: blur(20px) saturate(1.3);
+        border-radius: 18px;
+        padding: 18px 18px 14px;
+        margin: 14px 0 16px 0;
         border: 1px solid rgba(255,255,255,0.04);
-        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        box-shadow: 0 12px 50px rgba(0,0,0,0.5);
     }
-
     .token-picker.open {
         display: block;
-        animation: slideDown 0.25s ease;
+        animation: slideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+        from { opacity: 0; transform: translateY(-10px) scale(0.96); }
         to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .token-picker .title {
-        font-size: 11px;
-        color: #555;
-        margin-bottom: 10px;
+        font-size: 10px;
+        color: rgba(255,255,255,0.15);
+        margin-bottom: 12px;
         text-transform: uppercase;
-        letter-spacing: 0.8px;
-        font-weight: 600;
+        letter-spacing: 1.2px;
+        font-weight: 700;
     }
 
     .token-list {
@@ -366,32 +384,29 @@
         gap: 8px;
         padding: 8px 16px 8px 12px;
         border-radius: 40px;
-        border: 1px solid rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.02);
         background: rgba(255,255,255,0.01);
         cursor: pointer;
         font-size: 13px;
-        color: #999;
+        color: rgba(255,255,255,0.3);
         transition: all 0.25s ease;
     }
-
     .token-option:hover {
-        border-color: rgba(233,69,96,0.12);
-        background: rgba(233,69,96,0.03);
+        border-color: rgba(233,69,96,0.08);
+        background: rgba(233,69,96,0.02);
         color: #fff;
         transform: translateY(-1px);
     }
-
     .token-option img {
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
         border-radius: 50%;
         object-fit: cover;
         flex-shrink: 0;
     }
-
     .token-option .placeholder-sm {
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
         border-radius: 50%;
         background: #1a1a3e;
         display: flex;
@@ -399,28 +414,28 @@
         justify-content: center;
         font-size: 8px;
         font-weight: 700;
-        color: #555;
+        color: rgba(255,255,255,0.1);
         flex-shrink: 0;
     }
-
     .token-option.active {
         border-color: #e94560;
-        background: rgba(233,69,96,0.06);
+        background: rgba(233,69,96,0.04);
         color: #fff;
+        box-shadow: 0 0 20px rgba(233,69,96,0.02);
     }
 
+    /* ----- NETWORK SECTION ----- */
     .network-section {
-        margin: 14px 0 18px 0;
+        margin: 16px 0 14px 0;
     }
-
     .network-section .label {
-        font-size: 11px;
-        color: #555;
+        font-size: 10px;
+        color: rgba(255,255,255,0.12);
         display: block;
         margin-bottom: 10px;
         text-transform: uppercase;
-        letter-spacing: 0.8px;
-        font-weight: 600;
+        letter-spacing: 1.2px;
+        font-weight: 700;
     }
 
     .network-list {
@@ -435,27 +450,25 @@
         gap: 6px;
         padding: 6px 14px 6px 10px;
         border-radius: 30px;
-        border: 1px solid rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.02);
         background: rgba(255,255,255,0.01);
         cursor: pointer;
         font-size: 12px;
-        color: #777;
+        color: rgba(255,255,255,0.2);
         transition: all 0.25s ease;
+        backdrop-filter: blur(4px);
     }
-
     .network-btn:hover {
-        border-color: rgba(255,255,255,0.06);
-        color: #aaa;
+        border-color: rgba(255,255,255,0.04);
+        color: rgba(255,255,255,0.4);
         background: rgba(255,255,255,0.02);
     }
-
     .network-btn.active {
         border-color: #e94560;
         background: rgba(233,69,96,0.04);
         color: #fff;
-        box-shadow: 0 0 20px rgba(233,69,96,0.03);
+        box-shadow: 0 0 20px rgba(233,69,96,0.02);
     }
-
     .network-btn img {
         width: 16px;
         height: 16px;
@@ -463,16 +476,25 @@
         object-fit: cover;
         flex-shrink: 0;
     }
+    .unsupported-badge {
+        font-size: 8px;
+        color: rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.02);
+        padding: 1px 8px;
+        border-radius: 20px;
+        font-weight: 400;
+    }
 
+    /* ----- ROUTE INFO (Glass) ----- */
     .route-info {
         display: none;
         background: rgba(255,255,255,0.01);
-        border-radius: 14px;
-        padding: 14px 16px;
-        margin: 14px 0 18px 0;
-        border: 1px solid rgba(255,255,255,0.03);
+        border-radius: 16px;
+        padding: 16px 18px;
+        margin: 14px 0 16px 0;
+        border: 1px solid rgba(255,255,255,0.02);
+        backdrop-filter: blur(4px);
     }
-
     .route-info.open {
         display: block;
         animation: slideDown 0.3s ease;
@@ -483,24 +505,20 @@
         justify-content: space-between;
         padding: 4px 0;
         font-size: 12px;
-        color: #555;
+        color: rgba(255,255,255,0.15);
     }
-
     .route-info .row .value {
-        color: #aaa;
+        color: rgba(255,255,255,0.3);
         font-weight: 500;
     }
-
     .route-info .row .value.green {
         color: #4ade80;
     }
-
     .route-info .row .value.pink {
         color: #e94560;
     }
-
     .route-info .divider {
-        border-top: 1px solid rgba(255,255,255,0.03);
+        border-top: 1px solid rgba(255,255,255,0.02);
         margin: 8px 0;
     }
 
@@ -508,71 +526,86 @@
         display: none;
         margin-top: 8px;
         padding-top: 8px;
-        border-top: 1px solid rgba(255,255,255,0.03);
+        border-top: 1px solid rgba(255,255,255,0.02);
     }
-
     .fees-breakdown.open {
         display: block;
     }
-
     .fees-breakdown .row {
         font-size: 11px;
-        color: #444;
+        color: rgba(255,255,255,0.08);
         padding: 3px 0;
     }
-
     .fees-breakdown .row .value {
-        color: #777;
+        color: rgba(255,255,255,0.15);
     }
 
+    .slippage-display {
+        margin-top: 6px;
+        font-size: 10px;
+        color: rgba(255,255,255,0.04);
+        text-align: center;
+        letter-spacing: 0.5px;
+    }
+
+    /* ----- STATUS ----- */
     .status-msg {
         font-size: 12px;
-        color: #555;
+        color: rgba(255,255,255,0.12);
         text-align: center;
         min-height: 24px;
-        padding: 8px 0;
+        padding: 8px 0 4px;
         transition: all 0.3s;
         font-weight: 400;
+        letter-spacing: 0.2px;
     }
-
     .status-msg.success {
         color: #4ade80;
     }
-
     .status-msg.error {
         color: #e94560;
     }
-
     .status-msg.loading {
         color: #fbbf24;
+        animation: pulse 1.5s infinite;
     }
 
+    /* ----- SWAP BUTTON ----- */
     .swap-btn {
         width: 100%;
         padding: 16px;
         background: linear-gradient(135deg, #e94560, #c73652);
         color: #fff;
         border: none;
-        border-radius: 16px;
+        border-radius: 18px;
         font-size: 16px;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         position: relative;
         overflow: hidden;
         letter-spacing: 0.3px;
         margin-top: 4px;
+        box-shadow: 0 4px 24px rgba(233,69,96,0.1);
     }
-
+    .swap-btn::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.03) 100%);
+        pointer-events: none;
+    }
     .swap-btn:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 8px 40px rgba(233,69,96,0.2);
     }
-
+    .swap-btn:active:not(:disabled) {
+        transform: scale(0.98);
+    }
     .swap-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
-        transform: none;
+        transform: none !important;
     }
 
     .swap-btn .loader {
@@ -591,48 +624,212 @@
         to { transform: rotate(360deg); }
     }
 
+    /* ----- POWERED BY ----- */
     .powered-by {
         font-size: 11px;
-        color: #333;
+        color: rgba(255,255,255,0.04);
         text-align: center;
-        margin-top: 16px;
-        letter-spacing: 0.3px;
+        margin-top: 18px;
+        letter-spacing: 0.5px;
     }
-
     .powered-by a {
-        color: #e94560;
+        color: rgba(233,69,96,0.2);
         text-decoration: none;
         transition: color 0.2s;
     }
-
     .powered-by a:hover {
-        color: #ff6b81;
+        color: rgba(233,69,96,0.4);
     }
 
-    .unsupported-badge {
-        font-size: 9px;
-        color: #666;
-        background: rgba(255,255,255,0.03);
-        padding: 2px 8px;
-        border-radius: 20px;
-        margin-left: 4px;
-        font-weight: 400;
+    /* ============================================================
+       LIGHT MODE
+       ============================================================ */
+    body.light .swap-header h1 {
+        color: #1a1a2e;
+    }
+    body.light .swap-box {
+        background: rgba(237, 232, 226, 0.5);
+        backdrop-filter: blur(16px);
+        border-color: rgba(0,0,0,0.03);
+        box-shadow: 0 8px 40px rgba(0,0,0,0.03);
+    }
+    body.light .swap-box:hover {
+        border-color: rgba(233,69,96,0.06);
+        box-shadow: 0 12px 60px rgba(0,0,0,0.04);
+    }
+    body.light .swap-row {
+        background: rgba(0,0,0,0.01);
+        border-color: transparent;
+    }
+    body.light .swap-row:focus-within {
+        border-color: rgba(233,69,96,0.08);
+        background: rgba(0,0,0,0.02);
+        box-shadow: 0 0 0 4px rgba(233,69,96,0.02);
+    }
+    body.light .swap-row .label-row .label {
+        color: rgba(0,0,0,0.15);
+    }
+    body.light .swap-row .label-row .balance {
+        color: rgba(0,0,0,0.08);
+    }
+    body.light .swap-row .label-row .balance:hover {
+        color: rgba(0,0,0,0.2);
+        border-color: rgba(0,0,0,0.02);
+    }
+    body.light .swap-row .label-row .balance .num {
+        color: rgba(0,0,0,0.15);
+    }
+    body.light .swap-row .label-row .balance .currency {
+        color: rgba(0,0,0,0.08);
+    }
+    body.light .swap-input-group input {
+        color: #1a1a2e;
+    }
+    body.light .swap-input-group input::placeholder {
+        color: rgba(0,0,0,0.04);
+    }
+    body.light .swap-input-group input:read-only {
+        color: #c73652;
+    }
+    body.light .token-btn {
+        background: rgba(255,255,255,0.4);
+        border-color: rgba(0,0,0,0.02);
+    }
+    body.light .token-btn:hover {
+        border-color: rgba(233,69,96,0.08);
+        background: rgba(255,255,255,0.6);
+    }
+    body.light .token-btn .symbol {
+        color: #1a1a2e;
+    }
+    body.light .token-btn .arrow {
+        color: rgba(0,0,0,0.08);
+    }
+    body.light .token-img-placeholder {
+        background: linear-gradient(135deg, #e5dfd8, #d5cfc8);
+        color: rgba(0,0,0,0.1);
+    }
+    body.light .usd-value {
+        color: rgba(0,0,0,0.04);
+    }
+    body.light .usd-value.has-value {
+        color: rgba(0,0,0,0.08);
+    }
+    body.light .swap-arrow-btn {
+        color: rgba(0,0,0,0.04);
+    }
+    body.light .swap-arrow-btn:hover {
+        color: #e94560;
+    }
+    body.light .token-picker {
+        background: rgba(237, 232, 226, 0.9);
+        backdrop-filter: blur(20px);
+        border-color: rgba(0,0,0,0.02);
+        box-shadow: 0 12px 50px rgba(0,0,0,0.05);
+    }
+    body.light .token-picker .title {
+        color: rgba(0,0,0,0.08);
+    }
+    body.light .token-option {
+        color: rgba(0,0,0,0.2);
+        border-color: rgba(0,0,0,0.01);
+    }
+    body.light .token-option:hover {
+        border-color: rgba(233,69,96,0.06);
+        color: #1a1a2e;
+    }
+    body.light .token-option.active {
+        border-color: #e94560;
+        background: rgba(233,69,96,0.02);
+        color: #1a1a2e;
+    }
+    body.light .network-section .label {
+        color: rgba(0,0,0,0.06);
+    }
+    body.light .network-btn {
+        color: rgba(0,0,0,0.12);
+        border-color: rgba(0,0,0,0.01);
+    }
+    body.light .network-btn:hover {
+        border-color: rgba(0,0,0,0.02);
+        color: rgba(0,0,0,0.25);
+    }
+    body.light .network-btn.active {
+        border-color: #e94560;
+        background: rgba(233,69,96,0.02);
+        color: #1a1a2e;
+    }
+    body.light .route-info {
+        background: rgba(0,0,0,0.01);
+        border-color: rgba(0,0,0,0.01);
+    }
+    body.light .route-info .row {
+        color: rgba(0,0,0,0.06);
+    }
+    body.light .route-info .row .value {
+        color: rgba(0,0,0,0.15);
+    }
+    body.light .fees-breakdown .row {
+        color: rgba(0,0,0,0.04);
+    }
+    body.light .fees-breakdown .row .value {
+        color: rgba(0,0,0,0.08);
+    }
+    body.light .slippage-display {
+        color: rgba(0,0,0,0.02);
+    }
+    body.light .status-msg {
+        color: rgba(0,0,0,0.06);
+    }
+    body.light .status-msg.success {
+        color: #4ade80;
+    }
+    body.light .status-msg.error {
+        color: #e94560;
+    }
+    body.light .status-msg.loading {
+        color: #fbbf24;
+    }
+    body.light .swap-btn {
+        box-shadow: 0 4px 24px rgba(233,69,96,0.06);
+    }
+    body.light .swap-btn:hover:not(:disabled) {
+        box-shadow: 0 8px 40px rgba(233,69,96,0.1);
+    }
+    body.light .powered-by {
+        color: rgba(0,0,0,0.02);
+    }
+    body.light .powered-by a {
+        color: rgba(233,69,96,0.1);
+    }
+    body.light .powered-by a:hover {
+        color: rgba(233,69,96,0.2);
+    }
+    body.light .chain-indicator {
+        background: rgba(0,0,0,0.01);
+        border-color: rgba(0,0,0,0.01);
+        color: #4ade80;
+    }
+    body.light .chain-indicator:hover {
+        border-color: rgba(0,0,0,0.02);
+    }
+    body.light .member-badge {
+        background: rgba(74,222,128,0.04);
+        border-color: rgba(74,222,128,0.04);
+        color: #4ade80;
     }
 
-    @media (max-width: 480px) {
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 500px) {
         .swap-wrapper {
+            margin: 16px auto;
             padding: 0 10px;
-            margin: 20px auto;
         }
         .swap-box {
-            padding: 16px;
-            border-radius: 20px;
-        }
-        .swap-input-group input {
-            font-size: 22px;
-        }
-        .swap-input-group input::placeholder {
-            font-size: 20px;
+            padding: 18px 14px;
+            border-radius: 22px;
         }
         .swap-header h1 {
             font-size: 20px;
@@ -641,9 +838,19 @@
             width: 22px;
             height: 22px;
         }
+        .swap-input-group input {
+            font-size: 24px;
+        }
+        .swap-input-group input::placeholder {
+            font-size: 22px;
+        }
+        .swap-row {
+            padding: 12px 14px;
+            border-radius: 14px;
+        }
         .token-btn {
             padding: 4px 12px 4px 6px;
-            min-width: 70px;
+            min-width: 68px;
         }
         .token-btn img {
             width: 24px;
@@ -652,21 +859,56 @@
         .token-btn .symbol {
             font-size: 13px;
         }
-        .swap-row {
-            padding: 12px 14px;
+        .token-img-placeholder {
+            width: 24px;
+            height: 24px;
+            font-size: 8px;
         }
         .chain-indicator {
-            font-size: 11px;
-            padding: 4px 12px 4px 10px;
+            font-size: 10px;
+            padding: 3px 12px 3px 8px;
+        }
+        .swap-arrow-btn {
+            font-size: 20px;
+            padding: 4px;
         }
         .swap-btn {
             padding: 14px;
             font-size: 15px;
         }
+        .token-list {
+            gap: 6px;
+        }
+        .token-option {
+            font-size: 12px;
+            padding: 6px 12px 6px 10px;
+        }
+        .network-btn {
+            font-size: 10px;
+            padding: 4px 10px 4px 8px;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .swap-header h1 {
+            font-size: 17px;
+        }
+        .swap-header h1 .badge {
+            font-size: 8px;
+            padding: 2px 10px;
+        }
+        .member-badge {
+            font-size: 8px;
+            padding: 2px 10px;
+        }
+        .swap-input-group input {
+            font-size: 20px;
+        }
     }
 </style>
 
 <div class="swap-wrapper">
+    <!-- ===== HEADER (SVG icon untouched) ===== -->
     <div class="swap-header">
         <h1>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#e94560; flex-shrink:0;">
@@ -682,11 +924,13 @@
                 <span class="chain-name" id="chainNameDisplay">Base</span>
                 <span class="dot"></span>
             </span>
-            <span id="discountDisplay" style="font-size:11px; color:#555;"></span>
+            <span id="discountDisplay" style="font-size:11px; color:rgba(255,255,255,0.08);"></span>
         </div>
     </div>
 
+    <!-- ===== MAIN SWAP CARD ===== -->
     <div class="swap-box">
+
         <!-- From -->
         <div class="swap-row">
             <div class="label-row">
@@ -773,7 +1017,7 @@
                     <span class="value green" id="discountAmountDisplay">-10%</span>
                 </div>
             </div>
-            <div style="margin-top:6px; font-size:10px; color:#333; text-align:center;" id="slippageDisplay">Slippage: 0.5%</div>
+            <div class="slippage-display" id="slippageDisplay">Slippage: 0.5%</div>
         </div>
 
         <!-- Status -->
@@ -1542,6 +1786,8 @@
 
                     const fromUsdValue = quoteData.fromAmountUSD || 0;
                     fromUsd.textContent = fromUsdValue ? `≈ $${parseFloat(fromUsdValue).toFixed(2)}` : '';
+                    if (fromUsdValue) fromUsd.classList.add('has-value');
+                    else fromUsd.classList.remove('has-value');
 
                     routeInfo.classList.add('open');
                     feesBreakdown.classList.add('open');
