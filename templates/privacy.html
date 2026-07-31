@@ -1,0 +1,418 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy - SGM Hub{% endblock %}
+{% block content %}
+<style>
+    .privacy-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .privacy-header h1 {
+        margin-bottom: 0;
+    }
+    .privacy-header .last-updated {
+        font-size: 0.85em;
+        opacity: 0.6;
+        background: rgba(233,69,96,0.06);
+        padding: 4px 16px;
+        border-radius: 30px;
+        border: 1px solid rgba(233,69,96,0.08);
+        white-space: nowrap;
+    }
+
+    .accordion {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .accordion-item {
+        background-color: #16213e;
+        border-radius: 16px;
+        border: 1px solid rgba(233,69,96,0.08);
+        overflow: hidden;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    .accordion-item:hover {
+        border-color: rgba(233,69,96,0.2);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    }
+    .accordion-item.active {
+        border-color: rgba(233,69,96,0.35);
+        box-shadow: 0 4px 32px rgba(233,69,96,0.06);
+    }
+
+    .accordion-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 22px;
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        width: 100%;
+        text-align: left;
+        font-size: 1.05em;
+        font-weight: 600;
+        color: #eee;
+        transition: background 0.2s;
+        gap: 16px;
+        font-family: inherit;
+        letter-spacing: -0.2px;
+    }
+    .accordion-header:hover {
+        background: rgba(233,69,96,0.03);
+    }
+    .accordion-header .icon-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex: 1;
+    }
+    .accordion-header .icon-wrapper i {
+        color: #e94560;
+        font-size: 1.1em;
+        width: 24px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+    .accordion-header .chevron {
+        transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        color: #e94560;
+        font-size: 0.85em;
+        flex-shrink: 0;
+    }
+    .accordion-item.active .accordion-header .chevron {
+        transform: rotate(180deg);
+    }
+
+    .accordion-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+        padding: 0 22px;
+        background: rgba(255,255,255,0.01);
+    }
+    .accordion-item.active .accordion-body {
+        max-height: 1200px; /* enough for all content */
+        padding: 0 22px 22px 22px;
+    }
+    .accordion-body p {
+        margin: 12px 0;
+        line-height: 1.7;
+        color: #ccc;
+    }
+    .accordion-body p:last-child {
+        margin-bottom: 0;
+    }
+    .accordion-body strong {
+        color: #e94560;
+        font-weight: 600;
+    }
+    .accordion-body a {
+        color: #e94560;
+        text-decoration: none;
+        border-bottom: 1px dashed rgba(233,69,96,0.2);
+        transition: border-color 0.2s;
+    }
+    .accordion-body a:hover {
+        border-bottom-color: #e94560;
+    }
+
+    /* Light mode */
+    body.light .accordion-item {
+        background-color: #ede8e2;
+        border-color: rgba(233,69,96,0.06);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+    }
+    body.light .accordion-item:hover {
+        border-color: rgba(233,69,96,0.15);
+    }
+    body.light .accordion-header {
+        color: #2a2015;
+    }
+    body.light .accordion-header:hover {
+        background: rgba(233,69,96,0.03);
+    }
+    body.light .accordion-body p {
+        color: #4a3f35;
+    }
+    body.light .accordion-body strong {
+        color: #c73652;
+    }
+    body.light .privacy-header .last-updated {
+        background: rgba(233,69,96,0.04);
+        border-color: rgba(233,69,96,0.06);
+        color: #5a4f45;
+    }
+
+    @media (max-width: 600px) {
+        .privacy-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .privacy-header .last-updated {
+            white-space: normal;
+        }
+        .accordion-header {
+            padding: 14px 18px;
+            font-size: 0.95em;
+        }
+        .accordion-header .icon-wrapper i {
+            font-size: 1em;
+            width: 20px;
+        }
+        .accordion-body {
+            padding: 0 18px;
+        }
+        .accordion-item.active .accordion-body {
+            padding: 0 18px 18px 18px;
+        }
+    }
+</style>
+
+<div class="privacy-header">
+    <h1>Privacy Policy</h1>
+    <span class="last-updated"><i class="fas fa-calendar-alt" style="margin-right:6px;"></i>Last updated: July 31, 2026</span>
+</div>
+
+<div class="card" style="padding:0; border:none; background:transparent; box-shadow:none;">
+    <div class="accordion" id="privacyAccordion">
+
+        <!-- 1. Introduction -->
+        <div class="accordion-item active">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-info-circle"></i>
+                    1. Introduction
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    SGM Hub ("we", "us", "our", "the Site") respects your privacy. This Privacy Policy explains
+                    what information we collect when you use sgmhub.ir, how we use it, and the choices you have.
+                    By using this Site, you agree to the practices described here.
+                </p>
+            </div>
+        </div>
+
+        <!-- 2. Information We Collect -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-database"></i>
+                    2. Information We Collect
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    <strong>Wallet Address:</strong> When you connect a wallet or use features such as GM,
+                    Mint Token, Mint NFT, Marketplace, or Paper Trading, we may read and store your public
+                    wallet address (e.g. for scanning balances, claiming SGM tokens, or tracking your paper
+                    trading account). We never have access to your private keys or seed phrase, and we never
+                    ask for them.
+                </p>
+                <p>
+                    <strong>Contact Form:</strong> If you use the Contact page, we collect the name, email
+                    address, and message you submit, in order to respond to you.
+                </p>
+                <p>
+                    <strong>Referral / Invite Links:</strong> If you arrive via an invite link, we store the
+                    referral code locally in your browser (localStorage) to credit the referring user once
+                    you connect a wallet and complete an action such as saying GM.
+                </p>
+                <p>
+                    <strong>Technical Data:</strong> Like most websites, our server may log standard technical
+                    information such as IP address, browser type, and access times, mainly for security and
+                    rate-limiting purposes (to prevent abuse of our tools and APIs).
+                </p>
+                <p>
+                    <strong>Uploaded Files:</strong> If you upload an image to mint an NFT, that image and its
+                    associated metadata are stored on our server/IPFS-compatible storage and become publicly
+                    accessible via the generated URL, as is standard for NFT metadata.
+                </p>
+            </div>
+        </div>
+
+        <!-- 3. How We Use Information -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-cogs"></i>
+                    3. How We Use Information
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    We use the information above to: operate and improve the Site's tools; verify on-chain
+                    actions (such as GM check-ins or token claims); respond to contact messages; prevent abuse,
+                    spam, and fraud through rate limiting; and maintain basic security logs.
+                </p>
+            </div>
+        </div>
+
+        <!-- 4. What We Don't Do -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-ban"></i>
+                    4. What We Don't Do
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    We do not sell your personal information. We do not request or store private keys, seed
+                    phrases, or wallet passwords. We do not share your contact form submissions with third
+                    parties except as required by law.
+                </p>
+            </div>
+        </div>
+
+        <!-- 5. Third-Party Services -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-handshake"></i>
+                    5. Third-Party Services
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    Some features rely on third-party services and infrastructure, including blockchain
+                    networks (which are public and permanent by nature), weather and currency data providers,
+                    and swap/bridge partners (such as LI.FI or Jumper Exchange) when you use the Swap tool.
+                    These third parties have their own privacy policies, and any data you share directly with
+                    them (e.g. by connecting a wallet inside their widget) is governed by their own terms.
+                </p>
+            </div>
+        </div>
+
+        <!-- 6. Cookies & Local Storage -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-cookie-bite"></i>
+                    6. Cookies & Local Storage
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    We use your browser's local storage to remember preferences (such as light/dark theme) and
+                    referral codes. This data stays on your device and is not automatically transmitted to us
+                    unless required to complete an action (such as crediting a referral).
+                </p>
+            </div>
+        </div>
+
+        <!-- 7. Data Retention -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-clock"></i>
+                    7. Data Retention
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    Contact messages and paper trading account data are retained as long as necessary to
+                    operate the Site. On-chain data (transactions, mints, claims) is public and permanent by
+                    the nature of blockchain technology and cannot be deleted by us.
+                </p>
+            </div>
+        </div>
+
+        <!-- 8. Your Rights -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-user-shield"></i>
+                    8. Your Rights
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    You may request that we delete personal data you've submitted through the Contact form
+                    (such as your name and email) by reaching out via the Contact page. Note that this does not
+                    apply to on-chain data, which is immutable by design.
+                </p>
+            </div>
+        </div>
+
+        <!-- 9. Changes to This Policy -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-pen-fancy"></i>
+                    9. Changes to This Policy
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    We may update this Privacy Policy from time to time. Changes will be posted on this page
+                    with an updated "Last updated" date.
+                </p>
+            </div>
+        </div>
+
+        <!-- 10. Contact Us -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    10. Contact Us
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    If you have questions about this Privacy Policy, please reach out through our
+                    <a href="/contact">Contact page</a>.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function toggleAccordion(header) {
+        const item = header.closest('.accordion-item');
+        const isActive = item.classList.contains('active');
+
+        // Close all other items (optional: keep only one open)
+        document.querySelectorAll('.accordion-item').forEach(el => {
+            if (el !== item) {
+                el.classList.remove('active');
+            }
+        });
+
+        if (isActive) {
+            item.classList.remove('active');
+        } else {
+            item.classList.add('active');
+        }
+    }
+
+    // Ensure first item is open by default
+    document.addEventListener('DOMContentLoaded', function() {
+        // اگر اولین آیتم active نیست، فعالش کن
+        const firstItem = document.querySelector('.accordion-item');
+        if (firstItem && !firstItem.classList.contains('active')) {
+            firstItem.classList.add('active');
+        }
+    });
+</script>
+{% endblock %}

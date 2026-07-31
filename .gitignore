@@ -36,3 +36,7 @@ Thumbs.db
 
 # Logs
 *.log
+nft_uploads/
+messages.db
+.last_reload
+.reload

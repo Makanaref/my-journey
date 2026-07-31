@@ -148,6 +148,9 @@ def flip():
 @app.route("/mint-nft")
 def mint_nft():
     return render_template("mint_nft.html")
+@app.route("/marketplace")
+def marketplace():
+    return render_template("marketplace.html")
 @app.route("/my-nfts")
 def my_nfts():
     return render_template("my_nfts.html")
@@ -256,7 +259,7 @@ def upload_nft_image():
         os.remove(filepath)
         return jsonify({"error": "Invalid image file"}), 400
 
-    scheme = "https" if request.headers.get("X-Forwarded-Proto", "http") == "https" else request.scheme
+    scheme = "https"
     image_url = f"{scheme}://{request.host}/nft-image/{unique_name}"
     return jsonify({"image_url": image_url})
 
@@ -298,7 +301,7 @@ def create_nft_metadata():
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(metadata, f)
 
-    scheme2 = "https" if request.headers.get("X-Forwarded-Proto", "http") == "https" else request.scheme
+    scheme2 = "https"
     metadata_url = f"{scheme2}://{request.host}/nft-metadata/{unique_name}"
     return jsonify({"metadata_url": metadata_url})
 
@@ -332,7 +335,7 @@ def api_shorten():
     conn.commit()
     conn.close()
 
-    scheme = "https" if request.headers.get("X-Forwarded-Proto", "http") == "https" else request.scheme
+    scheme = "https"
     short_url = f"{scheme}://{request.host}/s/{code}"
     return jsonify({"short_url": short_url})
 
@@ -630,16 +633,24 @@ def api_paper_dismiss_alert(alert_id):
     return jsonify(result), status
 
 
-@app.errorhandler(404)
-def not_found(e):
-    return render_template("404.html"), 404
-
 
 @app.errorhandler(429)
 def rate_limit_exceeded(e):
     return jsonify({"error": "Too many requests, slow down!"}), 429
 
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
+@app.route('/terms')
+def terms():
+    return render_template('terms.html')
+
+@app.errorhandler(404)
+def not_found(e):
+    return render_template("404.html"), 404
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     from waitress import serve
-    serve(app, host="0.0.0.0", port=port)
+    serve(app, host="0.0.0.0", port=port, threads=16, connection_limit=100, channel_timeout=60, cleanup_interval=10)

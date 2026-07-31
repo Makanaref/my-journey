@@ -1,0 +1,435 @@
+{% extends "base.html" %}
+{% block title %}Terms of Service - SGM Hub{% endblock %}
+{% block content %}
+<style>
+    .terms-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .terms-header h1 {
+        margin-bottom: 0;
+    }
+    .terms-header .last-updated {
+        font-size: 0.85em;
+        opacity: 0.6;
+        background: rgba(233,69,96,0.06);
+        padding: 4px 16px;
+        border-radius: 30px;
+        border: 1px solid rgba(233,69,96,0.08);
+        white-space: nowrap;
+    }
+
+    .accordion {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .accordion-item {
+        background-color: #16213e;
+        border-radius: 16px;
+        border: 1px solid rgba(233,69,96,0.08);
+        overflow: hidden;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    .accordion-item:hover {
+        border-color: rgba(233,69,96,0.2);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    }
+    .accordion-item.active {
+        border-color: rgba(233,69,96,0.35);
+        box-shadow: 0 4px 32px rgba(233,69,96,0.06);
+    }
+
+    .accordion-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 22px;
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        width: 100%;
+        text-align: left;
+        font-size: 1.05em;
+        font-weight: 600;
+        color: #eee;
+        transition: background 0.2s;
+        gap: 16px;
+        font-family: inherit;
+        letter-spacing: -0.2px;
+    }
+    .accordion-header:hover {
+        background: rgba(233,69,96,0.03);
+    }
+    .accordion-header .icon-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex: 1;
+    }
+    .accordion-header .icon-wrapper i {
+        color: #e94560;
+        font-size: 1.1em;
+        width: 24px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+    .accordion-header .chevron {
+        transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        color: #e94560;
+        font-size: 0.85em;
+        flex-shrink: 0;
+    }
+    .accordion-item.active .accordion-header .chevron {
+        transform: rotate(180deg);
+    }
+
+    .accordion-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+        padding: 0 22px;
+        background: rgba(255,255,255,0.01);
+    }
+    .accordion-item.active .accordion-body {
+        max-height: 1200px;
+        padding: 0 22px 22px 22px;
+    }
+    .accordion-body p {
+        margin: 12px 0;
+        line-height: 1.7;
+        color: #ccc;
+    }
+    .accordion-body p:last-child {
+        margin-bottom: 0;
+    }
+    .accordion-body strong {
+        color: #e94560;
+        font-weight: 600;
+    }
+    .accordion-body a {
+        color: #e94560;
+        text-decoration: none;
+        border-bottom: 1px dashed rgba(233,69,96,0.2);
+        transition: border-color 0.2s;
+    }
+    .accordion-body a:hover {
+        border-bottom-color: #e94560;
+    }
+
+    /* Light mode */
+    body.light .accordion-item {
+        background-color: #ede8e2;
+        border-color: rgba(233,69,96,0.06);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+    }
+    body.light .accordion-item:hover {
+        border-color: rgba(233,69,96,0.15);
+    }
+    body.light .accordion-header {
+        color: #2a2015;
+    }
+    body.light .accordion-header:hover {
+        background: rgba(233,69,96,0.03);
+    }
+    body.light .accordion-body p {
+        color: #4a3f35;
+    }
+    body.light .accordion-body strong {
+        color: #c73652;
+    }
+    body.light .terms-header .last-updated {
+        background: rgba(233,69,96,0.04);
+        border-color: rgba(233,69,96,0.06);
+        color: #5a4f45;
+    }
+
+    @media (max-width: 600px) {
+        .terms-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .terms-header .last-updated {
+            white-space: normal;
+        }
+        .accordion-header {
+            padding: 14px 18px;
+            font-size: 0.95em;
+        }
+        .accordion-header .icon-wrapper i {
+            font-size: 1em;
+            width: 20px;
+        }
+        .accordion-body {
+            padding: 0 18px;
+        }
+        .accordion-item.active .accordion-body {
+            padding: 0 18px 18px 18px;
+        }
+    }
+</style>
+
+<div class="terms-header">
+    <h1>Terms of Service</h1>
+    <span class="last-updated"><i class="fas fa-calendar-alt" style="margin-right:6px;"></i>Last updated: July 31, 2026</span>
+</div>
+
+<div class="card" style="padding:0; border:none; background:transparent; box-shadow:none;">
+    <div class="accordion" id="termsAccordion">
+
+        <!-- 1. Acceptance of Terms -->
+        <div class="accordion-item active">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-check-circle"></i>
+                    1. Acceptance of Terms
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    By accessing or using sgmhub.ir ("the Site"), you agree to be bound by these Terms of
+                    Service. If you do not agree, please do not use the Site.
+                </p>
+            </div>
+        </div>
+
+        <!-- 2. Nature of the Project -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-flask"></i>
+                    2. Nature of the Project
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    SGM Hub is an independent, experimental project built for learning, portfolio, and
+                    community purposes. Features such as GM, Onchain Game, Mint Token, Mint NFT, Marketplace,
+                    Swap, and Paper Trading are provided as-is for demonstration and experimentation with
+                    onchain technology. Nothing on this Site constitutes financial, investment, legal, or tax
+                    advice.
+                </p>
+            </div>
+        </div>
+
+        <!-- 3. No Financial Guarantees -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-chart-line"></i>
+                    3. No Financial Guarantees
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    The SGM token, any NFTs minted through the Site, and any in-game or marketplace items have
+                    no guaranteed monetary value. They may have little to no value, and you should not treat
+                    them as an investment. Paper Trading uses simulated balances only and does not involve real
+                    funds, unless explicitly stated otherwise for a specific feature.
+                </p>
+            </div>
+        </div>
+
+        <!-- 4. Blockchain & Wallet Risk -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-link"></i>
+                    4. Blockchain & Wallet Risk
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    Interacting with blockchain networks involves inherent risks, including but not limited to
+                    network fees (gas), transaction failures, smart contract bugs, price volatility, and
+                    irreversible transactions. You are solely responsible for the security of your wallet,
+                    private keys, and seed phrase. We will never ask for your private keys or seed phrase, and
+                    you should never share them with anyone claiming to represent this Site.
+                </p>
+            </div>
+        </div>
+
+        <!-- 5. User Conduct -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-gavel"></i>
+                    5. User Conduct
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    You agree not to: attempt to abuse, exploit, or manipulate the Site's tools, APIs, or rate
+                    limits; upload illegal, infringing, or harmful content when minting NFTs; use the Site for
+                    fraud, spam, or any unlawful activity; or attempt to gain unauthorized access to the admin
+                    panel or backend systems.
+                </p>
+            </div>
+        </div>
+
+        <!-- 6. User-Generated Content (NFTs & Metadata) -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-images"></i>
+                    6. User-Generated Content (NFTs & Metadata)
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    When you upload an image or create metadata to mint an NFT, you confirm that you own the
+                    rights to that content or have permission to use it, and that it does not infringe on any
+                    third party's intellectual property. We reserve the right to remove uploaded content that
+                    violates these Terms, where technically possible (note that once data is recorded on a
+                    public blockchain, it may not be removable).
+                </p>
+            </div>
+        </div>
+
+        <!-- 7. Third-Party Services -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-handshake"></i>
+                    7. Third-Party Services
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    The Site integrates or links to third-party services (such as swap/bridge providers,
+                    weather and currency data APIs, and blockchain networks). We are not responsible for the
+                    availability, accuracy, or conduct of these third-party services.
+                </p>
+            </div>
+        </div>
+
+        <!-- 8. Disclaimer of Warranties -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    8. Disclaimer of Warranties
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    The Site and all its features are provided "as is" and "as available," without warranties
+                    of any kind, whether express or implied. We do not guarantee that the Site will be
+                    uninterrupted, error-free, or secure.
+                </p>
+            </div>
+        </div>
+
+        <!-- 9. Limitation of Liability -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-scale-balanced"></i>
+                    9. Limitation of Liability
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    To the fullest extent permitted by law, SGM Hub and its creator shall not be liable for any
+                    indirect, incidental, or consequential damages, including but not limited to loss of funds,
+                    loss of data, or loss of tokens/NFTs, arising from your use of the Site.
+                </p>
+            </div>
+        </div>
+
+        <!-- 10. Changes to the Service -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-arrows-rotate"></i>
+                    10. Changes to the Service
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    We may modify, suspend, or discontinue any part of the Site or its features at any time,
+                    without prior notice.
+                </p>
+            </div>
+        </div>
+
+        <!-- 11. Changes to These Terms -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-pen-fancy"></i>
+                    11. Changes to These Terms
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    We may update these Terms from time to time. Continued use of the Site after changes are
+                    posted constitutes your acceptance of the updated Terms.
+                </p>
+            </div>
+        </div>
+
+        <!-- 12. Contact Us (UPDATED WITH EMAIL) -->
+        <div class="accordion-item">
+            <button class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="icon-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    12. Contact Us
+                </span>
+                <span class="chevron"><i class="fas fa-chevron-down"></i></span>
+            </button>
+            <div class="accordion-body">
+                <p>
+                    Questions about these Terms can be sent through our
+                    <a href="/contact">Contact page</a>, or directly via email at
+                    <a href="mailto:Sgmhub@gmail.com"><i class="fas fa-envelope" style="font-size:0.85em; margin-right:4px;"></i>Sgmhub@gmail.com</a>.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function toggleAccordion(header) {
+        const item = header.closest('.accordion-item');
+        const isActive = item.classList.contains('active');
+
+        document.querySelectorAll('.accordion-item').forEach(el => {
+            if (el !== item) {
+                el.classList.remove('active');
+            }
+        });
+
+        if (isActive) {
+            item.classList.remove('active');
+        } else {
+            item.classList.add('active');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const firstItem = document.querySelector('.accordion-item');
+        if (firstItem && !firstItem.classList.contains('active')) {
+            firstItem.classList.add('active');
+        }
+    });
+</script>
+{% endblock %}

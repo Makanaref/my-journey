@@ -22,7 +22,7 @@ RPC_URLS = {
     "lamina1":   "https://subnets.avax.network/lamina1/mainnet/rpc",
     "nexus":     "https://mainnet.rpc.nexus.xyz",
     "ink":       "https://rpc-gel.inkonchain.com",
-    "base":      "https://mainnet.base.org",
+    "base":      "https://base.llamarpc.com",
     "robinhood": "https://rpc.mainnet.chain.robinhood.com",
     "avax":      "https://api.avax.network/ext/bc/C/rpc",
     "plume":     "https://rpc.plume.org",
@@ -277,7 +277,7 @@ def scan_nfts_via_rpc(net_key, account):
         factory_addr = NFT_FACTORY_ADDRESSES.get(net_key)
         if not factory_addr:
             return results
-        w3 = Web3(Web3.HTTPProvider(RPC_URLS[net_key], request_kwargs={"timeout": 8}))
+        w3 = Web3(Web3.HTTPProvider(RPC_URLS[net_key], request_kwargs={"timeout": 8, "headers": {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}}))
         factory = w3.eth.contract(address=Web3.to_checksum_address(factory_addr), abi=NFT_FACTORY_ABI)
         collections = factory.functions.getMyCollections(Web3.to_checksum_address(account)).call()
         for collection_addr in collections:
@@ -418,16 +418,19 @@ def scan_all(account):
 
     with ThreadPoolExecutor(max_workers=20) as executor:
         futures = [executor.submit(run_task, t) for t in tasks]
-        for future in as_completed(futures, timeout=25):
-            try:
-                kind, data = future.result()
-                if kind == "nft":
-                    nfts.extend(data)
-                elif kind == "token":
-                    tokens.extend(data)
-                elif kind == "rank" and data:
-                    ranks.append(data)
-            except Exception:
-                pass
-
+        try:
+            for future in as_completed(futures, timeout=25):
+                try:
+                    kind, data = future.result()
+                    if kind == "nft":
+                        nfts.extend(data)
+                    elif kind == "token":
+                        tokens.extend(data)
+                    elif kind == "rank" and data:
+                        ranks.append(data)
+                except Exception:
+                    pass
+        except TimeoutError:
+            # Some networks didn't respond in time — return whatever we gathered so far
+            pass
     return {"nfts": nfts, "tokens": tokens, "ranks": ranks}

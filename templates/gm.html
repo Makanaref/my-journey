@@ -32,17 +32,17 @@
         font-size: 0.72em; color: #666; text-transform: uppercase;
         letter-spacing: 1.5px; margin: 32px 0 12px; text-align: left;
     }
-    .net-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .net-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
     .net-card {
-        position: relative;
-        background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255,255,255,0.09);
-        border-radius: 14px; padding: 16px 18px;
-        cursor: pointer; transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
-        text-align: left;
-        overflow: hidden;
-    }
+    position: relative;
+    background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px; padding: 16px 10px;
+    cursor: pointer; transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+    text-align: left;
+    overflow: hidden;
+}
     .net-card::before {
         content: "";
         position: absolute; inset: 0;
@@ -174,12 +174,15 @@
 
     /* === LAMPS === */
     .lamps-scene {
-        background: #0a0a14;
-        border-radius: 0 0 12px 12px;
-        padding-bottom: 16px;
-        margin-bottom: 0;
-        overflow: hidden;
-    }
+    background: #0a0a14;
+    border-radius: 0 0 12px 12px;
+    padding-bottom: 16px;
+    margin-bottom: 0;
+    overflow: hidden;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-top: -20px;
+}
     .lamps-ceiling { width: 100%; height: 2px; background: #1e1e30; }
     .lamps-row { display: flex; justify-content: center; align-items: flex-start; padding: 0 20px; }
     .lamp { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
@@ -288,7 +291,7 @@
         <span class="wallet-pill"><span class="dot"></span><span id="wallet-addr"></span></span>
     </div>
 
-    <div id="network-card" style="display:none;">
+    <div id="network-card" style="display:none; width:700px; max-width:90vw; margin:0 auto; position:relative; left:50%; transform:translateX(-50%);">
         <p class="section-label">Choose network</p>
         <div class="net-grid">
             <div class="net-card" id="net-lamina1" onclick="switchNetwork('lamina1')">
@@ -301,7 +304,7 @@
             </div>
             <div class="net-card" id="net-ink" onclick="switchNetwork('ink')">
                 <div class="symbol">INK</div>
-                <div class="name">Ink</div>
+                <div class="name">Inkonchain</div>
             </div>
             <div class="net-card" id="net-base" onclick="switchNetwork('base')">
                 <div class="symbol">BASE</div>
@@ -685,6 +688,7 @@
             document.getElementById("tx-status").innerText = "Confirming...";
             await tx.wait();
             document.getElementById("tx-status").innerText = "GM confirmed ✅";
+            updateLamps(Math.min(lastLampCount + 1, LAMP_CFG.length));
             await loadStats();
             trySilentReferralRegister();
 
