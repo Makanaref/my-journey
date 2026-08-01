@@ -24,7 +24,7 @@
         font-size: 0.72em; color: #666; text-transform: uppercase;
         letter-spacing: 1.5px; margin: 32px 0 12px; text-align: left;
     }
-    .net-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .net-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
     .net-card {
         position: relative;
         background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
@@ -132,20 +132,20 @@
         <span class="wallet-pill"><span class="dot"></span><span id="wallet-addr"></span></span>
     </div>
 
-    <div id="network-card" style="display:none;">
+    <div id="network-card" style="display:none; width:600px; max-width:90vw; margin:0 auto; position:relative; left:50%; transform:translateX(-50%);">
         <p class="section-label">Choose network</p>
         <div class="net-grid">
-            <div class="net-card" id="net-lamina1" onclick="switchNetwork('lamina1')">
-                <div class="symbol">L1</div>
-                <div class="name">Lamina1</div>
-            </div>
-            <div class="net-card" id="net-nexus" onclick="switchNetwork('nexus')">
-                <div class="symbol">NEX</div>
-                <div class="name">Nexus</div>
-            </div>
             <div class="net-card" id="net-ink" onclick="switchNetwork('ink')">
                 <div class="symbol">INK</div>
                 <div class="name">Ink</div>
+            </div>
+            <div class="net-card" id="net-base" onclick="switchNetwork('base')">
+                <div class="symbol">BASE</div>
+                <div class="name">Base</div>
+            </div>
+            <div class="net-card" id="net-optimism" onclick="switchNetwork('optimism')">
+                <div class="symbol">OP</div>
+                <div class="name">Optimism</div>
             </div>
             <div class="net-card" id="net-plume" onclick="switchNetwork('plume')">
                 <div class="symbol">PLUME</div>
@@ -155,13 +155,13 @@
                 <div class="symbol">ZETA</div>
                 <div class="name">ZetaChain</div>
             </div>
-            <div class="net-card" id="net-optimism" onclick="switchNetwork('optimism')">
-                <div class="symbol">OP</div>
-                <div class="name">Optimism</div>
+            <div class="net-card" id="net-nexus" onclick="switchNetwork('nexus')">
+                <div class="symbol">NEX</div>
+                <div class="name">Nexus</div>
             </div>
-            <div class="net-card" id="net-base" onclick="switchNetwork('base')">
-                <div class="symbol">BASE</div>
-                <div class="name">Base</div>
+            <div class="net-card" id="net-lamina1" onclick="switchNetwork('lamina1')">
+                <div class="symbol">L1</div>
+                <div class="name">Lamina1</div>
             </div>
         </div>
     </div>
