@@ -2,33 +2,33 @@
 {% block title %}B20 Tokens{% endblock %}
 {% block content %}
 <style>
-    /* ===== RESET WIDTH ISSUES ===== */
+    /* ===== NARROWER WRAPPER ===== */
     .b20-wrap {
         width: 100%;
-        max-width: 100%;
+        max-width: 560px;
+        margin: 0 auto;
         padding: 0 12px;
         box-sizing: border-box;
-        margin: 0 auto;
         overflow-x: hidden;
     }
 
     .b20-header {
         text-align: center;
-        margin-bottom: 14px;
-        padding: 6px 0 4px;
+        margin-bottom: 12px;
+        padding: 4px 0 2px;
         width: 100%;
     }
     .b20-header::after {
         content: '';
         display: block;
-        width: 40px;
+        width: 36px;
         height: 1.5px;
-        margin: 4px auto 0;
+        margin: 3px auto 0;
         background: linear-gradient(90deg, transparent, #e94560, transparent);
         opacity: 0.3;
     }
     .b20-title {
-        font-size: 1.5em;
+        font-size: 1.3em;
         font-weight: 800;
         letter-spacing: -0.3px;
         margin-bottom: 0;
@@ -40,7 +40,7 @@
     }
     .b20-sub {
         color: rgba(255,255,255,0.3);
-        font-size: 0.7em;
+        font-size: 0.65em;
         margin-top: 2px;
         word-break: break-word;
     }
@@ -49,12 +49,12 @@
         background: rgba(233,69,96,0.08);
         border: 1px solid rgba(233,69,96,0.1);
         color: #e94560;
-        padding: 0 10px;
-        border-radius: 20px;
-        font-size: 0.5em;
+        padding: 0 8px;
+        border-radius: 16px;
+        font-size: 0.45em;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.4px;
         margin-left: 4px;
         -webkit-text-fill-color: #e94560;
         vertical-align: middle;
@@ -63,12 +63,12 @@
     .wallet-pill {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         background: rgba(255,255,255,0.02);
         border: 1px solid rgba(255,255,255,0.04);
-        padding: 4px 12px 4px 8px;
-        border-radius: 24px;
-        font-size: 0.7em;
+        padding: 3px 10px 3px 6px;
+        border-radius: 20px;
+        font-size: 0.65em;
         color: rgba(255,255,255,0.4);
         font-family: 'Inter', monospace;
         max-width: 100%;
@@ -85,14 +85,13 @@
         flex-shrink: 0;
     }
 
-    /* ----- TABS (full width) ----- */
     .tab-row {
         display: flex;
-        gap: 4px;
-        margin-bottom: 10px;
+        gap: 3px;
+        margin-bottom: 8px;
         background: rgba(255,255,255,0.01);
-        border-radius: 10px;
-        padding: 3px;
+        border-radius: 8px;
+        padding: 2px;
         border: 1px solid rgba(255,255,255,0.02);
         flex-wrap: nowrap;
         width: 100%;
@@ -100,24 +99,24 @@
         -webkit-overflow-scrolling: touch;
     }
     .tab {
-        padding: 6px 12px;
-        border-radius: 8px;
+        padding: 5px 10px;
+        border-radius: 6px;
         border: none;
         background: transparent;
         color: rgba(255,255,255,0.25);
         cursor: pointer;
-        font-size: 0.7em;
+        font-size: 0.65em;
         font-weight: 600;
         transition: all 0.2s;
         font-family: 'Inter', sans-serif;
         letter-spacing: 0.2px;
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 3px;
         flex: 1 1 auto;
         justify-content: center;
         white-space: nowrap;
-        min-width: 60px;
+        min-width: 50px;
     }
     .tab:hover { color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.01); }
     .tab.active { background: rgba(233,69,96,0.05); color: #e94560; }
@@ -128,13 +127,12 @@
     .tab-content.active { display: block; }
     @keyframes tabFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ----- CARDS (full width, no overflow) ----- */
     .card {
         background: rgba(255,255,255,0.01);
         border: 1px solid rgba(255,255,255,0.02);
-        border-radius: 10px;
-        padding: 10px 12px;
-        margin-bottom: 8px;
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-bottom: 6px;
         transition: border-color 0.2s;
         box-shadow: 0 1px 4px rgba(0,0,0,0.02);
         width: 100%;
@@ -143,11 +141,11 @@
     }
     .card:hover { border-color: rgba(233,69,96,0.04); }
     .card .section-label {
-        font-size: 0.6em;
+        font-size: 0.55em;
         text-transform: uppercase;
-        letter-spacing: 0.8px;
+        letter-spacing: 0.6px;
         color: rgba(255,255,255,0.15);
-        margin-bottom: 6px;
+        margin-bottom: 4px;
         font-weight: 600;
         display: flex;
         align-items: center;
@@ -156,19 +154,18 @@
     }
     .card .section-label i { font-size: 0.9em; opacity: 0.3; }
 
-    /* ----- INPUTS (full width) ----- */
     .b20-input {
         width: 100%;
-        padding: 6px 10px;
-        border-radius: 8px;
+        padding: 5px 8px;
+        border-radius: 6px;
         border: 1px solid rgba(255,255,255,0.03);
         background: rgba(255,255,255,0.01);
         color: #fff;
-        font-size: 0.75em;
+        font-size: 0.7em;
         font-family: 'Inter', monospace;
         transition: border-color 0.2s;
         box-sizing: border-box;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
         min-width: 0;
     }
     .b20-input:focus {
@@ -179,24 +176,23 @@
     }
     .b20-input::placeholder { color: rgba(255,255,255,0.06); }
 
-    /* ----- BUTTONS (full width) ----- */
     .btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 4px;
-        padding: 6px 14px;
+        padding: 5px 12px;
         background: linear-gradient(135deg, #e94560, #c73652);
         color: #fff;
         border: none;
-        border-radius: 8px;
-        font-size: 0.75em;
+        border-radius: 6px;
+        font-size: 0.7em;
         font-weight: 600;
         font-family: 'Inter', sans-serif;
         cursor: pointer;
         transition: all 0.2s;
         box-shadow: 0 1px 8px rgba(233,69,96,0.04);
-        min-height: 32px;
+        min-height: 28px;
         width: 100%;
         box-sizing: border-box;
         text-align: center;
@@ -205,9 +201,9 @@
     .btn:active { transform: scale(0.97); }
     .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; }
     .btn-sm {
-        padding: 4px 10px;
-        font-size: 0.65em;
-        min-height: 26px;
+        padding: 3px 8px;
+        font-size: 0.6em;
+        min-height: 22px;
         width: auto;
         flex-shrink: 0;
     }
@@ -220,7 +216,6 @@
     .btn-purple { background: linear-gradient(135deg, #8b5cf6, #6d28d9); box-shadow: 0 1px 8px rgba(139,92,246,0.04); }
     .btn-purple:hover { box-shadow: 0 2px 12px rgba(139,92,246,0.06); }
 
-    /* ----- INFO GRID (responsive) ----- */
     .info-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -231,20 +226,20 @@
     .info-box {
         background: rgba(255,255,255,0.005);
         border: 1px solid rgba(255,255,255,0.015);
-        border-radius: 8px;
-        padding: 4px 8px;
+        border-radius: 6px;
+        padding: 4px 6px;
         overflow: hidden;
     }
     .info-box .lbl {
         color: rgba(255,255,255,0.15);
-        font-size: 0.5em;
+        font-size: 0.45em;
         text-transform: uppercase;
-        letter-spacing: 0.4px;
+        letter-spacing: 0.3px;
         font-weight: 600;
     }
     .info-box .val {
         color: #fff;
-        font-size: 0.75em;
+        font-size: 0.7em;
         font-weight: 600;
         margin-top: 1px;
         word-break: break-all;
@@ -252,10 +247,10 @@
     }
 
     .status-msg {
-        min-height: 16px;
+        min-height: 14px;
         color: rgba(255,255,255,0.15);
-        font-size: 0.65em;
-        margin-top: 4px;
+        font-size: 0.6em;
+        margin-top: 3px;
         padding: 1px 0;
         line-height: 1.3;
         width: 100%;
@@ -264,64 +259,61 @@
     .status-msg.error { color: #e94560; }
     .status-msg.success { color: #4ade80; }
 
-    /* ----- UPLOAD AREA ----- */
     .upload-area {
         border: 1px dashed rgba(255,255,255,0.03);
-        border-radius: 8px;
-        padding: 10px 8px;
+        border-radius: 6px;
+        padding: 8px 6px;
         text-align: center;
         cursor: pointer;
         transition: all 0.2s;
-        margin: 4px 0;
+        margin: 3px 0;
         background: rgba(255,255,255,0.003);
         width: 100%;
         box-sizing: border-box;
     }
     .upload-area:hover { border-color: rgba(233,69,96,0.08); background: rgba(233,69,96,0.005); }
     .upload-area.dragover { border-color: #4ade80; background: rgba(74,222,128,0.005); }
-    .upload-area .icon-big { font-size: 24px; display: block; margin-bottom: 0; opacity: 0.2; }
-    .upload-area .hint { color: rgba(255,255,255,0.08); font-size: 0.65em; margin-top: 1px; }
-    .preview-img { max-width: 80px; max-height: 80px; border-radius: 8px; margin: 4px auto; display: block; box-shadow: 0 1px 8px rgba(0,0,0,0.08); }
+    .upload-area .icon-big { font-size: 20px; display: block; margin-bottom: 0; opacity: 0.2; }
+    .upload-area .hint { color: rgba(255,255,255,0.08); font-size: 0.6em; margin-top: 1px; }
+    .preview-img { max-width: 70px; max-height: 70px; border-radius: 6px; margin: 3px auto; display: block; box-shadow: 0 1px 8px rgba(0,0,0,0.08); }
 
-    /* ----- NFT GRID (responsive) ----- */
     .nft-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 6px;
-        margin-top: 6px;
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+        gap: 5px;
+        margin-top: 5px;
         width: 100%;
     }
     .nft-card {
         background: rgba(255,255,255,0.005);
         border: 1px solid rgba(255,255,255,0.015);
-        border-radius: 8px;
-        padding: 6px;
+        border-radius: 6px;
+        padding: 5px;
         transition: all 0.2s;
         cursor: default;
         overflow: hidden;
     }
     .nft-card:hover { border-color: rgba(233,69,96,0.05); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
-    .nft-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; background: rgba(255,255,255,0.005); }
-    .nft-card .nft-name { font-weight: 600; margin-top: 4px; font-size: 0.7em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(255,255,255,0.6); }
-    .nft-card .nft-id { color: rgba(255,255,255,0.08); font-size: 0.5em; font-family: 'Inter', monospace; margin-top: 0; }
+    .nft-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 5px; background: rgba(255,255,255,0.005); }
+    .nft-card .nft-name { font-weight: 600; margin-top: 3px; font-size: 0.65em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(255,255,255,0.6); }
+    .nft-card .nft-id { color: rgba(255,255,255,0.08); font-size: 0.45em; font-family: 'Inter', monospace; margin-top: 0; }
 
-    /* ----- GRID & FLEX (responsive) ----- */
     .grid-2 {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 6px;
+        gap: 4px;
         width: 100%;
     }
     .inline-flex {
         display: flex;
-        gap: 6px;
+        gap: 4px;
         align-items: center;
         width: 100%;
         flex-wrap: wrap;
     }
     .inline-flex .b20-input {
         flex: 1 1 auto;
-        min-width: 60px;
+        min-width: 50px;
         margin-bottom: 0;
     }
     .inline-flex .btn {
@@ -330,10 +322,10 @@
     }
     .text-muted {
         color: rgba(255,255,255,0.1);
-        font-size: 0.55em;
+        font-size: 0.5em;
         text-transform: uppercase;
         letter-spacing: 0.3px;
-        margin-bottom: 2px;
+        margin-bottom: 1px;
         font-weight: 500;
         display: block;
         width: 100%;
@@ -343,18 +335,17 @@
     .mb-2 { margin-bottom: 2px; }
     .hidden { display: none !important; }
 
-    /* ----- TYPE SELECTOR (responsive) ----- */
     .type-selector {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 4px;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
         width: 100%;
     }
     .type-option {
         border: 1px solid rgba(255,255,255,0.03);
-        border-radius: 8px;
-        padding: 6px 8px;
+        border-radius: 6px;
+        padding: 4px 6px;
         cursor: pointer;
         transition: all 0.2s;
         background: rgba(255,255,255,0.003);
@@ -364,23 +355,22 @@
     }
     .type-option:hover { border-color: rgba(233,69,96,0.06); background: rgba(233,69,96,0.005); }
     .type-option.active { border-color: #e94560; background: rgba(233,69,96,0.02); }
-    .type-option .label { font-weight: 600; color: #fff; font-size: 0.75em; }
-    .type-option .desc { font-size: 0.55em; color: rgba(255,255,255,0.1); margin-top: 1px; }
+    .type-option .label { font-weight: 600; color: #fff; font-size: 0.7em; }
+    .type-option .desc { font-size: 0.5em; color: rgba(255,255,255,0.1); margin-top: 1px; }
 
-    /* ----- DEPLOY RESULT ----- */
     .deploy-result {
-        margin-top: 6px;
+        margin-top: 5px;
         background: rgba(74,222,128,0.01);
         border: 1px solid rgba(74,222,128,0.02);
-        border-radius: 8px;
-        padding: 6px 10px;
+        border-radius: 6px;
+        padding: 5px 8px;
         display: none;
         width: 100%;
         box-sizing: border-box;
     }
     .deploy-result.show { display: block; animation: tabFade 0.25s ease; }
-    .deploy-result .title { color: #4ade80; font-weight: 600; font-size: 0.75em; margin-bottom: 2px; display: flex; align-items: center; gap: 4px; }
-    .deploy-result .addr { font-family: 'Inter', monospace; color: rgba(255,255,255,0.3); font-size: 0.65em; word-break: break-all; }
+    .deploy-result .title { color: #4ade80; font-weight: 600; font-size: 0.7em; margin-bottom: 1px; display: flex; align-items: center; gap: 4px; }
+    .deploy-result .addr { font-family: 'Inter', monospace; color: rgba(255,255,255,0.3); font-size: 0.6em; word-break: break-all; }
 
     /* ===== LIGHT MODE ===== */
     body.light .b20-title { background: linear-gradient(135deg, #1a1a2e 30%, #c73652); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -411,39 +401,37 @@
     body.light .b20-badge { background: rgba(233,69,96,0.02); border-color: rgba(233,69,96,0.04); color: #c73652; -webkit-text-fill-color: #c73652; }
     body.light .text-muted { color: rgba(0,0,0,0.06); }
 
-    /* ============================================================
-       RESPONSIVE - FIX WIDTH ISSUES
-       ============================================================ */
-    @media (max-width: 700px) {
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
         .b20-wrap { padding: 0 8px; }
-        .b20-title { font-size: 1.3em; }
-        .card { padding: 8px 10px; border-radius: 8px; }
+        .b20-title { font-size: 1.1em; }
+        .card { padding: 6px 8px; border-radius: 6px; }
         .grid-2 { grid-template-columns: 1fr; }
         .info-grid { grid-template-columns: 1fr; }
         .type-selector { grid-template-columns: 1fr; }
-        .nft-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
-        .tab { padding: 5px 8px; font-size: 0.6em; min-width: 50px; }
+        .nft-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
+        .tab { padding: 4px 8px; font-size: 0.55em; min-width: 40px; }
         .tab-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 2px; gap: 2px; }
         .inline-flex { flex-wrap: wrap; }
-        .inline-flex .b20-input { flex: 1 1 100%; margin-bottom: 4px; }
+        .inline-flex .b20-input { flex: 1 1 100%; margin-bottom: 3px; }
         .inline-flex .btn { width: 100%; }
-        .btn { font-size: 0.7em; padding: 5px 12px; min-height: 28px; }
-        .upload-area { padding: 8px 6px; }
-        .preview-img { max-width: 60px; max-height: 60px; }
-        .wallet-pill { font-size: 0.6em; padding: 3px 10px 3px 6px; max-width: 100%; }
-        .b20-header { margin-bottom: 10px; }
+        .btn { font-size: 0.65em; padding: 4px 10px; min-height: 24px; }
+        .upload-area { padding: 6px 4px; }
+        .preview-img { max-width: 50px; max-height: 50px; }
+        .wallet-pill { font-size: 0.55em; padding: 2px 8px 2px 5px; max-width: 100%; }
+        .b20-header { margin-bottom: 8px; }
     }
 
     @media (max-width: 400px) {
         .b20-wrap { padding: 0 4px; }
-        .b20-title { font-size: 1.1em; }
-        .card { padding: 6px 6px; border-radius: 6px; }
-        .tab { font-size: 0.5em; padding: 4px 6px; min-width: 40px; }
+        .b20-title { font-size: 0.95em; }
+        .card { padding: 4px 4px; border-radius: 4px; }
+        .tab { font-size: 0.45em; padding: 3px 5px; min-width: 30px; }
         .nft-grid { grid-template-columns: 1fr 1fr; }
-        .b20-input { font-size: 0.7em; padding: 4px 6px; }
-        .btn { font-size: 0.65em; padding: 4px 8px; min-height: 24px; }
-        .type-option .label { font-size: 0.65em; }
-        .type-option .desc { font-size: 0.5em; }
+        .b20-input { font-size: 0.65em; padding: 3px 5px; }
+        .btn { font-size: 0.6em; padding: 3px 6px; min-height: 20px; }
+        .type-option .label { font-size: 0.6em; }
+        .type-option .desc { font-size: 0.45em; }
     }
 </style>
 
@@ -455,12 +443,12 @@
     </div>
 
     <!-- CONNECT -->
-    <div id="connect-section" class="text-center" style="margin:6px 0 12px;">
-        <button class="btn" onclick="connectWallet()" style="max-width:220px; margin:0 auto; padding:6px 20px; font-size:0.75em;">
+    <div id="connect-section" class="text-center" style="margin:4px 0 10px;">
+        <button class="btn" onclick="connectWallet()" style="max-width:200px; margin:0 auto; padding:5px 16px; font-size:0.7em;">
             <i class="fas fa-wallet"></i> Connect Wallet
         </button>
     </div>
-    <div id="wallet-info" style="display:none; text-align:center; margin-bottom:10px;">
+    <div id="wallet-info" style="display:none; text-align:center; margin-bottom:8px;">
         <span class="wallet-pill"><span class="dot"></span><span id="wallet-addr"></span></span>
     </div>
 
@@ -474,12 +462,12 @@
             <button class="tab" onclick="switchTab('nft')"><i class="fas fa-palette"></i> NFT</button>
         </div>
 
-        <!-- ===== TAB 1: INTERACT ===== -->
+        <!-- TAB 1: INTERACT -->
         <div class="tab-content active" id="tab-interact">
             <div class="card">
                 <div class="section-label"><i class="fas fa-search"></i> Token Address</div>
                 <input class="b20-input" id="token-addr" placeholder="0x... (B20 token address on Base)">
-                <button class="btn" onclick="loadToken()" style="padding:5px;"><i class="fas fa-upload"></i> Load Token</button>
+                <button class="btn" onclick="loadToken()" style="padding:4px;"><i class="fas fa-upload"></i> Load Token</button>
                 <div id="token-info" style="display:none;">
                     <div class="info-grid">
                         <div class="info-box"><div class="lbl">Name</div><div class="val" id="token-name">—</div></div>
@@ -494,35 +482,35 @@
             <div class="card" id="transfer-card" style="display:none;">
                 <div class="section-label"><i class="fas fa-arrow-right"></i> Transfer</div>
                 <div class="inline-flex" style="flex-wrap:wrap;">
-                    <input class="b20-input" id="transfer-to" placeholder="Recipient address" style="flex:2;min-width:100px;">
-                    <input class="b20-input" id="transfer-amount" type="number" placeholder="Amount" style="flex:1;min-width:60px;">
+                    <input class="b20-input" id="transfer-to" placeholder="Recipient address" style="flex:2;min-width:80px;">
+                    <input class="b20-input" id="transfer-amount" type="number" placeholder="Amount" style="flex:1;min-width:50px;">
                 </div>
-                <button class="btn" onclick="transfer()" style="padding:5px;"><i class="fas fa-paper-plane"></i> Transfer</button>
+                <button class="btn" onclick="transfer()" style="padding:4px;"><i class="fas fa-paper-plane"></i> Transfer</button>
                 <p class="status-msg" id="transfer-status"></p>
             </div>
 
             <div class="card" id="mint-card" style="display:none;">
                 <div class="section-label"><i class="fas fa-coins"></i> Mint <span style="color:rgba(255,255,255,0.1);font-weight:400;text-transform:none;letter-spacing:0;font-size:0.7em;">(minter role)</span></div>
                 <div class="inline-flex" style="flex-wrap:wrap;">
-                    <input class="b20-input" id="mint-to" placeholder="Mint to address" style="flex:2;min-width:100px;">
-                    <input class="b20-input" id="mint-amount" type="number" placeholder="Amount" style="flex:1;min-width:60px;">
+                    <input class="b20-input" id="mint-to" placeholder="Mint to address" style="flex:2;min-width:80px;">
+                    <input class="b20-input" id="mint-amount" type="number" placeholder="Amount" style="flex:1;min-width:50px;">
                 </div>
-                <button class="btn btn-success" onclick="mint()" style="padding:5px;"><i class="fas fa-plus-circle"></i> Mint</button>
+                <button class="btn btn-success" onclick="mint()" style="padding:4px;"><i class="fas fa-plus-circle"></i> Mint</button>
                 <p class="status-msg" id="mint-status"></p>
             </div>
 
             <div class="card" id="burn-card" style="display:none;">
                 <div class="section-label"><i class="fas fa-fire"></i> Burn</div>
                 <input class="b20-input" id="burn-amount" type="number" placeholder="Amount to burn">
-                <button class="btn btn-danger" id="burn-btn" onclick="burn()" style="padding:5px;"><i class="fas fa-trash"></i> Burn</button>
+                <button class="btn btn-danger" id="burn-btn" onclick="burn()" style="padding:4px;"><i class="fas fa-trash"></i> Burn</button>
                 <p class="status-msg" id="burn-status"></p>
             </div>
         </div>
 
-        <!-- ===== TAB 2: DEPLOY (FIXED WIDTH) ===== -->
+        <!-- TAB 2: DEPLOY -->
         <div class="tab-content" id="tab-deploy">
-            <div class="card" style="padding:6px 10px;">
-                <p style="color:rgba(255,255,255,0.15);font-size:0.7em;line-height:1.4;margin:0;word-break:break-word;">
+            <div class="card" style="padding:4px 8px;">
+                <p style="color:rgba(255,255,255,0.15);font-size:0.65em;line-height:1.4;margin:0;word-break:break-word;">
                     <i class="fas fa-info-circle" style="color:#e94560;margin-right:4px;"></i>
                     Deploy a B20 token directly on Base using your wallet.
                 </p>
@@ -566,27 +554,27 @@
                     <input class="b20-input" id="deploy-cap" type="number" placeholder="e.g. 1000000" value="0">
                 </div>
 
-                <label style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.15);font-size:0.7em;margin:4px 0 8px;cursor:pointer;width:100%;">
-                    <input type="checkbox" id="deploy-mint-role" checked style="width:14px;height:14px;accent-color:#e94560;cursor:pointer;flex-shrink:0;">
+                <label style="display:flex;align-items:center;gap:5px;color:rgba(255,255,255,0.15);font-size:0.65em;margin:3px 0 6px;cursor:pointer;width:100%;">
+                    <input type="checkbox" id="deploy-mint-role" checked style="width:13px;height:13px;accent-color:#e94560;cursor:pointer;flex-shrink:0;">
                     <span><i class="fas fa-user-shield"></i> Grant MINT_ROLE</span>
                 </label>
 
-                <button class="btn btn-purple" id="deploy-btn" onclick="deployB20()" style="padding:6px;font-size:0.75em;">
+                <button class="btn btn-purple" id="deploy-btn" onclick="deployB20()" style="padding:5px;font-size:0.7em;">
                     <i class="fas fa-upload"></i> Deploy B20 Token
                 </button>
                 <p class="status-msg" id="deploy-status"></p>
                 <div class="deploy-result" id="deploy-result">
                     <div class="title"><i class="fas fa-check-circle"></i> Token deployed!</div>
-                    <p style="font-size:0.6em;color:rgba(255,255,255,0.1);margin-bottom:1px;">Address:</p>
+                    <p style="font-size:0.55em;color:rgba(255,255,255,0.1);margin-bottom:1px;">Address:</p>
                     <span class="addr" id="deploy-address"></span>
                 </div>
             </div>
         </div>
 
-        <!-- ===== TAB 3: NFT STUDIO ===== -->
+        <!-- TAB 3: NFT STUDIO -->
         <div class="tab-content" id="tab-nft">
-            <div class="card" style="padding:6px 10px;">
-                <p style="color:rgba(255,255,255,0.15);font-size:0.7em;line-height:1.4;margin:0;word-break:break-word;">
+            <div class="card" style="padding:4px 8px;">
+                <p style="color:rgba(255,255,255,0.15);font-size:0.65em;line-height:1.4;margin:0;word-break:break-word;">
                     <i class="fas fa-paint-brush" style="color:#e94560;margin-right:4px;"></i>
                     Create NFTs using your B20 token. Users can mint with your token!
                 </p>
@@ -596,9 +584,9 @@
                 <div class="section-label"><i class="fas fa-layer-group"></i> Step 1: Your B20 Token</div>
                 <div class="inline-flex">
                     <input class="b20-input" id="nft-token-addr" placeholder="0x... (Your B20 token address)" style="flex:1;">
-                    <button class="btn btn-sm" onclick="loadB20ForNFT()" style="padding:4px 12px;"><i class="fas fa-upload"></i> Load</button>
+                    <button class="btn btn-sm" onclick="loadB20ForNFT()" style="padding:3px 10px;"><i class="fas fa-upload"></i> Load</button>
                 </div>
-                <div id="nft-token-info" style="display:none;margin-top:4px;">
+                <div id="nft-token-info" style="display:none;margin-top:3px;">
                     <div class="info-grid">
                         <div class="info-box"><div class="lbl">Token</div><div class="val" id="nft-token-name">—</div></div>
                         <div class="info-box"><div class="lbl">Symbol</div><div class="val" id="nft-token-symbol">—</div></div>
@@ -620,13 +608,13 @@
                     <div><div class="text-muted">Mint Price (B20)</div><input class="b20-input" id="nft-mint-price" type="number" value="10" step="0.01"></div>
                 </div>
                 <div style="display:flex;gap:4px;flex-wrap:wrap;width:100%;">
-                    <button class="btn btn-purple btn-sm" onclick="deployNFTCollection()" style="flex:1;padding:5px 10px;min-width:90px;"><i class="fas fa-rocket"></i> Deploy New</button>
-                    <button class="btn btn-outline btn-sm" onclick="loadNFTCollection()" style="flex:1;padding:5px 10px;min-width:80px;"><i class="fas fa-folder-open"></i> Load</button>
+                    <button class="btn btn-purple btn-sm" onclick="deployNFTCollection()" style="flex:1;padding:4px 8px;min-width:70px;"><i class="fas fa-rocket"></i> Deploy New</button>
+                    <button class="btn btn-outline btn-sm" onclick="loadNFTCollection()" style="flex:1;padding:4px 8px;min-width:60px;"><i class="fas fa-folder-open"></i> Load</button>
                 </div>
                 <p class="status-msg" id="nft-deploy-status"></p>
                 <div class="deploy-result" id="nft-collection-result">
                     <div class="title"><i class="fas fa-check-circle"></i> Collection loaded!</div>
-                    <p style="font-size:0.6em;color:rgba(255,255,255,0.1);margin-bottom:1px;">Address:</p>
+                    <p style="font-size:0.55em;color:rgba(255,255,255,0.1);margin-bottom:1px;">Address:</p>
                     <span class="addr" id="nft-collection-address"></span>
                 </div>
             </div>
@@ -641,24 +629,24 @@
                 <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
                     <div id="upload-placeholder">
                         <span class="icon-big">🖼️</span>
-                        <p style="color:rgba(255,255,255,0.08);font-size:0.65em;margin-top:1px;">Click or drag &amp; drop</p>
-                        <p style="color:rgba(255,255,255,0.03);font-size:0.55em;">PNG, JPG, GIF up to 5MB</p>
+                        <p style="color:rgba(255,255,255,0.08);font-size:0.6em;margin-top:1px;">Click or drag &amp; drop</p>
+                        <p style="color:rgba(255,255,255,0.03);font-size:0.5em;">PNG, JPG, GIF up to 5MB</p>
                     </div>
                     <div id="upload-preview" style="display:none;">
                         <img id="image-preview" class="preview-img" src="">
-                        <p style="color:#4ade80;font-size:0.7em;margin-top:2px;"><i class="fas fa-check-circle"></i> Image uploaded!</p>
-                        <p style="color:rgba(255,255,255,0.06);font-size:0.55em;word-break:break-all;" id="ipfs-hash-display">IPFS: ...</p>
+                        <p style="color:#4ade80;font-size:0.65em;margin-top:2px;"><i class="fas fa-check-circle"></i> Image uploaded!</p>
+                        <p style="color:rgba(255,255,255,0.06);font-size:0.5em;word-break:break-all;" id="ipfs-hash-display">IPFS: ...</p>
                     </div>
                     <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileUpload(event)">
                 </div>
-                <button class="btn btn-success" onclick="mintNFT()" style="padding:6px;font-size:0.75em;"><i class="fas fa-gem"></i> Mint NFT (Pay with B20)</button>
+                <button class="btn btn-success" onclick="mintNFT()" style="padding:5px;font-size:0.7em;"><i class="fas fa-gem"></i> Mint NFT (Pay with B20)</button>
                 <p class="status-msg" id="nft-mint-status"></p>
             </div>
 
             <div class="card" id="nft-gallery" style="display:none;">
                 <div class="section-label"><i class="fas fa-images"></i> My NFTs</div>
                 <div id="nft-grid-container" class="nft-grid">
-                    <p style="color:rgba(255,255,255,0.06);grid-column:1/-1;text-align:center;padding:6px 0;font-size:0.7em;">No NFTs yet. Mint your first one!</p>
+                    <p style="color:rgba(255,255,255,0.06);grid-column:1/-1;text-align:center;padding:4px 0;font-size:0.65em;">No NFTs yet. Mint your first one!</p>
                 </div>
                 <p class="status-msg" id="nft-gallery-status"></p>
             </div>
@@ -1131,14 +1119,14 @@
         if (!nftContract && nftCollectionAddr) {
             try { nftContract = new ethers.Contract(nftCollectionAddr, NFT_ABI, signer); } catch { return; }
         }
-        if (!nftContract) { container.innerHTML = '<p style="color:rgba(255,255,255,0.06);grid-column:1/-1;text-align:center;padding:6px 0;font-size:0.7em;">Load a collection to see your NFTs</p>'; return; }
+        if (!nftContract) { container.innerHTML = '<p style="color:rgba(255,255,255,0.06);grid-column:1/-1;text-align:center;padding:4px 0;font-size:0.65em;">Load a collection to see your NFTs</p>'; return; }
         try {
             statusEl.className = 'status-msg';
             statusEl.innerText = "Loading your NFTs...";
             const balance = await nftContract.balanceOf(account);
             document.getElementById("nft-count").innerText = balance.toString();
             if (balance === 0n) {
-                container.innerHTML = '<p style="color:rgba(255,255,255,0.06);grid-column:1/-1;text-align:center;padding:6px 0;font-size:0.7em;">No NFTs yet. Mint your first one! 🚀</p>';
+                container.innerHTML = '<p style="color:rgba(255,255,255,0.06);grid-column:1/-1;text-align:center;padding:4px 0;font-size:0.65em;">No NFTs yet. Mint your first one! 🚀</p>';
                 document.getElementById("nft-gallery").style.display = "block";
                 statusEl.innerText = "";
                 return;
