@@ -5,12 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#16213e">
     <title>{% block title %}🚀🚀{% endblock %}</title>
-    <!-- Google Font: Inter & Orbitron (برای لوگوی حرفه‌ای) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* ---------- RESET & BASE ---------- */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html { -webkit-text-size-adjust: 100%; }
         body {
@@ -25,7 +22,6 @@
             overflow-x: hidden;
         }
 
-        /* ---------- NAVBAR ---------- */
         nav {
             background: rgba(22, 33, 62, 0.6);
             backdrop-filter: blur(24px) saturate(1.2);
@@ -61,7 +57,6 @@
             filter: blur(2px);
         }
 
-        /* ---- Logo ---- */
         .logo-wrapper {
             display: flex;
             align-items: center;
@@ -69,8 +64,7 @@
             text-decoration: none;
             flex-shrink: 0;
         }
-        
-        /* ظرف اصلی آیکون 44*44 پیکسلی */
+
         .logo-icon-container {
             position: relative;
             width: 44px;
@@ -80,11 +74,10 @@
             justify-content: center;
             border-radius: 16px;
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            perspective: 800px; /* عمق میدان برای چرخش 3D */
+            perspective: 800px;
         }
         .logo-icon-container:hover { transform: scale(1.05) rotate(-4deg); }
 
-        /* --- مخروط نور طبیعی لامپ (به سبک Limbo) --- */
         .logo-icon-container::after {
             content: '';
             position: absolute;
@@ -108,7 +101,6 @@
             filter: blur(3px);
             transition: opacity 0.6s ease;
         }
-        /* درخشش نقطه‌ای بالای مخروط، دقیقا زیر خود لامپ */
         .logo-icon-container::before {
             content: '';
             position: absolute;
@@ -147,8 +139,7 @@
             0%, 100% { transform: translateX(-50%) rotate(-0.6deg); }
             50% { transform: translateX(-50%) rotate(0.6deg); }
         }
-        
-        /* --- انیمیشن سه‌بعدی جدید و اصلاح‌شده --- */
+
         .logo-3d-box {
             position: absolute;
             width: 100%;
@@ -159,89 +150,74 @@
             transform-origin: center center;
             transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
-        /* چرخش کامل ۳۶۰ درجه‌ای با حرکت ماوس */
+
         .logo-icon-container:hover .logo-3d-box {
             transform: rotateX(360deg);
         }
-        
+
         .shape-layer {
             position: absolute;
             width: 100%;
             height: 100%;
             top: 0;
             left: 0;
-            z-index: 1; /* زیر خط سفید قرار دارد */
+            z-index: 1;
             backface-visibility: hidden;
         }
-        
+
         .shape-layer svg {
             width: 100%;
             height: 100%;
             display: block;
         }
 
-        /* رنگ‌بندی اختصاصی شکل (تاریک = سفید ، روشن = قرمز) */
         .shape-layer svg polygon {
             fill: #ffffff;
             transition: fill 0.3s ease;
         }
-        
-        /* خط سفید پایینی - ثابت شده و دیگر حرکت نمی‌کند */
+
         .base-line {
             position: absolute;
-            top: 75%; /* متناسب با خط پایین نیم‌دایره‌ی بزرگ‌شده */
+            top: 75%;
             left: 10%;
             width: 80%;
             height: 5px;
             background-color: #ffffff;
             border-radius: 6px;
             transform: translateY(-50%);
-            z-index: 2; /* از شکل بالاتر است تا شکل از زیر آن عبور کند */
+            z-index: 2;
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
-        /* --------------------------------- */
 
-        /* --- متن لوگو با فونت جدید و سکسی --- */
         .logo-text {
             font-family: 'Orbitron', 'Inter', sans-serif;
             font-size: 1.35em;
             font-weight: 700;
-            letter-spacing: 1.5px; /* برای جلوه‌ی حرفه‌ای‌تر */
+            letter-spacing: 1.5px;
             background: linear-gradient(135deg, #e94560, #ff6b81, #e94560);
             background-size: 200% 200%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            transition: background-position 0.8s ease;
+            transition: background-position 0.8s ease, opacity 0.5s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .logo-icon-container:hover ~ .logo-text {
+            opacity: 1;
         }
         .logo-wrapper:hover .logo-text {
             background-position: 100% 0%;
             animation: shimmerText 1.8s ease infinite;
         }
         @keyframes shimmerText { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        
-        .logo-badge {
-            font-size: 0.55em;
-            font-weight: 600;
-            background: rgba(233, 69, 96, 0.15);
-            padding: 2px 10px;
-            border-radius: 30px;
-            color: #e94560;
-            letter-spacing: 0.5px;
-            border: 1px solid rgba(233, 69, 96, 0.15);
-            margin-left: -4px;
-            -webkit-text-fill-color: #e94560;
-        }
 
-        /* ---- Desktop Menu ---- */
         nav .links {
             display: flex;
             align-items: center;
             gap: 0px;
         }
-        /* Separator between items */
         nav .links > * + *::before {
             content: '|';
             color: rgba(255,255,255,0.06);
@@ -315,7 +291,6 @@
             color: #ffffff;
         }
 
-        /* Tools button */
         .dropdown .dropbtn {
             background: linear-gradient(135deg, rgba(233, 69, 96, 0.08), rgba(233, 69, 96, 0.02)) !important;
             border: 1px solid rgba(233, 69, 96, 0.15) !important;
@@ -332,7 +307,6 @@
         }
         .dropdown:hover .dropbtn i:last-child { transform: rotate(180deg); }
 
-        /* ---- Mega Dropdown ---- */
         .dropdown {
             position: relative;
             display: inline-block;
@@ -389,7 +363,6 @@
             opacity: 1;
             transform: translateX(0);
         }
-        /* Stagger delays */
         .dropdown:hover .dropdown-content a:nth-child(2)  { transition-delay: 0.02s; }
         .dropdown:hover .dropdown-content a:nth-child(3)  { transition-delay: 0.04s; }
         .dropdown:hover .dropdown-content a:nth-child(4)  { transition-delay: 0.06s; }
@@ -447,7 +420,6 @@
         }
         .dropdown-col .dropdown-category:first-of-type { margin-top: 0; }
 
-        /* ---- Theme Switch ---- */
         .theme-switch-wrapper {
             display: flex;
             align-items: center;
@@ -504,7 +476,6 @@
             opacity: 0.5;
         }
 
-        /* ---- Hamburger ---- */
         .hamburger {
             display: none;
             background: none;
@@ -519,7 +490,6 @@
         }
         .hamburger:active { background: rgba(233,69,96,0.15); }
 
-        /* ---------- MAIN CONTENT ---------- */
         .content {
             animation: fadeIn 0.4s ease-in;
             flex: 1;
@@ -593,7 +563,6 @@
             box-shadow: 0 0 0 3px rgba(233,69,96,0.15);
         }
 
-        /* ---------- FOOTER ---------- */
         footer {
             text-align: center;
             padding: 24px 16px;
@@ -625,7 +594,6 @@
             margin: 0;
         }
 
-        /* Social icons - bottom left (VISIBLE) */
         .footer-social {
             position: absolute;
             bottom: 24px;
@@ -653,7 +621,6 @@
             transform: translateY(-3px) scale(1.1);
         }
 
-        /* ---------- LIGHT MODE ---------- */
         body.light { background-color: #f5f0eb; color: #2a2015; }
         body.light nav {
             background: rgba(237, 232, 226, 0.65);
@@ -704,20 +671,14 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        body.light .logo-badge {
-            background: rgba(233, 69, 96, 0.06);
-            -webkit-text-fill-color: #e94560;
-        }
-        /* تغییر رنگ لوگو در حالت روشن */
         body.light .shape-layer svg polygon {
-            fill: #e94560; /* در حالت روشن قرمز می‌شود تا دیده شود */
+            fill: #e94560;
         }
         body.light .base-line {
             background-color: #e94560;
             box-shadow: 0 0 10px rgba(233, 69, 96, 0.4);
         }
 
-        /* Light footer */
         body.light footer {
             background-color: #ede8e2;
             border-top-color: rgba(233, 69, 96, 0.1);
@@ -732,14 +693,12 @@
             color: #e94560;
         }
 
-        /* ---------- MOBILE ---------- */
         @media (max-width: 700px) {
             nav { padding: 8px 16px; padding-top: calc(8px + env(safe-area-inset-top)); min-height: 60px; }
             nav.scrolled { padding: 4px 16px; min-height: 48px; }
             .logo-wrapper { gap: 8px; }
             .logo-icon-container { width: 36px; height: 36px; }
             .logo-text { font-size: 1.1em; }
-            .logo-badge { display: none; }
 
             .hamburger { display: block; z-index: 101; }
             nav .links {
@@ -763,7 +722,7 @@
                 border-left: 1px solid rgba(233, 69, 96, 0.06);
             }
             nav .links.open { transform: translateX(0); }
-            nav .links > * + *::before { display: none; } /* remove separators */
+            nav .links > * + *::before { display: none; }
             nav .links > a,
             nav .links .dropbtn {
                 padding: 12px 18px;
@@ -828,7 +787,6 @@
             .btn, .btn-outline { display: block; width: 100%; margin: 8px 0; text-align: center; }
             .card { padding: 18px 16px; border-radius: 12px; }
 
-            /* Footer mobile: social icons centered */
             .footer-social {
                 position: static;
                 justify-content: center;
@@ -838,7 +796,6 @@
             footer .footer-links a { font-size: 0.85em; }
         }
 
-        /* Light mode mobile menu */
         body.light nav .links {
             background: rgba(237, 232, 226, 0.96);
             backdrop-filter: blur(30px);
@@ -846,7 +803,6 @@
         }
         body.light .dropdown-content { background: rgba(0,0,0,0.02); }
 
-        /* Overlay for mobile menu */
         .nav-overlay {
             display: none;
             position: fixed;
@@ -860,27 +816,20 @@
 </head>
 <body id="body">
     <nav id="navbar">
-        <!-- *** لوگوی جدید، بزرگ‌تر و حرفه‌ای *** -->
         <a href="/" class="logo-wrapper">
             <span class="logo-icon-container">
                 <div class="logo-3d-box">
                     <svg class="shape-layer" viewBox="0 0 100 100">
-                        <!-- نیم‌دایره بزرگ‌تر و پهن‌تر شده -->
                         <polygon points="12,75 30,30 50,15 70,30 88,75" />
                     </svg>
                 </div>
-                <!-- خط سفید ثابت (دیگر حرکت نمی‌کند) -->
                 <div class="base-line"></div>
             </span>
-            <!-- متن با فونت اربیتون (Orbitron) + افکت گرادینت -->
             <span class="logo-text">SGMHub</span>
-            <span class="logo-badge">v2</span>
         </a>
-        <!-- *********************** -->
 
         <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">☰</button>
         <div class="links" id="navlinks">
-            <!-- Tools Dropdown -->
             <div class="dropdown" id="toolsDropdown">
                 <button class="dropbtn" onclick="toggleDropdown(event)">
                     <i class="fas fa-tools"></i> Tools
@@ -927,13 +876,11 @@
                 </div>
             </div>
 
-            <!-- Other items -->
             <a href="/b20"><i class="fas fa-fire"></i> B20</a>
             <a href="/swap"><i class="fas fa-arrows-rotate"></i> Swap</a>
             <a href="/domain"><i class="fas fa-globe"></i> Domain</a>
             <a href="/my-store"><i class="fas fa-store"></i> My Store</a>
 
-            <!-- Theme switch -->
             <div class="theme-switch-wrapper">
                 <label class="theme-switch" for="themeCheckbox">
                     <input type="checkbox" id="themeCheckbox" onclick="toggleMode()">
@@ -963,7 +910,6 @@
         {% block content %}{% endblock %}
     </div>
 
-    <!-- ===== FOOTER ===== -->
     <footer>
         <div class="footer-links">
             <a href="/contact">Contact</a>
@@ -973,7 +919,6 @@
         </div>
         <p class="credit">Built with Python and Flask by Makan</p>
 
-        <!-- Social Icons - bottom left (inline SVG, doesn't depend on Font Awesome CDN) -->
         <div class="footer-social">
             <a href="https://github.com/Makanaref" target="_blank" aria-label="GitHub">
                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -998,7 +943,6 @@
             localStorage.setItem("theme", isDark ? "dark" : "light");
         }
 
-        // Scroll shrink
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
             if (window.scrollY > 20) {
@@ -1024,7 +968,6 @@
             }
         }
 
-        // Close mobile menu on link click
         document.querySelectorAll(".links a, .links .dropbtn").forEach(el => {
             el.addEventListener("click", function(e) {
                 if (this.tagName === "A" && document.getElementById("navlinks").classList.contains("open")) {
@@ -1035,7 +978,6 @@
             });
         });
 
-        // Active nav link
         const currentPath = window.location.pathname;
         document.querySelectorAll(".links > a, .dropdown-content a").forEach(link => {
             if (link.getAttribute("href") === currentPath) {
@@ -1043,7 +985,6 @@
             }
         });
 
-        // Restore theme
         if (localStorage.getItem("theme") === "light") {
             toggleMode();
         }
