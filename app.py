@@ -96,7 +96,9 @@ def login_required(f):
             return redirect(url_for("admin_login"))
         return f(*args, **kwargs)
     return decorated
+
 @app.route("/api/bid/place", methods=["POST"])
+@csrf.exempt
 @limiter.limit("30 per hour")
 def place_bid():
     data = request.get_json(force=True, silent=True) or {}
@@ -138,11 +140,12 @@ def list_bids():
     return jsonify({"bids": [dict(r) for r in rows]})
 
 @app.route("/api/bid/respond", methods=["POST"])
+@csrf.exempt
 @limiter.limit("30 per hour")
 def respond_bid():
     data = request.get_json(force=True, silent=True) or {}
     bid_id = data.get("bid_id")
-    action = (data.get("action") or "").strip()
+    action = (data.get("action") or "").strip()  # "accept" or "reject"
     seller_address = (data.get("seller_address") or "").strip().lower()
 
     if not bid_id or action not in ("accept", "reject"):
