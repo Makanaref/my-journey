@@ -18,7 +18,7 @@
     }
     .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; }
     .section-label { font-size: 0.72em; color: #666; text-transform: uppercase; letter-spacing: 1.5px; margin: 32px 0 12px; text-align: left; }
-    .net-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .net-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
     .net-card {
         position: relative; background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
         backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.09);
@@ -144,7 +144,7 @@
         <span class="wallet-pill"><span class="dot"></span><span id="wallet-addr"></span></span>
     </div>
 
-    <div id="network-card" style="display:none;">
+    <div id="network-card" style="display:none; width:700px; max-width:90vw; margin:0 auto; position:relative; left:50%; transform:translateX(-50%);">
         <p class="section-label">Choose network</p>
         <div class="net-grid">
             <div class="net-card" id="net-lamina1" onclick="switchNetwork('lamina1')"><div class="symbol">L1</div><div class="name">Lamina1</div></div>
