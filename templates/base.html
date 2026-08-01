@@ -83,6 +83,35 @@
             perspective: 800px; /* عمق میدان برای چرخش 3D */
         }
         .logo-icon-container:hover { transform: scale(1.05) rotate(-4deg); }
+
+        /* --- مخروط نور لامپ (روشن شدن زیر لوگو موقع هاور) --- */
+        .logo-icon-container::after {
+            content: '';
+            position: absolute;
+            top: 90%;
+            left: 50%;
+            width: 14px;
+            height: 120px;
+            transform: translateX(-50%);
+            background: conic-gradient(from 270deg at 50% 0%,
+                transparent 0deg,
+                rgba(255, 246, 220, 0.55) 18deg,
+                rgba(255, 246, 220, 0.18) 40deg,
+                transparent 70deg,
+                transparent 290deg,
+                rgba(255, 246, 220, 0.18) 320deg,
+                rgba(255, 246, 220, 0.55) 342deg,
+                transparent 360deg);
+            clip-path: polygon(46% 0%, 54% 0%, 100% 100%, 0% 100%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 0;
+            transition: opacity 0.35s ease;
+            mix-blend-mode: screen;
+        }
+        .logo-icon-container:hover::after {
+            opacity: 1;
+        }
         
         /* --- انیمیشن سه‌بعدی جدید و اصلاح‌شده --- */
         .logo-3d-box {
