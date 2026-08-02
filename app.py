@@ -13,9 +13,18 @@ import uuid
 import json
 import hmac
 import paper_trading
+from dotenv import load_dotenv
+
+load_dotenv()
+
+def require_env(name):
+    value = os.environ.get(name)
+    if not value:
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "change-this-in-production")
+app.secret_key = require_env("SECRET_KEY")
 
 csp = {
     'default-src': "'self'",
@@ -37,7 +46,7 @@ limiter = Limiter(
     storage_uri="memory://"
 )
 
-WEATHER_API_KEY = os.environ.get("WEATHER_API_KEY", "d3dff36f2d219ec36f5c48b6c6bb4819")
+WEATHER_API_KEY = require_env("WEATHER_API_KEY")
 
 DB_PATH = os.environ.get("DB_PATH", "messages.db")
 
@@ -86,8 +95,8 @@ paper_trading.init_paper_trading(DB_PATH)
 paper_trading.init_paper_tables()
 paper_trading.start_background_checker()
 
-ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "change-this-password")
+ADMIN_USERNAME = require_env("ADMIN_USERNAME")
+ADMIN_PASSWORD = require_env("ADMIN_PASSWORD")
 
 def login_required(f):
     @wraps(f)
