@@ -47,8 +47,11 @@ _klines_cache_lock = threading.Lock()
 _KLINES_CACHE_TTL = 5  # seconds - short, since this backs a "live" chart
 
 
-def get_klines(symbol, limit=100):
-    """Server-side fetch of 1m OHLC candles from Binance.
+VALID_INTERVALS = ("1m", "5m", "15m", "1h", "4h", "1d")
+
+
+def get_klines(symbol, interval="1m", limit=200):
+    """Server-side fetch of OHLCV candles from Binance for a given interval.
 
     Done from our own server (not the visitor's browser) so it works even
     for visitors whose country/ISP is geo-blocked by Binance directly.
@@ -57,33 +60,43 @@ def get_klines(symbol, limit=100):
     pair = SYMBOL_TO_BINANCE_PAIR.get(symbol)
     if not pair:
         return None
+    if interval not in VALID_INTERVALS:
+        interval = "1m"
 
+    cache_key = f"{symbol}:{interval}"
     now = time.time()
     with _klines_cache_lock:
-        cached = _klines_cache.get(symbol)
+        cached = _klines_cache.get(cache_key)
         if cached and (now - cached[1]) < _KLINES_CACHE_TTL:
             return cached[0]
 
     try:
         resp = requests.get(
             "https://api.binance.com/api/v3/klines",
-            params={"symbol": pair, "interval": "1m", "limit": limit},
+            params={"symbol": pair, "interval": interval, "limit": limit},
             timeout=6,
         )
         raw = resp.json()
         candles = [
-            {"t": k[0], "o": float(k[1]), "h": float(k[2]), "l": float(k[3]), "c": float(k[4])}
+            {
+                "t": k[0],
+                "o": float(k[1]),
+                "h": float(k[2]),
+                "l": float(k[3]),
+                "c": float(k[4]),
+                "v": float(k[5]),
+            }
             for k in raw
         ]
     except Exception:
         with _klines_cache_lock:
-            cached = _klines_cache.get(symbol)
+            cached = _klines_cache.get(cache_key)
             if cached:
                 return cached[0]
         return None
 
     with _klines_cache_lock:
-        _klines_cache[symbol] = (candles, now)
+        _klines_cache[cache_key] = (candles, now)
     return candles
 
 
