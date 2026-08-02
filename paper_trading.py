@@ -42,105 +42,60 @@ INTERVAL_SECONDS = {
     "1d": 86400,
 }
 
-_price_history = {sym: [] for sym in SYMBOL_TO_COINGECKO}
-_price_history_lock = threading.Lock()
-_HISTORY_SAMPLE_SECONDS = 10
-_HISTORY_MAX_POINTS = 8640  # 10s samples, 24h worth
+OHLC_DAYS_FOR_INTERVAL = {
+    "1m": 1,
+    "5m": 1,
+    "15m": 1,
+    "1h": 2,
+    "4h": 14,
+    "1d": 90,
+}
 
-_sampler_thread = None
-_sampler_started = False
-
-
-def _seed_price_history(symbol):
-    coingecko_id = SYMBOL_TO_COINGECKO.get(symbol)
-    if not coingecko_id:
-        return
-    now = time.time()
-    try:
-        resp = requests.get(
-            f"https://api.coingecko.com/api/v3/coins/{coingecko_id}/market_chart",
-            params={"vs_currency": "usd", "days": "1"},
-            timeout=8,
-        )
-        data = resp.json()
-        prices = data.get("prices", [])
-        points = [(ts_ms / 1000.0, float(price)) for ts_ms, price in prices]
-        with _price_history_lock:
-            _price_history[symbol] = points[-_HISTORY_MAX_POINTS:]
-    except Exception:
-        pass
-
-
-def _sample_all_prices():
-    now = time.time()
-    for symbol in SYMBOL_TO_COINGECKO:
-        price = get_price(symbol)
-        if price is None:
-            continue
-        with _price_history_lock:
-            hist = _price_history.setdefault(symbol, [])
-            hist.append((now, price))
-            if len(hist) > _HISTORY_MAX_POINTS:
-                del hist[: len(hist) - _HISTORY_MAX_POINTS]
-
-
-def _sampler_loop():
-    for symbol in SYMBOL_TO_COINGECKO:
-        _seed_price_history(symbol)
-        time.sleep(1.5)
-    while True:
-        try:
-            _sample_all_prices()
-        except Exception:
-            pass
-        time.sleep(_HISTORY_SAMPLE_SECONDS)
-
-
-def start_price_sampler():
-    global _sampler_thread, _sampler_started
-    if _sampler_started:
-        return
-    _sampler_started = True
-    _sampler_thread = threading.Thread(target=_sampler_loop, daemon=True)
-    _sampler_thread.start()
+_klines_cache = {}
+_klines_cache_lock = threading.Lock()
+_KLINES_CACHE_TTL = 20
 
 
 def get_klines(symbol, interval="1m", limit=200):
     symbol = symbol.upper()
-    if symbol not in SYMBOL_TO_COINGECKO:
+    coingecko_id = SYMBOL_TO_COINGECKO.get(symbol)
+    if not coingecko_id:
         return None
-    if interval not in INTERVAL_SECONDS:
+    if interval not in OHLC_DAYS_FOR_INTERVAL:
         interval = "1m"
-    interval_s = INTERVAL_SECONDS[interval]
+    days = OHLC_DAYS_FOR_INTERVAL[interval]
 
-    with _price_history_lock:
-        points = list(_price_history.get(symbol, []))
+    cache_key = f"{symbol}:{interval}"
+    now = time.time()
+    with _klines_cache_lock:
+        cached = _klines_cache.get(cache_key)
+        if cached and (now - cached[1]) < _KLINES_CACHE_TTL:
+            return cached[0]
 
-    if not points:
-        current = get_price(symbol)
-        if current is None:
-            return None
-        now = time.time()
-        return [{"t": int(now * 1000), "o": current, "h": current, "l": current, "c": current, "v": 0}]
+    try:
+        resp = requests.get(
+            f"https://api.coingecko.com/api/v3/coins/{coingecko_id}/ohlc",
+            params={"vs_currency": "usd", "days": days},
+            timeout=8,
+        )
+        rows = resp.json()
+        if not isinstance(rows, list) or not rows:
+            raise ValueError("empty ohlc response")
+        candles = [
+            {"t": r[0], "o": float(r[1]), "h": float(r[2]), "l": float(r[3]), "c": float(r[4]), "v": 0}
+            for r in rows
+        ]
+        candles = candles[-limit:]
+    except Exception:
+        with _klines_cache_lock:
+            cached = _klines_cache.get(cache_key)
+            if cached:
+                return cached[0]
+        return None
 
-    buckets = {}
-    for ts, price in points:
-        bucket_start = int((ts // interval_s) * interval_s)
-        b = buckets.get(bucket_start)
-        if b is None:
-            buckets[bucket_start] = {"o": price, "h": price, "l": price, "c": price}
-        else:
-            b["c"] = price
-            if price > b["h"]:
-                b["h"] = price
-            if price < b["l"]:
-                b["l"] = price
-
-    candles = [
-        {"t": bucket_start * 1000, "o": b["o"], "h": b["h"], "l": b["l"], "c": b["c"], "v": 0}
-        for bucket_start, b in sorted(buckets.items())
-    ]
-    return candles[-limit:]
+    with _klines_cache_lock:
+        _klines_cache[cache_key] = (candles, now)
+    return candles
 
 
 def get_live_ticker_price(symbol):
@@ -214,8 +169,7 @@ def init_paper_tables():
 
 def get_price(symbol):
     symbol = symbol.upper()
-    coingecko_id = SYMBOL_TO_COINGECKO.get(symbol)
-    if not coingecko_id:
+    if symbol not in SYMBOL_TO_COINGECKO:
         return None
 
     now = time.time()
@@ -224,18 +178,9 @@ def get_price(symbol):
         if cached and (now - cached[1]) < _PRICE_CACHE_TTL:
             return cached[0]
 
-    try:
-        resp = requests.get(
-            "https://api.coingecko.com/api/v3/simple/price",
-            params={"ids": coingecko_id, "vs_currencies": "usd"},
-            timeout=5,
-        )
-        data = resp.json()
-        price = data.get(coingecko_id, {}).get("usd")
-        if price is None:
-            return None
-        price = float(price)
-    except Exception:
+    price = _fetch_price_coingecko(symbol)
+
+    if price is None:
         with _price_cache_lock:
             cached = _price_cache.get(symbol)
             if cached:
@@ -245,6 +190,23 @@ def get_price(symbol):
     with _price_cache_lock:
         _price_cache[symbol] = (price, now)
     return price
+
+
+def _fetch_price_coingecko(symbol):
+    coingecko_id = SYMBOL_TO_COINGECKO.get(symbol)
+    if not coingecko_id:
+        return None
+    try:
+        resp = requests.get(
+            "https://api.coingecko.com/api/v3/simple/price",
+            params={"ids": coingecko_id, "vs_currencies": "usd"},
+            timeout=5,
+        )
+        data = resp.json()
+        price = data.get(coingecko_id, {}).get("usd")
+        return float(price) if price is not None else None
+    except Exception:
+        return None
 
 
 def get_or_create_account(wallet, starting_balance=1000):
@@ -654,4 +616,3 @@ def start_background_checker():
     _checker_started = True
     _checker_thread = threading.Thread(target=_background_loop, daemon=True)
     _checker_thread.start()
-    start_price_sampler()
