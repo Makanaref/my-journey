@@ -502,6 +502,16 @@
         plume:     ""
     };
 
+    const DOMAIN_ADDRESSES = {
+        lamina1:   "0xA0F865285beBC988008FE081a9A4dFC1320E31A7",
+        nexus:     "0xC2B99F200C4523900b73912269652095aFa84AFd",
+        ink:       "0xB3e03b39bB3eAb9B63763A601d1Cb2DB0FA0f5c2",
+        plume:     "0xa7967A3C93281785DF7020717419bEd603da948F",
+        zetachain: "0x678D45B398331A1A1ef484FfB5370A1a2034737d",
+        optimism:  "0x620145Db1914c1F9c327FA282BD95b9039647Bc6",
+        base:      "0x9242fBcF3AF8137cddE0bf7046b9DDb881d105CC"
+    };
+
     const MARKETPLACE_ABI = [
         "function listItem(address nftContract, uint256 tokenId, uint256 price, bool supportFee) external returns (uint256)",
         "function listCollection(address nftContract, uint256[] tokenIds, uint256[] prices, bool supportFee) external",
@@ -516,6 +526,10 @@
         "function setApprovalForAll(address operator, bool approved) external",
         "function isApprovedForAll(address owner, address operator) view returns (bool)",
         "function tokenURI(uint256 tokenId) view returns (string)"
+    ];
+
+    const DOMAIN_ABI = [
+        "function nameOf(address holder) public view returns (string)"
     ];
 
     let provider, signer, account, marketplaceContract, currentNet = null, sellMode = "single";
@@ -547,6 +561,19 @@
         } catch (err) {
             console.error("fetchNftMetadata error:", err);
             return { name: null, image: null, description: null };
+        }
+    }
+
+    async function resolveSellerName(address, netKey, providerForNet) {
+        try {
+            const domAddr = DOMAIN_ADDRESSES[netKey];
+            if (!domAddr) return null;
+            const domContract = new ethers.Contract(domAddr, DOMAIN_ABI, providerForNet);
+            const name = await domContract.nameOf(address);
+            return name ? name + ".sgm" : null;
+        } catch (err) {
+            console.error("resolveSellerName error:", err);
+            return null;
         }
     }
 
@@ -607,6 +634,7 @@
         if (!marketplaceContract) return;
         const myToken = ++loadListingsToken;
         const activeNet = currentNet;
+        const activeProvider = provider;
         const statusEl = document.getElementById("listings-status");
         const gridEl = document.getElementById("listings-grid");
         gridEl.innerHTML = "";
@@ -628,7 +656,6 @@
                     });
                 }
             }
-            // If the network changed or a newer call started while we were fetching, drop this result
             if (myToken !== loadListingsToken || activeNet !== currentNet) return;
             if (items.length === 0) {
                 statusEl.innerText = "No active listings on this network yet.";
@@ -667,7 +694,7 @@
                             <div class="info-row"><span>Contract</span><span>${item.nftContract.slice(0,8)}...${item.nftContract.slice(-6)}</span></div>
                             <div class="info-row"><span>Token ID</span><span>#${item.tokenId}</span></div>
                             <div class="info-row"><span>Network</span><span>${NETWORKS[currentNet].chainName}</span></div>
-                            <div class="info-row"><span>Seller</span><span>${item.seller.slice(0,8)}...${item.seller.slice(-6)}</span></div>
+                            <div class="info-row"><span>Seller</span><span id="seller-${item.id}">${item.seller.slice(0,8)}...${item.seller.slice(-6)}</span></div>
                             <div class="info-row"><span>Total supply</span><span id="info-supply-${item.id}">Loading...</span></div>
                             <a class="info-explorer-link" href="${getExplorerUrl(item.nftContract, item.tokenId) || '#'}" target="_blank" rel="noopener">View on Explorer ↗</a>
                         </div>
@@ -694,6 +721,11 @@
                 fetchTotalSupply(item.nftContract).then(total => {
                     const el = document.getElementById("info-supply-" + item.id);
                     if (el) el.innerText = total || "Unknown";
+                });
+                resolveSellerName(item.seller, activeNet, activeProvider).then(domain => {
+                    if (myToken !== loadListingsToken) return;
+                    const el = document.getElementById("seller-" + item.id);
+                    if (el && domain) el.innerText = domain;
                 });
             });
         } catch (err) {
@@ -778,7 +810,6 @@
                 const price = document.getElementById("sell-price").value.trim();
                 if (!tokenId || !price) { alert("Fill in token ID and price."); return; }
 
-                // --- DEBUG: simulate the call first to get the real revert reason ---
                 try {
                     await marketplaceContract.listItem.staticCall(contractAddr, tokenId, ethers.parseEther(price), supportFee);
                 } catch (simErr) {
@@ -786,7 +817,6 @@
                     document.getElementById("sell-status").innerText = "Simulation failed: " + (simErr.reason || simErr.shortMessage || "see console");
                     return;
                 }
-                // --- END DEBUG ---
 
                 tx = await marketplaceContract.listItem(contractAddr, tokenId, ethers.parseEther(price), supportFee);
             } else {
