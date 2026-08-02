@@ -42,70 +42,105 @@ INTERVAL_SECONDS = {
     "1d": 86400,
 }
 
-_klines_cache = {}
-_klines_cache_lock = threading.Lock()
-_KLINES_CACHE_TTL = 15
+_price_history = {sym: [] for sym in SYMBOL_TO_COINGECKO}
+_price_history_lock = threading.Lock()
+_HISTORY_SAMPLE_SECONDS = 10
+_HISTORY_MAX_POINTS = 8640  # 10s samples, 24h worth
+
+_sampler_thread = None
+_sampler_started = False
+
+
+def _seed_price_history(symbol):
+    coingecko_id = SYMBOL_TO_COINGECKO.get(symbol)
+    if not coingecko_id:
+        return
+    now = time.time()
+    try:
+        resp = requests.get(
+            f"https://api.coingecko.com/api/v3/coins/{coingecko_id}/market_chart",
+            params={"vs_currency": "usd", "days": "1"},
+            timeout=8,
+        )
+        data = resp.json()
+        prices = data.get("prices", [])
+        points = [(ts_ms / 1000.0, float(price)) for ts_ms, price in prices]
+        with _price_history_lock:
+            _price_history[symbol] = points[-_HISTORY_MAX_POINTS:]
+    except Exception:
+        pass
+
+
+def _sample_all_prices():
+    now = time.time()
+    for symbol in SYMBOL_TO_COINGECKO:
+        price = get_price(symbol)
+        if price is None:
+            continue
+        with _price_history_lock:
+            hist = _price_history.setdefault(symbol, [])
+            hist.append((now, price))
+            if len(hist) > _HISTORY_MAX_POINTS:
+                del hist[: len(hist) - _HISTORY_MAX_POINTS]
+
+
+def _sampler_loop():
+    for symbol in SYMBOL_TO_COINGECKO:
+        _seed_price_history(symbol)
+        time.sleep(1.5)
+    while True:
+        try:
+            _sample_all_prices()
+        except Exception:
+            pass
+        time.sleep(_HISTORY_SAMPLE_SECONDS)
+
+
+def start_price_sampler():
+    global _sampler_thread, _sampler_started
+    if _sampler_started:
+        return
+    _sampler_started = True
+    _sampler_thread = threading.Thread(target=_sampler_loop, daemon=True)
+    _sampler_thread.start()
 
 
 def get_klines(symbol, interval="1m", limit=200):
     symbol = symbol.upper()
-    coingecko_id = SYMBOL_TO_COINGECKO.get(symbol)
-    if not coingecko_id:
+    if symbol not in SYMBOL_TO_COINGECKO:
         return None
     if interval not in INTERVAL_SECONDS:
         interval = "1m"
     interval_s = INTERVAL_SECONDS[interval]
 
-    cache_key = f"{symbol}:{interval}"
-    now = time.time()
-    with _klines_cache_lock:
-        cached = _klines_cache.get(cache_key)
-        if cached and (now - cached[1]) < _KLINES_CACHE_TTL:
-            return cached[0]
+    with _price_history_lock:
+        points = list(_price_history.get(symbol, []))
 
-    to_ts = int(now)
-    from_ts = to_ts - interval_s * limit
+    if not points:
+        current = get_price(symbol)
+        if current is None:
+            return None
+        now = time.time()
+        return [{"t": int(now * 1000), "o": current, "h": current, "l": current, "c": current, "v": 0}]
 
-    try:
-        resp = requests.get(
-            f"https://api.coingecko.com/api/v3/coins/{coingecko_id}/market_chart/range",
-            params={"vs_currency": "usd", "from": from_ts, "to": to_ts},
-            timeout=8,
-        )
-        data = resp.json()
-        prices = data.get("prices", [])
-        if not prices:
-            raise ValueError("empty price series")
+    buckets = {}
+    for ts, price in points:
+        bucket_start = int((ts // interval_s) * interval_s)
+        b = buckets.get(bucket_start)
+        if b is None:
+            buckets[bucket_start] = {"o": price, "h": price, "l": price, "c": price}
+        else:
+            b["c"] = price
+            if price > b["h"]:
+                b["h"] = price
+            if price < b["l"]:
+                b["l"] = price
 
-        buckets = {}
-        for ts_ms, price in prices:
-            ts = int(ts_ms // 1000)
-            bucket_start = (ts // interval_s) * interval_s
-            b = buckets.get(bucket_start)
-            if b is None:
-                buckets[bucket_start] = {"o": price, "h": price, "l": price, "c": price}
-            else:
-                b["c"] = price
-                if price > b["h"]:
-                    b["h"] = price
-                if price < b["l"]:
-                    b["l"] = price
-
-        candles = [
-            {"t": bucket_start * 1000, "o": b["o"], "h": b["h"], "l": b["l"], "c": b["c"], "v": 0}
-            for bucket_start, b in sorted(buckets.items())
-        ]
-        candles = candles[-limit:]
-    except Exception:
-        with _klines_cache_lock:
-            cached = _klines_cache.get(cache_key)
-            if cached:
-                return cached[0]
-        return None
-
-    with _klines_cache_lock:
-        _klines_cache[cache_key] = (candles, now)
-    return candles
+    candles = [
+        {"t": bucket_start * 1000, "o": b["o"], "h": b["h"], "l": b["l"], "c": b["c"], "v": 0}
+        for bucket_start, b in sorted(buckets.items())
+    ]
+    return candles[-limit:]
 
 
 def get_live_ticker_price(symbol):
@@ -619,3 +654,4 @@ def start_background_checker():
     _checker_started = True
     _checker_thread = threading.Thread(target=_background_loop, daemon=True)
     _checker_thread.start()
+    start_price_sampler()
