@@ -547,7 +547,7 @@ def api_paper_price():
 def api_paper_klines():
     symbol = request.args.get("symbol", "").strip().upper()
     interval = request.args.get("interval", "1m").strip()
-    if symbol not in paper_trading.SYMBOL_TO_BINANCE_PAIR:
+    if symbol not in paper_trading.SYMBOL_TO_COINGECKO:
         return jsonify({"error": "Unsupported symbol"}), 400
     candles = paper_trading.get_klines(symbol, interval=interval)
     if candles is None:
@@ -559,7 +559,7 @@ def api_paper_klines():
 @limiter.limit("120 per minute")
 def api_paper_live_price():
     symbol = request.args.get("symbol", "").strip().upper()
-    if symbol not in paper_trading.SYMBOL_TO_BINANCE_PAIR:
+    if symbol not in paper_trading.SYMBOL_TO_COINGECKO:
         return jsonify({"error": "Unsupported symbol"}), 400
     price = paper_trading.get_live_ticker_price(symbol)
     if price is None:

@@ -5,8 +5,8 @@ Provides a simple simulated ("paper") trading system backed by SQLite:
 - per-wallet virtual accounts with a USD balance
 - opening/closing long/short positions on a fixed set of symbols
 - price fetching from CoinGecko with a small in-memory cache
-- server-side proxied live prices/candles from Binance (so a visitor's
-  geo-blocked browser never has to contact Binance directly)
+- candles built server-side from CoinGecko price history so the chart works
+  even where exchange APIs (e.g. Binance) block the server's IP
 - take-profit / stop-loss checking via a background thread
 - price alerts
 
@@ -22,10 +22,6 @@ import datetime
 
 import requests
 
-# ---------------------------------------------------------------------------
-# Config
-# ---------------------------------------------------------------------------
-
 SYMBOL_TO_COINGECKO = {
     "BTC": "bitcoin",
     "ETH": "ethereum",
@@ -37,31 +33,28 @@ SYMBOL_TO_COINGECKO = {
     "OP": "optimism",
 }
 
-SYMBOL_TO_BINANCE_PAIR = {
-    "BTC": "BTCUSDT",
-    "ETH": "ETHUSDT",
+INTERVAL_SECONDS = {
+    "1m": 60,
+    "5m": 300,
+    "15m": 900,
+    "1h": 3600,
+    "4h": 14400,
+    "1d": 86400,
 }
 
 _klines_cache = {}
 _klines_cache_lock = threading.Lock()
-_KLINES_CACHE_TTL = 5  # seconds - short, since this backs a "live" chart
-
-
-VALID_INTERVALS = ("1m", "5m", "15m", "1h", "4h", "1d")
+_KLINES_CACHE_TTL = 15
 
 
 def get_klines(symbol, interval="1m", limit=200):
-    """Server-side fetch of OHLCV candles from Binance for a given interval.
-
-    Done from our own server (not the visitor's browser) so it works even
-    for visitors whose country/ISP is geo-blocked by Binance directly.
-    """
     symbol = symbol.upper()
-    pair = SYMBOL_TO_BINANCE_PAIR.get(symbol)
-    if not pair:
+    coingecko_id = SYMBOL_TO_COINGECKO.get(symbol)
+    if not coingecko_id:
         return None
-    if interval not in VALID_INTERVALS:
+    if interval not in INTERVAL_SECONDS:
         interval = "1m"
+    interval_s = INTERVAL_SECONDS[interval]
 
     cache_key = f"{symbol}:{interval}"
     now = time.time()
@@ -70,24 +63,39 @@ def get_klines(symbol, interval="1m", limit=200):
         if cached and (now - cached[1]) < _KLINES_CACHE_TTL:
             return cached[0]
 
+    to_ts = int(now)
+    from_ts = to_ts - interval_s * limit
+
     try:
         resp = requests.get(
-            "https://api.binance.com/api/v3/klines",
-            params={"symbol": pair, "interval": interval, "limit": limit},
-            timeout=6,
+            f"https://api.coingecko.com/api/v3/coins/{coingecko_id}/market_chart/range",
+            params={"vs_currency": "usd", "from": from_ts, "to": to_ts},
+            timeout=8,
         )
-        raw = resp.json()
+        data = resp.json()
+        prices = data.get("prices", [])
+        if not prices:
+            raise ValueError("empty price series")
+
+        buckets = {}
+        for ts_ms, price in prices:
+            ts = int(ts_ms // 1000)
+            bucket_start = (ts // interval_s) * interval_s
+            b = buckets.get(bucket_start)
+            if b is None:
+                buckets[bucket_start] = {"o": price, "h": price, "l": price, "c": price}
+            else:
+                b["c"] = price
+                if price > b["h"]:
+                    b["h"] = price
+                if price < b["l"]:
+                    b["l"] = price
+
         candles = [
-            {
-                "t": k[0],
-                "o": float(k[1]),
-                "h": float(k[2]),
-                "l": float(k[3]),
-                "c": float(k[4]),
-                "v": float(k[5]),
-            }
-            for k in raw
+            {"t": bucket_start * 1000, "o": b["o"], "h": b["h"], "l": b["l"], "c": b["c"], "v": 0}
+            for bucket_start, b in sorted(buckets.items())
         ]
+        candles = candles[-limit:]
     except Exception:
         with _klines_cache_lock:
             cached = _klines_cache.get(cache_key)
@@ -100,59 +108,21 @@ def get_klines(symbol, interval="1m", limit=200):
     return candles
 
 
-_ticker_cache = {}
-_ticker_cache_lock = threading.Lock()
-_TICKER_CACHE_TTL = 2  # seconds - short poll interval for a "live" feel
-
-
 def get_live_ticker_price(symbol):
-    """Server-side proxied Binance ticker price, for smooth chart polling."""
-    symbol = symbol.upper()
-    pair = SYMBOL_TO_BINANCE_PAIR.get(symbol)
-    if not pair:
-        return None
+    return get_price(symbol)
 
-    now = time.time()
-    with _ticker_cache_lock:
-        cached = _ticker_cache.get(symbol)
-        if cached and (now - cached[1]) < _TICKER_CACHE_TTL:
-            return cached[0]
-
-    try:
-        resp = requests.get(
-            "https://api.binance.com/api/v3/ticker/price",
-            params={"symbol": pair},
-            timeout=4,
-        )
-        price = float(resp.json()["price"])
-    except Exception:
-        with _ticker_cache_lock:
-            cached = _ticker_cache.get(symbol)
-            if cached:
-                return cached[0]
-        return None
-
-    with _ticker_cache_lock:
-        _ticker_cache[symbol] = (price, now)
-    return price
 
 _DB_PATH = None
 
-# price cache: symbol -> (price, fetched_at_epoch_seconds)
 _price_cache = {}
 _price_cache_lock = threading.Lock()
-_PRICE_CACHE_TTL = 15  # seconds
+_PRICE_CACHE_TTL = 15
 
 _checker_thread = None
 _checker_started = False
 
 
-# ---------------------------------------------------------------------------
-# Setup
-# ---------------------------------------------------------------------------
-
 def init_paper_trading(db_path):
-    """Store the DB path to use for all paper-trading tables."""
     global _DB_PATH
     _DB_PATH = db_path
 
@@ -164,7 +134,6 @@ def _get_db():
 
 
 def init_paper_tables():
-    """Create the paper-trading tables if they don't already exist."""
     conn = _get_db()
     conn.execute("""
         CREATE TABLE IF NOT EXISTS paper_accounts (
@@ -208,12 +177,7 @@ def init_paper_tables():
     conn.close()
 
 
-# ---------------------------------------------------------------------------
-# Price fetching
-# ---------------------------------------------------------------------------
-
 def get_price(symbol):
-    """Return the current USD price for `symbol`, using a short cache."""
     symbol = symbol.upper()
     coingecko_id = SYMBOL_TO_COINGECKO.get(symbol)
     if not coingecko_id:
@@ -247,10 +211,6 @@ def get_price(symbol):
         _price_cache[symbol] = (price, now)
     return price
 
-
-# ---------------------------------------------------------------------------
-# Accounts
-# ---------------------------------------------------------------------------
 
 def get_or_create_account(wallet, starting_balance=1000):
     conn = _get_db()
@@ -323,10 +283,6 @@ def get_account_snapshot(wallet):
         "open_positions": positions_out,
     }
 
-
-# ---------------------------------------------------------------------------
-# Positions
-# ---------------------------------------------------------------------------
 
 def _position_to_dict(row, current_price=None, pnl=None):
     return {
@@ -515,7 +471,6 @@ def get_positions(wallet):
 
 
 def process_wallet_positions(wallet):
-    """Check pending limit/stop orders and open TP/SL levels for one wallet."""
     conn = _get_db()
     positions = conn.execute(
         "SELECT * FROM paper_positions WHERE wallet = ? AND status IN ('pending', 'open')",
@@ -566,10 +521,6 @@ def _process_position(pos):
         if hit_tp or hit_sl:
             close_position(pos["wallet"], pos["id"])
 
-
-# ---------------------------------------------------------------------------
-# Alerts
-# ---------------------------------------------------------------------------
 
 def create_alert(wallet, symbol, target_price):
     symbol = symbol.upper()
@@ -645,10 +596,6 @@ def _check_all_alerts():
             conn.close()
 
 
-# ---------------------------------------------------------------------------
-# Background checker (TP/SL + alerts + pending limit orders)
-# ---------------------------------------------------------------------------
-
 def _background_loop():
     while True:
         try:
@@ -661,14 +608,11 @@ def _background_loop():
                 _process_position(pos)
             _check_all_alerts()
         except Exception:
-            # Never let the background thread die from a transient error
-            # (e.g. network hiccup or DB lock).
             pass
         time.sleep(20)
 
 
 def start_background_checker():
-    """Start the background TP/SL & alert checker exactly once per process."""
     global _checker_thread, _checker_started
     if _checker_started:
         return
