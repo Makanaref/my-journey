@@ -60,12 +60,20 @@
                     <button type="button" id="pt-chart-tab-BTC" class="pt-toggle pt-toggle-active" onclick="ptSwitchChart('BTC')">BTC/USDT</button>
                     <button type="button" id="pt-chart-tab-ETH" class="pt-toggle" onclick="ptSwitchChart('ETH')">ETH/USDT</button>
                 </div>
+                <div style="display:flex; gap:6px;">
+                    <button type="button" id="pt-tf-1m" class="pt-toggle pt-toggle-active-tf" onclick="ptSwitchTimeframe('1m')">1m</button>
+                    <button type="button" id="pt-tf-5m" class="pt-toggle" onclick="ptSwitchTimeframe('5m')">5m</button>
+                    <button type="button" id="pt-tf-15m" class="pt-toggle" onclick="ptSwitchTimeframe('15m')">15m</button>
+                    <button type="button" id="pt-tf-1h" class="pt-toggle" onclick="ptSwitchTimeframe('1h')">1h</button>
+                    <button type="button" id="pt-tf-4h" class="pt-toggle" onclick="ptSwitchTimeframe('4h')">4h</button>
+                    <button type="button" id="pt-tf-1d" class="pt-toggle" onclick="ptSwitchTimeframe('1d')">1D</button>
+                </div>
                 <div style="color:rgba(255,255,255,0.5); font-size:0.85em;">
                     <span id="pt-chart-price" style="color:#fff; font-weight:700; font-family:monospace; font-size:1.1em;">—</span>
-                    <span style="color:rgba(255,255,255,0.3); margin-left:8px;">hover to preview, click to set an alert ⏰</span>
+                    <span style="color:rgba(255,255,255,0.3); margin-left:8px;">click chart to set an alert ⏰</span>
                 </div>
             </div>
-            <canvas id="pt-chart-canvas" style="width:100%; height:280px; display:block; border-radius:12px; cursor:crosshair;"></canvas>
+            <div id="pt-chart-container" style="width:100%; height:340px; border-radius:12px; overflow:hidden;"></div>
         </div>
 
         <!-- Trade panel -->
@@ -202,6 +210,7 @@
     .pt-toggle-active-long { background:rgba(45,212,191,0.15); border-color:rgba(45,212,191,0.5); color:#5eead4; }
     .pt-toggle-active-short { background:rgba(233,69,96,0.15); border-color:rgba(233,69,96,0.5); color:#f4879a; }
     .pt-toggle-active { background:rgba(247,179,43,0.15); border-color:rgba(247,179,43,0.5); color:#f7d98a; }
+    .pt-toggle-active-tf { background:rgba(126,200,227,0.15); border-color:rgba(126,200,227,0.5); color:#7ec8e3; }
 
     .pt-stat { text-align:center; }
     .pt-stat-label { font-size:0.72em; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:8px; }
@@ -232,6 +241,7 @@
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+<script src="https://unpkg.com/lightweight-charts@5.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <script src="/static/js/dapp-common.js"></script>
 <script>
 (function () {
@@ -247,8 +257,6 @@
         if (n === null || n === undefined || isNaN(n)) return "—";
         return "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
-
-    // ---------------- Network picker (for the tiny real fee tx) ----------------
 
     function ptPopulateNetworkSelect() {
         const sel = document.getElementById("pt-network");
@@ -287,8 +295,6 @@
         return tx.hash;
     }
 
-    // ---------------- Order form state ----------------
-
     window.ptSetDirection = function (dir) {
         ptDirection = dir;
         document.getElementById("pt-dir-long").className = "pt-toggle" + (dir === "long" ? " pt-toggle-active-long" : "");
@@ -303,8 +309,6 @@
         document.getElementById("pt-entry-price-wrap").style.display = type === "market" ? "none" : "block";
         document.getElementById("pt-entry-price-label").innerText = type === "limit" ? "Limit Entry Price" : "Stop Trigger Price";
     };
-
-    // ---------------- Wallet connect ----------------
 
     window.ptConnectWallet = async function () {
         if (!window.ethereum) { alert("Please install MetaMask!"); return; }
@@ -329,6 +333,7 @@
 
             ptRefreshAccount();
             ptRefreshAlerts();
+            ptInitChart();
             ptStartChart("BTC");
             if (ptRefreshTimer) clearInterval(ptRefreshTimer);
             ptRefreshTimer = setInterval(() => { ptRefreshAccount(); }, 15000);
@@ -490,9 +495,8 @@
         } catch (err) { console.log(err); }
     };
 
-    // ---------------- Alerts (list + dismiss) ----------------
-
-    let ptAlerts = []; // cached alerts for the active chart symbol, used for chart line drawing + crossing detection
+    let ptAlerts = [];
+    let ptAlertLines = [];
 
     window.ptRefreshAlerts = async function () {
         if (!ptAccount) return;
@@ -513,7 +517,7 @@
                     </div>`).join("");
             }
             ptAlerts = data.filter(a => a.symbol === ptChartSymbol);
-            ptDrawChart();
+            ptDrawAlertLines();
         } catch (err) { console.log(err); }
     };
 
@@ -541,8 +545,6 @@
         } catch (err) { console.log(err); }
     }
 
-    // ---------------- Beep (Web Audio, no files needed) ----------------
-
     function ptBeepTwice() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -563,17 +565,59 @@
         } catch (err) { console.log(err); }
     }
 
-    // ---------------- Live candlestick chart (server-proxied Binance data) ----------------
-
+    let ptChart = null;
+    let ptCandleSeries = null;
+    let ptVolumeSeries = null;
     let ptChartSymbol = "BTC";
-    let ptChartData = [];      // array of {t, o, h, l, c} candles (1m)
+    let ptTimeframe = "1m";
+    let ptChartData = [];
     let ptLivePollTimer = null;
     let ptLastTick = null;
-    let ptChartMin = 0, ptChartMax = 1;
-    let ptHoverPrice = null;
+    let ptLastCandle = null;
 
-    const CANDLE_MS = 60000; // 1 minute candles
-    const LIVE_POLL_MS = 2500;
+    const TF_MS = { "1m": 60000, "5m": 300000, "15m": 900000, "1h": 3600000, "4h": 14400000, "1d": 86400000 };
+
+    function ptInitChart() {
+        if (ptChart) return;
+        const container = document.getElementById("pt-chart-container");
+        ptChart = LightweightCharts.createChart(container, {
+            layout: {
+                background: { type: "solid", color: "transparent" },
+                textColor: "rgba(255,255,255,0.6)",
+            },
+            grid: {
+                vertLines: { color: "rgba(255,255,255,0.05)" },
+                horzLines: { color: "rgba(255,255,255,0.05)" },
+            },
+            timeScale: { timeVisible: true, secondsVisible: false, borderColor: "rgba(255,255,255,0.1)" },
+            rightPriceScale: { borderColor: "rgba(255,255,255,0.1)" },
+            crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+            autoSize: true,
+        });
+
+        ptCandleSeries = ptChart.addSeries(LightweightCharts.CandlestickSeries, {
+            upColor: "#2dd4bf",
+            downColor: "#e94560",
+            wickUpColor: "#2dd4bf",
+            wickDownColor: "#e94560",
+            borderVisible: false,
+        });
+
+        ptVolumeSeries = ptChart.addSeries(LightweightCharts.HistogramSeries, {
+            priceFormat: { type: "volume" },
+            priceScaleId: "",
+        });
+        ptVolumeSeries.priceScale().applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
+
+        ptChart.subscribeClick(param => {
+            if (!ptAccount || !param.point) return;
+            const price = ptCandleSeries.coordinateToPrice(param.point.y);
+            if (price === null) return;
+            ptCreateAlertAtPrice(Math.round(price * 100) / 100);
+        });
+
+        window.addEventListener("resize", () => { if (ptChart) ptChart.timeScale().fitContent(); });
+    }
 
     window.ptSwitchChart = function (symbol) {
         document.getElementById("pt-chart-tab-BTC").className = "pt-toggle" + (symbol === "BTC" ? " pt-toggle-active" : "");
@@ -581,14 +625,23 @@
         ptStartChart(symbol);
     };
 
+    window.ptSwitchTimeframe = function (tf) {
+        ["1m", "5m", "15m", "1h", "4h", "1d"].forEach(t => {
+            document.getElementById("pt-tf-" + t).className = "pt-toggle" + (t === tf ? " pt-toggle-active-tf" : "");
+        });
+        ptTimeframe = tf;
+        ptStartChart(ptChartSymbol);
+    };
+
     async function ptStartChart(symbol) {
         ptChartSymbol = symbol;
         if (ptLivePollTimer) { clearInterval(ptLivePollTimer); ptLivePollTimer = null; }
         ptChartData = [];
+        ptLastCandle = null;
         document.getElementById("pt-chart-price").innerText = "—";
 
         try {
-            const res = await fetch(`/api/paper/klines?symbol=${symbol}`);
+            const res = await fetch(`/api/paper/klines?symbol=${symbol}&interval=${ptTimeframe}`);
             const data = await res.json();
             if (data.candles) {
                 ptChartData = data.candles;
@@ -598,11 +651,20 @@
             console.log("Chart history failed:", err);
         }
 
-        ptRefreshAlerts(); // reloads alerts filtered to this symbol + redraws
-        ptDrawChart();
+        ptCandleSeries.setData(ptChartData.map(c => ({
+            time: Math.floor(c.t / 1000),
+            open: c.o, high: c.h, low: c.l, close: c.c,
+        })));
+        ptVolumeSeries.setData(ptChartData.map(c => ({
+            time: Math.floor(c.t / 1000),
+            value: c.v || 0,
+            color: c.c >= c.o ? "rgba(45,212,191,0.5)" : "rgba(233,69,96,0.5)",
+        })));
+        ptChart.timeScale().fitContent();
+        ptLastCandle = ptChartData.length ? { ...ptChartData[ptChartData.length - 1] } : null;
 
-        // Poll our own server for the live price (server is not geo-blocked
-        // by exchanges the way a visitor's browser/IP might be).
+        ptRefreshAlerts();
+
         const poll = async () => {
             try {
                 const res = await fetch(`/api/paper/live-price?symbol=${ptChartSymbol}`);
@@ -611,7 +673,7 @@
             } catch (err) { console.log(err); }
         };
         poll();
-        ptLivePollTimer = setInterval(poll, LIVE_POLL_MS);
+        ptLivePollTimer = setInterval(poll, 2500);
     }
 
     function ptOnTick(price) {
@@ -621,20 +683,30 @@
         document.getElementById("pt-chart-price").innerText = ptFmt(price);
         document.getElementById("pt-current-price").innerText = ptFmt(price);
 
-        // bucket the live tick into the current 1m candle, or start a new one
+        const bucketMs = TF_MS[ptTimeframe] || 60000;
         const now = Date.now();
-        const bucketStart = Math.floor(now / CANDLE_MS) * CANDLE_MS;
-        const last = ptChartData[ptChartData.length - 1];
-        if (last && last.t === bucketStart) {
-            last.c = price;
-            if (price > last.h) last.h = price;
-            if (price < last.l) last.l = price;
+        const bucketStart = Math.floor(now / bucketMs) * bucketMs;
+
+        if (ptLastCandle && ptLastCandle.t === bucketStart) {
+            ptLastCandle.c = price;
+            if (price > ptLastCandle.h) ptLastCandle.h = price;
+            if (price < ptLastCandle.l) ptLastCandle.l = price;
         } else {
-            ptChartData.push({ t: bucketStart, o: price, h: price, l: price, c: price });
-            if (ptChartData.length > 150) ptChartData.shift();
+            ptLastCandle = { t: bucketStart, o: price, h: price, l: price, c: price, v: 0 };
+            ptChartData.push(ptLastCandle);
+            if (ptChartData.length > 1000) ptChartData.shift();
         }
 
-        // crossing detection for active alerts on this symbol
+        ptCandleSeries.update({
+            time: Math.floor(ptLastCandle.t / 1000),
+            open: ptLastCandle.o, high: ptLastCandle.h, low: ptLastCandle.l, close: ptLastCandle.c,
+        });
+        ptVolumeSeries.update({
+            time: Math.floor(ptLastCandle.t / 1000),
+            value: ptLastCandle.v || 0,
+            color: ptLastCandle.c >= ptLastCandle.o ? "rgba(45,212,191,0.5)" : "rgba(233,69,96,0.5)",
+        });
+
         if (prev !== null) {
             ptAlerts.forEach(a => {
                 const target = a.target_price;
@@ -645,125 +717,19 @@
                 }
             });
         }
-
-        ptDrawChart();
     }
 
-    function ptDrawChart() {
-        const canvas = document.getElementById("pt-chart-canvas");
-        const dpr = window.devicePixelRatio || 1;
-        const cssW = canvas.clientWidth || 600;
-        const cssH = 280;
-        canvas.width = cssW * dpr;
-        canvas.height = cssH * dpr;
-        const ctx = canvas.getContext("2d");
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        ctx.clearRect(0, 0, cssW, cssH);
-
-        if (ptChartData.length < 2) return;
-
-        const highs = ptChartData.map(d => d.h);
-        const lows = ptChartData.map(d => d.l);
-        const allValues = highs.concat(lows).concat(ptAlerts.map(a => a.target_price));
-        let min = Math.min(...allValues);
-        let max = Math.max(...allValues);
-        const pad = (max - min) * 0.08 || max * 0.001 || 1;
-        min -= pad; max += pad;
-        ptChartMin = min; ptChartMax = max;
-
-        const n = ptChartData.length;
-        const slot = cssW / n;
-        const bodyW = Math.max(2, slot * 0.6);
-        const toX = (i) => slot * i + slot / 2;
-        const toY = (v) => cssH - ((v - min) / (max - min)) * cssH;
-
-        // grid
-        ctx.strokeStyle = "rgba(255,255,255,0.05)";
-        ctx.lineWidth = 1;
-        for (let i = 1; i < 4; i++) {
-            const y = (cssH / 4) * i;
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cssW, y); ctx.stroke();
-        }
-
-        // alert lines
-        ptAlerts.forEach(a => {
-            const y = toY(a.target_price);
-            ctx.strokeStyle = "rgba(247,179,43,0.6)";
-            ctx.setLineDash([6, 5]);
-            ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cssW, y); ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.font = "12px monospace";
-            ctx.fillStyle = "#f7d98a";
-            ctx.fillText("⏰ " + a.target_price.toLocaleString(undefined, {maximumFractionDigits: 2}), 8, y - 6);
-        });
-
-        // candlesticks
-        ptChartData.forEach((d, i) => {
-            const x = toX(i);
-            const up = d.c >= d.o;
-            const color = up ? "#2dd4bf" : "#e94560";
-            ctx.strokeStyle = color;
-            ctx.fillStyle = color;
-            ctx.lineWidth = 1;
-
-            // wick
-            ctx.beginPath();
-            ctx.moveTo(x, toY(d.h));
-            ctx.lineTo(x, toY(d.l));
-            ctx.stroke();
-
-            // body
-            const yOpen = toY(d.o);
-            const yClose = toY(d.c);
-            const top = Math.min(yOpen, yClose);
-            const height = Math.max(1, Math.abs(yClose - yOpen));
-            ctx.fillRect(x - bodyW / 2, top, bodyW, height);
-        });
-
-        // crosshair (hover preview for setting alerts)
-        if (ptHoverPrice !== null) {
-            const y = toY(ptHoverPrice);
-            ctx.strokeStyle = "rgba(255,255,255,0.35)";
-            ctx.setLineDash([4, 4]);
-            ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cssW, y); ctx.stroke();
-            ctx.setLineDash([]);
-
-            const label = "⏰ " + ptHoverPrice.toLocaleString(undefined, {maximumFractionDigits: 2});
-            ctx.font = "12px monospace";
-            const textW = ctx.measureText(label).width;
-            ctx.fillStyle = "rgba(0,0,0,0.6)";
-            ctx.fillRect(cssW - textW - 16, y - 16, textW + 12, 20);
-            ctx.fillStyle = "#fff";
-            ctx.fillText(label, cssW - textW - 10, y - 2);
-        }
+    function ptDrawAlertLines() {
+        ptAlertLines.forEach(line => ptCandleSeries.removePriceLine(line));
+        ptAlertLines = ptAlerts.map(a => ptCandleSeries.createPriceLine({
+            price: a.target_price,
+            color: "#f7b32b",
+            lineWidth: 1,
+            lineStyle: LightweightCharts.LineStyle.Dashed,
+            axisLabelVisible: true,
+            title: "⏰",
+        }));
     }
-
-    const ptCanvasEl = document.getElementById("pt-chart-canvas");
-
-    ptCanvasEl.addEventListener("mousemove", (e) => {
-        if (!ptAccount || ptChartData.length < 2) return;
-        const rect = ptCanvasEl.getBoundingClientRect();
-        const y = e.clientY - rect.top;
-        ptHoverPrice = ptChartMax - (y / rect.height) * (ptChartMax - ptChartMin);
-        ptDrawChart();
-    });
-
-    ptCanvasEl.addEventListener("mouseleave", () => {
-        ptHoverPrice = null;
-        ptDrawChart();
-    });
-
-    ptCanvasEl.addEventListener("click", (e) => {
-        if (!ptAccount) return;
-        const rect = ptCanvasEl.getBoundingClientRect();
-        const y = e.clientY - rect.top;
-        const price = ptChartMax - (y / rect.height) * (ptChartMax - ptChartMin);
-        ptCreateAlertAtPrice(Math.round(price * 100) / 100);
-    });
-
-    window.addEventListener("resize", () => ptDrawChart());
 })();
 </script>
 
