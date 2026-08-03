@@ -98,12 +98,18 @@ def init_db():
             text TEXT NOT NULL,
             signature TEXT NOT NULL,
             signed_timestamp TEXT NOT NULL,
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            reply_to_name TEXT,
+            reply_to_text TEXT,
+            reply_to_address TEXT
         )
     """)
     for stmt in [
         "ALTER TABLE chat_messages ADD COLUMN signature TEXT",
-        "ALTER TABLE chat_messages ADD COLUMN signed_timestamp TEXT"
+        "ALTER TABLE chat_messages ADD COLUMN signed_timestamp TEXT",
+        "ALTER TABLE chat_messages ADD COLUMN reply_to_name TEXT",
+        "ALTER TABLE chat_messages ADD COLUMN reply_to_text TEXT",
+        "ALTER TABLE chat_messages ADD COLUMN reply_to_address TEXT"
     ]:
         try:
             conn.execute(stmt)
@@ -826,7 +832,7 @@ def verify_chat_signature(address, text, timestamp, signature):
 def api_chat_get_messages():
     conn = get_db()
     rows = conn.execute(
-        "SELECT address, display_name, text, created_at FROM chat_messages ORDER BY id DESC LIMIT 200"
+        "SELECT address, display_name, text, created_at, reply_to_name, reply_to_text FROM chat_messages ORDER BY id DESC LIMIT 200"
     ).fetchall()
     conn.close()
     messages = [
@@ -834,11 +840,32 @@ def api_chat_get_messages():
             "address": row["address"],
             "display_name": row["display_name"],
             "text": row["text"],
-            "created_at": row["created_at"]
+            "created_at": row["created_at"],
+            "reply_to_name": row["reply_to_name"],
+            "reply_to_text": row["reply_to_text"]
         }
         for row in reversed(rows)
     ]
     return jsonify({"messages": messages})
+
+
+@app.route("/api/chat/replies", methods=["GET"])
+@limiter.limit("60 per minute")
+def api_chat_get_replies():
+    address = (request.args.get("address") or "").strip().lower()
+    if not is_valid_address(address):
+        return jsonify({"error": "Invalid wallet address"}), 400
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT display_name, text, created_at FROM chat_messages WHERE reply_to_address = ? ORDER BY id DESC LIMIT 50",
+        (address,)
+    ).fetchall()
+    conn.close()
+    replies = [
+        {"display_name": row["display_name"], "text": row["text"], "created_at": row["created_at"]}
+        for row in rows
+    ]
+    return jsonify({"replies": replies})
 
 
 @app.route("/api/chat/messages", methods=["POST"])
@@ -851,6 +878,9 @@ def api_chat_post_message():
     text = (data.get("text") or "").strip()
     signature = (data.get("signature") or "").strip()
     timestamp = (data.get("timestamp") or "").strip()
+    reply_to_name = (data.get("reply_to_name") or "").strip()
+    reply_to_text = (data.get("reply_to_text") or "").strip()
+    reply_to_address = (data.get("reply_to_address") or "").strip()
 
     if not is_valid_address(address):
         return jsonify({"error": "Invalid wallet address"}), 400
@@ -863,6 +893,10 @@ def api_chat_post_message():
     if not signature or not timestamp:
         return jsonify({"error": "Missing signature"}), 400
 
+    reply_to_name = reply_to_name[:60] if reply_to_name else None
+    reply_to_text = reply_to_text[:120] if reply_to_text else None
+    reply_to_address = reply_to_address.lower() if is_valid_address(reply_to_address) else None
+
     try:
         timestamp_ms = int(timestamp)
     except ValueError:
@@ -874,12 +908,12 @@ def api_chat_post_message():
     if not verify_chat_signature(address, text, timestamp, signature):
         return jsonify({"error": "Invalid signature"}), 400
 
-    created_at = datetime.datetime.utcnow().isoformat()
+    created_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
     conn = get_db()
     try:
         conn.execute(
-            "INSERT INTO chat_messages (address, display_name, text, signature, signed_timestamp, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-            (address.lower(), display_name, text, signature, timestamp, created_at)
+            "INSERT INTO chat_messages (address, display_name, text, signature, signed_timestamp, created_at, reply_to_name, reply_to_text, reply_to_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (address.lower(), display_name, text, signature, timestamp, created_at, reply_to_name, reply_to_text, reply_to_address)
         )
         conn.commit()
     except sqlite3.IntegrityError:
@@ -891,7 +925,9 @@ def api_chat_post_message():
         "address": address.lower(),
         "display_name": display_name,
         "text": text,
-        "created_at": created_at
+        "created_at": created_at,
+        "reply_to_name": reply_to_name,
+        "reply_to_text": reply_to_text
     })
 
 

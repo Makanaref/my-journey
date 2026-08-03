@@ -525,24 +525,28 @@
 (function () {
     window.sgmToggleWidget = function (e, forceClose) {
         const widget = document.getElementById('sgm-claim-widget');
+        const chatBlob = document.getElementById('chatBlob');
         if (forceClose) {
             widget.classList.remove('sgm-open');
+            if (chatBlob) chatBlob.classList.remove('chat-shrink');
             e.stopPropagation();
             return;
         }
         if (!widget.classList.contains('sgm-open')) {
-            const chatBlob = document.getElementById('chatBlob');
             if (chatBlob && chatBlob.classList.contains('chat-open') && typeof chatClose === 'function') {
                 chatClose(null);
             }
             widget.classList.add('sgm-open');
+            if (chatBlob) chatBlob.classList.add('chat-shrink');
             e.stopPropagation();
         }
     };
     document.addEventListener('click', function (e) {
         const widget = document.getElementById('sgm-claim-widget');
+        const chatBlob = document.getElementById('chatBlob');
         if (widget.classList.contains('sgm-open') && !widget.contains(e.target)) {
             widget.classList.remove('sgm-open');
+            if (chatBlob) chatBlob.classList.remove('chat-shrink');
         }
     });
 })();

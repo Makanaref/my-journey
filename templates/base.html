@@ -872,6 +872,39 @@
             align-items: stretch;
             justify-content: flex-start;
         }
+        .chat-blob.chat-shrink {
+            transform: scale(0.34);
+            transform-origin: bottom right;
+        }
+        .chat-blob.chat-shrink:hover {
+            transform: scale(0.34);
+        }
+
+        .chat-badge {
+            display: none;
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 4px;
+            border-radius: 9px;
+            background: #e94560;
+            color: #fff;
+            font-size: 0.62em;
+            font-weight: 800;
+            font-family: 'Inter', sans-serif;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 0 2px rgba(12,14,22,0.9);
+            z-index: 2;
+        }
+        .chat-badge.show {
+            display: flex;
+        }
+        .chat-blob.chat-open .chat-badge {
+            display: none;
+        }
 
         .chat-window {
             position: absolute;
@@ -936,6 +969,13 @@
             border: 1px solid rgba(255,255,255,0.06);
             border-radius: 12px;
             padding: 8px 10px;
+            position: relative;
+        }
+        .chat-msg-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 6px;
         }
         .chat-msg-sender {
             font-size: 0.7em;
@@ -944,12 +984,85 @@
             font-family: monospace;
             margin-bottom: 3px;
         }
+        .chat-msg-time {
+            font-size: 0.6em;
+            color: rgba(255,255,255,0.25);
+            margin-bottom: 3px;
+        }
         .chat-msg-text {
             font-size: 0.82em;
             color: rgba(255,255,255,0.85);
             line-height: 1.45;
             word-break: break-word;
         }
+        .chat-reply-btn {
+            opacity: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.5);
+            font-size: 0.7em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: opacity 0.2s ease, background 0.2s ease, color 0.2s ease;
+        }
+        .chat-msg-row:hover .chat-reply-btn {
+            opacity: 1;
+        }
+        .chat-reply-btn:hover {
+            background: rgba(45,212,191,0.2);
+            color: #2dd4bf;
+        }
+        .chat-msg-quote {
+            border-left: 2px solid rgba(45,212,191,0.4);
+            padding: 3px 8px;
+            margin-bottom: 5px;
+            font-size: 0.7em;
+            color: rgba(255,255,255,0.4);
+        }
+        .chat-msg-quote .quote-name {
+            color: rgba(45,212,191,0.7);
+            font-weight: 700;
+            margin-right: 4px;
+        }
+        .chat-reply-preview {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: rgba(45,212,191,0.06);
+            border: 1px solid rgba(45,212,191,0.2);
+            border-radius: 10px;
+            padding: 6px 10px;
+            margin-bottom: 8px;
+            font-size: 0.72em;
+        }
+        .chat-reply-preview.active { display: flex; }
+        .chat-reply-preview-text {
+            color: rgba(255,255,255,0.6);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .chat-reply-preview-text .quote-name {
+            color: #2dd4bf;
+            font-weight: 700;
+            margin-right: 4px;
+        }
+        .chat-reply-cancel {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.4);
+            cursor: pointer;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+        .chat-reply-cancel:hover { color: #e94560; }
         .chat-empty {
             color: rgba(255,255,255,0.25);
             font-size: 0.8em;
@@ -1032,6 +1145,11 @@
         body.light .chat-close-btn { color: rgba(0,0,0,0.4); }
         body.light .chat-msg-row { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); }
         body.light .chat-msg-text { color: rgba(0,0,0,0.75); }
+        body.light .chat-msg-time { color: rgba(0,0,0,0.3); }
+        body.light .chat-msg-quote { color: rgba(0,0,0,0.4); }
+        body.light .chat-reply-preview { background: rgba(45,212,191,0.08); border-color: rgba(45,212,191,0.3); }
+        body.light .chat-reply-preview-text { color: rgba(0,0,0,0.55); }
+        body.light .chat-reply-btn { background: rgba(0,0,0,0.05); color: rgba(0,0,0,0.4); }
         body.light .chat-input-row textarea { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.1); color: #2a2015; }
 
         @media (max-width: 700px) {
@@ -1167,6 +1285,7 @@
     <div class="chat-launcher">
         <div class="chat-blob" id="chatBlob" onclick="chatToggle(event)">
             <span class="chat-blob-icon"><i class="fas fa-comment-dots"></i></span>
+            <span class="chat-badge" id="chatBadge"></span>
             <div class="chat-window">
                 <div class="chat-header">
                     <h4><i class="fas fa-globe"></i> Chat with the World</h4>
@@ -1180,6 +1299,10 @@
                     <div class="chat-input-row" id="chatInputRow">
                         <div style="flex:1;">
                             <div class="chat-connected-as" id="chatConnectedAs"></div>
+                            <div class="chat-reply-preview" id="chatReplyPreview">
+                                <span class="chat-reply-preview-text"><span class="quote-name" id="chatReplyPreviewName"></span><span id="chatReplyPreviewText"></span></span>
+                                <button class="chat-reply-cancel" onclick="chatCancelReply(event)"><i class="fas fa-xmark"></i></button>
+                            </div>
                             <textarea id="chatTextInput" maxlength="300" placeholder="Say something to the world..." oninput="chatUpdateCount()"></textarea>
                             <div class="chat-word-count" id="chatWordCount">0 / 300 characters</div>
                         </div>
@@ -1260,6 +1383,7 @@
         let chatProvider, chatSigner, chatAccount, chatDisplayName;
         let chatPollTimer = null;
         let chatEthersReady = typeof ethers !== "undefined";
+        let chatReplyingTo = null;
 
         function chatLoadEthers() {
             return new Promise((resolve) => {
@@ -1282,6 +1406,7 @@
             e.stopPropagation();
             chatFetchMessages();
             chatPollTimer = setInterval(chatFetchMessages, 6000);
+            chatMarkRepliesSeen();
         }
 
         function chatClose(e) {
@@ -1298,6 +1423,39 @@
             }
         });
 
+        function chatSetReply(name, text, address) {
+            chatReplyingTo = { name: name, text: text, address: address };
+            document.getElementById("chatReplyPreviewName").innerText = name;
+            document.getElementById("chatReplyPreviewText").innerText = text.length > 60 ? text.slice(0, 60) + "…" : text;
+            document.getElementById("chatReplyPreview").classList.add("active");
+            const input = document.getElementById("chatTextInput");
+            if (input && !input.disabled) input.focus();
+        }
+
+        function chatCancelReply(e) {
+            if (e) e.stopPropagation();
+            chatReplyingTo = null;
+            document.getElementById("chatReplyPreview").classList.remove("active");
+        }
+
+        function chatFormatTime(iso) {
+            try {
+                const d = new Date(iso);
+                const now = new Date();
+                const sameDay = d.toDateString() === now.toDateString();
+                const yesterday = new Date(now);
+                yesterday.setDate(now.getDate() - 1);
+                const isYesterday = d.toDateString() === yesterday.toDateString();
+                const timePart = d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+                if (sameDay) return "Today at " + timePart;
+                if (isYesterday) return "Yesterday at " + timePart;
+                const datePart = d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+                return datePart + " at " + timePart;
+            } catch (err) {
+                return "";
+            }
+        }
+
         async function chatFetchMessages() {
             const listEl = document.getElementById("chatMessages");
             try {
@@ -1308,9 +1466,20 @@
                     listEl.innerHTML = '<div class="chat-empty">No messages yet. Be the first to say something!</div>';
                     return;
                 }
-                listEl.innerHTML = messages.map(m => `
+                listEl.innerHTML = messages.map((m, idx) => `
                     <div class="chat-msg-row">
-                        <div class="chat-msg-sender">${chatEscape(m.display_name)}</div>
+                        <div class="chat-msg-top">
+                            <div>
+                                <div class="chat-msg-sender">${chatEscape(m.display_name)}</div>
+                                <div class="chat-msg-time">${chatFormatTime(m.created_at)}</div>
+                            </div>
+                            <button class="chat-reply-btn" onclick="chatSetReply('${chatEscapeAttr(m.display_name)}', '${chatEscapeAttr(m.text)}', '${chatEscapeAttr(m.address)}')" title="Reply">
+                                <i class="fas fa-reply"></i>
+                            </button>
+                        </div>
+                        ${m.reply_to_text ? `
+                        <div class="chat-msg-quote"><span class="quote-name">${chatEscape(m.reply_to_name || "")}</span>${chatEscape(m.reply_to_text)}</div>
+                        ` : ""}
                         <div class="chat-msg-text">${chatEscape(m.text)}</div>
                     </div>
                 `).join("");
@@ -1324,6 +1493,10 @@
             const div = document.createElement("div");
             div.innerText = str;
             return div.innerHTML;
+        }
+
+        function chatEscapeAttr(str) {
+            return chatEscape(str || "").replace(/'/g, "&#39;");
         }
 
         async function chatResolveDisplayName(address) {
@@ -1396,7 +1569,10 @@
                         display_name: chatDisplayName,
                         text: text,
                         signature: signature,
-                        timestamp: timestamp
+                        timestamp: timestamp,
+                        reply_to_name: chatReplyingTo ? chatReplyingTo.name : "",
+                        reply_to_text: chatReplyingTo ? chatReplyingTo.text : "",
+                        reply_to_address: chatReplyingTo ? chatReplyingTo.address : ""
                     })
                 });
                 if (!res.ok) {
@@ -1405,6 +1581,7 @@
                     btn.disabled = false;
                     return;
                 }
+                chatCancelReply(null);
                 input.value = "";
                 chatUpdateCount();
                 await chatFetchMessages();
@@ -1415,6 +1592,52 @@
             }
             btn.disabled = false;
         }
+
+        function chatGetLastSeenKey(address) {
+            return "chat_last_seen_" + address;
+        }
+
+        function chatMarkRepliesSeen() {
+            const address = window.chatKnownAddress;
+            if (!address) return;
+            localStorage.setItem(chatGetLastSeenKey(address), new Date().toISOString());
+            const badge = document.getElementById("chatBadge");
+            if (badge) badge.classList.remove("show");
+        }
+
+        async function chatCheckNotifications() {
+            if (!window.ethereum) return;
+            let accounts;
+            try {
+                accounts = await window.ethereum.request({ method: "eth_accounts" });
+            } catch (err) {
+                return;
+            }
+            if (!accounts || accounts.length === 0) return;
+            const address = accounts[0].toLowerCase();
+            window.chatKnownAddress = address;
+            try {
+                const res = await fetch("/api/chat/replies?address=" + address);
+                if (!res.ok) return;
+                const data = await res.json();
+                const replies = data.replies || [];
+                const lastSeen = localStorage.getItem(chatGetLastSeenKey(address));
+                const lastSeenTime = lastSeen ? new Date(lastSeen).getTime() : 0;
+                const unread = replies.filter(r => new Date(r.created_at).getTime() > lastSeenTime).length;
+                const badge = document.getElementById("chatBadge");
+                const blob = document.getElementById("chatBlob");
+                if (blob && blob.classList.contains("chat-open")) return;
+                if (unread > 0) {
+                    badge.innerText = unread > 9 ? "9+" : String(unread);
+                    badge.classList.add("show");
+                } else {
+                    badge.classList.remove("show");
+                }
+            } catch (err) {}
+        }
+
+        document.addEventListener("DOMContentLoaded", chatCheckNotifications);
+        setInterval(chatCheckNotifications, 45000);
     </script>
 </body>
 </html>
