@@ -870,7 +870,7 @@ def api_chat_post_message():
         timestamp_ms = int(timestamp)
     except ValueError:
         return jsonify({"error": "Invalid timestamp"}), 400
-    now_ms = int(datetime.datetime.utcnow().timestamp() * 1000)
+    now_ms = int(datetime.datetime.now(datetime.timezone.utc).timestamp() * 1000)
     if abs(now_ms - timestamp_ms) > 5 * 60 * 1000:
         return jsonify({"error": "Signature expired, please try again"}), 400
 
