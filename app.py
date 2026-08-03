@@ -14,8 +14,10 @@ import json
 import hmac
 import paper_trading
 from dotenv import load_dotenv
+from eth_account import Account
+from eth_account.messages import encode_defunct
 
-load_dotenv()
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 def require_env(name):
     value = os.environ.get(name)
@@ -47,6 +49,8 @@ limiter = Limiter(
 )
 
 WEATHER_API_KEY = require_env("WEATHER_API_KEY")
+PINATA_API_KEY = require_env("PINATA_API_KEY")
+PINATA_SECRET_KEY = require_env("PINATA_SECRET_KEY")
 
 DB_PATH = os.environ.get("DB_PATH", "messages.db")
 
@@ -86,6 +90,29 @@ def init_db():
             created_at TEXT NOT NULL
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS chat_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            address TEXT NOT NULL,
+            display_name TEXT NOT NULL,
+            text TEXT NOT NULL,
+            signature TEXT NOT NULL,
+            signed_timestamp TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+    for stmt in [
+        "ALTER TABLE chat_messages ADD COLUMN signature TEXT",
+        "ALTER TABLE chat_messages ADD COLUMN signed_timestamp TEXT"
+    ]:
+        try:
+            conn.execute(stmt)
+        except sqlite3.OperationalError:
+            pass
+    try:
+        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_chat_signature ON chat_messages(signature)")
+    except sqlite3.OperationalError:
+        pass
     conn.commit()
     conn.close()
 
@@ -154,7 +181,7 @@ def list_bids():
 def respond_bid():
     data = request.get_json(force=True, silent=True) or {}
     bid_id = data.get("bid_id")
-    action = (data.get("action") or "").strip()
+    action = (data.get("action") or "").strip()  # "accept" or "reject"
     seller_address = (data.get("seller_address") or "").strip().lower()
 
     if not bid_id or action not in ("accept", "reject"):
@@ -354,6 +381,54 @@ def upload_nft_image():
 def b20():
     return render_template("b20.html")
 
+@app.route("/api/ipfs/upload-file", methods=["POST"])
+@csrf.exempt
+@limiter.limit("30 per hour")
+def ipfs_upload_file():
+    if "file" not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No file selected"}), 400
+    try:
+        files = {"file": (secure_filename(file.filename), file.stream, file.mimetype)}
+        headers = {
+            "pinata_api_key": PINATA_API_KEY,
+            "pinata_secret_api_key": PINATA_SECRET_KEY
+        }
+        response = requests.post(
+            "https://api.pinata.cloud/pinning/pinFileToIPFS",
+            files=files, headers=headers, timeout=30
+        )
+        if response.status_code != 200:
+            return jsonify({"error": "IPFS upload failed"}), 502
+        return jsonify({"ipfs_hash": response.json().get("IpfsHash")})
+    except Exception:
+        return jsonify({"error": "IPFS upload failed"}), 502
+
+@app.route("/api/ipfs/upload-json", methods=["POST"])
+@csrf.exempt
+@limiter.limit("30 per hour")
+def ipfs_upload_json():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "No JSON provided"}), 400
+    try:
+        headers = {
+            "pinata_api_key": PINATA_API_KEY,
+            "pinata_secret_api_key": PINATA_SECRET_KEY,
+            "Content-Type": "application/json"
+        }
+        response = requests.post(
+            "https://api.pinata.cloud/pinning/pinJSONToIPFS",
+            json=data, headers=headers, timeout=30
+        )
+        if response.status_code != 200:
+            return jsonify({"error": "IPFS upload failed"}), 502
+        return jsonify({"ipfs_hash": response.json().get("IpfsHash")})
+    except Exception:
+        return jsonify({"error": "IPFS upload failed"}), 502
+
 @app.route("/nft-image/<filename>")
 def serve_nft_image(filename):
     safe_name = secure_filename(filename)
@@ -542,24 +617,24 @@ def api_paper_price():
         return jsonify({"error": "Price unavailable"}), 503
     return jsonify({"symbol": symbol, "price": price})
 
+
 @app.route("/api/paper/klines")
 @limiter.limit("60 per minute")
 def api_paper_klines():
     symbol = request.args.get("symbol", "").strip().upper()
-    interval = request.args.get("interval", "1m").strip()
-    if symbol not in paper_trading.SYMBOL_TO_COINGECKO:
+    if symbol not in ("BTC", "ETH"):
         return jsonify({"error": "Unsupported symbol"}), 400
-    candles = paper_trading.get_klines(symbol, interval=interval)
+    candles = paper_trading.get_klines(symbol)
     if candles is None:
-        return jsonify({"error": "Klines unavailable"}), 503
-    return jsonify({"candles": candles})
+        return jsonify({"error": "Chart data unavailable"}), 503
+    return jsonify({"symbol": symbol, "candles": candles})
 
 
 @app.route("/api/paper/live-price")
 @limiter.limit("120 per minute")
 def api_paper_live_price():
     symbol = request.args.get("symbol", "").strip().upper()
-    if symbol not in paper_trading.SYMBOL_TO_COINGECKO:
+    if symbol not in ("BTC", "ETH"):
         return jsonify({"error": "Unsupported symbol"}), 400
     price = paper_trading.get_live_ticker_price(symbol)
     if price is None:
@@ -721,6 +796,106 @@ def api_paper_dismiss_alert(alert_id):
     result, status = paper_trading.dismiss_alert(wallet, alert_id)
     return jsonify(result), status
 
+
+def is_valid_address(addr):
+    if not addr or len(addr) != 42 or not addr.startswith("0x"):
+        return False
+    try:
+        int(addr[2:], 16)
+        return True
+    except ValueError:
+        return False
+
+
+def build_chat_signed_message(text, timestamp):
+    return f"SGMHub Chat\n{text}\nTimestamp: {timestamp}"
+
+
+def verify_chat_signature(address, text, timestamp, signature):
+    try:
+        message_text = build_chat_signed_message(text, timestamp)
+        encoded = encode_defunct(text=message_text)
+        recovered = Account.recover_message(encoded, signature=signature)
+        return recovered.lower() == address.lower()
+    except Exception:
+        return False
+
+
+@app.route("/api/chat/messages", methods=["GET"])
+@limiter.limit("120 per minute")
+def api_chat_get_messages():
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT address, display_name, text, created_at FROM chat_messages ORDER BY id DESC LIMIT 200"
+    ).fetchall()
+    conn.close()
+    messages = [
+        {
+            "address": row["address"],
+            "display_name": row["display_name"],
+            "text": row["text"],
+            "created_at": row["created_at"]
+        }
+        for row in reversed(rows)
+    ]
+    return jsonify({"messages": messages})
+
+
+@app.route("/api/chat/messages", methods=["POST"])
+@csrf.exempt
+@limiter.limit("15 per minute")
+def api_chat_post_message():
+    data = request.get_json(silent=True) or {}
+    address = (data.get("address") or "").strip()
+    display_name = (data.get("display_name") or "").strip()
+    text = (data.get("text") or "").strip()
+    signature = (data.get("signature") or "").strip()
+    timestamp = (data.get("timestamp") or "").strip()
+
+    if not is_valid_address(address):
+        return jsonify({"error": "Invalid wallet address"}), 400
+    if not display_name:
+        display_name = address[:6] + "..." + address[-4:]
+    if not text:
+        return jsonify({"error": "Message is empty"}), 400
+    if len(text) > 700:
+        return jsonify({"error": "Message is too long"}), 400
+    word_count = len(text.split())
+    if word_count > 100:
+        return jsonify({"error": "Message must be 100 words or fewer"}), 400
+    if not signature or not timestamp:
+        return jsonify({"error": "Missing signature"}), 400
+
+    try:
+        timestamp_ms = int(timestamp)
+    except ValueError:
+        return jsonify({"error": "Invalid timestamp"}), 400
+    now_ms = int(datetime.datetime.utcnow().timestamp() * 1000)
+    if abs(now_ms - timestamp_ms) > 5 * 60 * 1000:
+        return jsonify({"error": "Signature expired, please try again"}), 400
+
+    if not verify_chat_signature(address, text, timestamp, signature):
+        return jsonify({"error": "Invalid signature"}), 400
+
+    created_at = datetime.datetime.utcnow().isoformat()
+    conn = get_db()
+    try:
+        conn.execute(
+            "INSERT INTO chat_messages (address, display_name, text, signature, signed_timestamp, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (address.lower(), display_name, text, signature, timestamp, created_at)
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        conn.close()
+        return jsonify({"error": "Duplicate message"}), 400
+    conn.close()
+
+    return jsonify({
+        "address": address.lower(),
+        "display_name": display_name,
+        "text": text,
+        "created_at": created_at
+    })
 
 
 @app.errorhandler(429)
