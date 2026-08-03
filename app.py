@@ -858,11 +858,8 @@ def api_chat_post_message():
         display_name = address[:6] + "..." + address[-4:]
     if not text:
         return jsonify({"error": "Message is empty"}), 400
-    if len(text) > 700:
-        return jsonify({"error": "Message is too long"}), 400
-    word_count = len(text.split())
-    if word_count > 100:
-        return jsonify({"error": "Message must be 100 words or fewer"}), 400
+    if len(text) > 300:
+        return jsonify({"error": "Message must be 300 characters or fewer"}), 400
     if not signature or not timestamp:
         return jsonify({"error": "Missing signature"}), 400
 
