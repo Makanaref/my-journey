@@ -879,6 +879,9 @@
         .chat-blob.chat-shrink:hover {
             transform: scale(0.34);
         }
+        .chat-blob.chat-open.chat-shrink {
+            transform: none;
+        }
 
         .chat-badge {
             display: none;
@@ -1395,18 +1398,25 @@
             });
         }
 
-        function chatToggle(e) {
-            const blob = document.getElementById("chatBlob");
-            if (blob.classList.contains("chat-open")) return;
-            const sgmWidget = document.getElementById("sgm-claim-widget");
-            if (sgmWidget && sgmWidget.classList.contains("sgm-open")) {
-                sgmWidget.classList.remove("sgm-open");
-            }
+        function chatOpenNow(blob) {
             blob.classList.add("chat-open");
-            e.stopPropagation();
             chatFetchMessages();
             chatPollTimer = setInterval(chatFetchMessages, 6000);
             chatMarkRepliesSeen();
+        }
+
+        function chatToggle(e) {
+            const blob = document.getElementById("chatBlob");
+            if (blob.classList.contains("chat-open")) return;
+            e.stopPropagation();
+            const sgmWidget = document.getElementById("sgm-claim-widget");
+            if (sgmWidget && sgmWidget.classList.contains("sgm-open")) {
+                sgmWidget.classList.remove("sgm-open");
+                blob.classList.remove("chat-shrink");
+                setTimeout(() => chatOpenNow(blob), 380);
+                return;
+            }
+            chatOpenNow(blob);
         }
 
         function chatClose(e) {
