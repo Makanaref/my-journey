@@ -531,6 +531,10 @@
             return;
         }
         if (!widget.classList.contains('sgm-open')) {
+            const chatBlob = document.getElementById('chatBlob');
+            if (chatBlob && chatBlob.classList.contains('chat-open') && typeof chatClose === 'function') {
+                chatClose(null);
+            }
             widget.classList.add('sgm-open');
             e.stopPropagation();
         }
