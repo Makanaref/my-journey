@@ -494,11 +494,21 @@
 <script>
     const MARKETPLACE_ADDRESSES = {
         base:      "0x4cb8B00F8e37aA7e7f41c9d358070cC85B7B146e",
+        optimism:  "0x973a8F9063FF21DC2643aCb5105db437F1b97F1b",
+        zetachain: "0xF81Ed85B5E6Cb9d66350aE9E5A6E424b6da6e017",
+        nexus:     "0x24161AfF13B5c8D81BD49BD75e4FF026cd099485",
+        ink:       "0x49e20Fe256DDffC8247B3e02CAFdF91051b19Ad9",
+        robinhood: "0xeC1157D5A3d6F05e6C6D0da38E3F0E2401688696",
+        plume:     ""
+    };
+
+    const OLD_MARKETPLACE_ADDRESSES = {
+        base:      "",
         optimism:  "0x47bF3beEa8AF1B6E69A02f0a8014dC0f29aA4236",
         zetachain: "0x7f33d74c4B10bCF49B4CD9E668270eE01834AC98",
         nexus:     "0x2176d8338f55b2c31382FdD92121cf707bD4A0Bb",
         ink:       "0x6A58bCa51905c73071cC6462380B2f82E2c75962",
-        robinhood: "0xeC1157D5A3d6F05e6C6D0da38E3F0E2401688696",
+        robinhood: "",
         plume:     ""
     };
 
@@ -532,7 +542,7 @@
         "function nameOf(address holder) public view returns (string)"
     ];
 
-    let provider, signer, account, marketplaceContract, currentNet = null, sellMode = "single";
+    let provider, signer, account, marketplaceContract, oldMarketplaceContract, currentNet = null, sellMode = "single";
 
     function resolveUri(uri) {
         if (!uri) return null;
@@ -545,9 +555,7 @@
         try {
             const nft = new ethers.Contract(nftContract, ERC721_ABI, provider);
             let uri = await nft.tokenURI(tokenId);
-            console.log("tokenURI raw:", uri);
             uri = resolveUri(uri);
-            console.log("tokenURI resolved:", uri);
             if (!uri) return { name: null, image: null };
             let meta;
             if (uri.startsWith("data:application/json;base64,")) {
@@ -556,7 +564,6 @@
                 const res = await fetch(uri);
                 meta = await res.json();
             }
-            console.log("metadata:", meta);
             return { name: meta.name || null, image: resolveUri(meta.image), description: meta.description || null };
         } catch (err) {
             console.error("fetchNftMetadata error:", err);
@@ -605,6 +612,9 @@
             provider = new ethers.BrowserProvider(window.ethereum);
             signer = await provider.getSigner();
             marketplaceContract = new ethers.Contract(MARKETPLACE_ADDRESSES[net], MARKETPLACE_ABI, signer);
+            oldMarketplaceContract = OLD_MARKETPLACE_ADDRESSES[net]
+                ? new ethers.Contract(OLD_MARKETPLACE_ADDRESSES[net], MARKETPLACE_ABI, signer)
+                : null;
             document.getElementById("marketplace-tabs").style.display = "block";
             await loadListings();
         } catch (err) {
@@ -629,6 +639,33 @@
         document.getElementById("approve-btn").innerText = "1. Approve marketplace";
     }
 
+    async function fetchListingsFromContract(contract, source) {
+        if (!contract) return [];
+        const total = await contract.nextListingId();
+        const items = [];
+        for (let i = 1; i <= Number(total); i++) {
+            const listing = await contract.getListing(i);
+            if (listing.active) {
+                items.push({
+                    id: i,
+                    source: source,
+                    key: source + "-" + i,
+                    seller: listing.seller,
+                    nftContract: listing.nftContract,
+                    tokenId: listing.tokenId,
+                    price: listing.price,
+                    active: listing.active,
+                    supportFee: listing.supportFee
+                });
+            }
+        }
+        return items;
+    }
+
+    function contractForSource(source) {
+        return source === "old" ? oldMarketplaceContract : marketplaceContract;
+    }
+
     let loadListingsToken = 0;
     async function loadListings() {
         if (!marketplaceContract) return;
@@ -640,22 +677,11 @@
         gridEl.innerHTML = "";
         statusEl.innerText = "Loading listings...";
         try {
-            const total = await marketplaceContract.nextListingId();
-            const items = [];
-            for (let i = 1; i <= Number(total); i++) {
-                const listing = await marketplaceContract.getListing(i);
-                if (listing.active) {
-                    items.push({
-                        id: i,
-                        seller: listing.seller,
-                        nftContract: listing.nftContract,
-                        tokenId: listing.tokenId,
-                        price: listing.price,
-                        active: listing.active,
-                        supportFee: listing.supportFee
-                    });
-                }
-            }
+            const [newItems, oldItems] = await Promise.all([
+                fetchListingsFromContract(marketplaceContract, "new"),
+                fetchListingsFromContract(oldMarketplaceContract, "old")
+            ]);
+            const items = newItems.concat(oldItems);
             if (myToken !== loadListingsToken || activeNet !== currentNet) return;
             if (items.length === 0) {
                 statusEl.innerText = "No active listings on this network yet.";
@@ -668,12 +694,12 @@
                 card.className = "listing-card";
                 card.innerHTML = `
                     <div class="listing-img-wrap">
-                        <div class="listing-img-skeleton" id="img-skel-${item.id}"></div>
-                        <img class="listing-img" id="img-${item.id}" style="display:none;" alt="NFT" />
+                        <div class="listing-img-skeleton" id="img-skel-${item.key}"></div>
+                        <img class="listing-img" id="img-${item.key}" style="display:none;" alt="NFT" />
                         <div class="qty-badge">1</div>
                     </div>
                     <div class="listing-body">
-                        <div class="listing-name" id="name-${item.id}">#${item.tokenId}</div>
+                        <div class="listing-name" id="name-${item.key}">#${item.tokenId}</div>
                         <div class="listing-contract">${item.nftContract.slice(0,6)}...${item.nftContract.slice(-4)}</div>
                         <div class="listing-price-row">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="opacity:0.7;">
@@ -683,27 +709,27 @@
                             <span class="price-symbol">${NETWORKS[currentNet].nativeCurrency.symbol}</span>
                         </div>
                         ${item.seller.toLowerCase() === account.toLowerCase()
-                            ? `<button class="btn cancel-btn" onclick="cancelListing(${item.id})">Cancel listing</button>`
-                            : `<button class="btn buy-btn" onclick="buyListing(${item.id})">Buy now</button>`}
-                        <button class="info-toggle" onclick="toggleInfo(${item.id})">
+                            ? `<button class="btn cancel-btn" onclick="cancelListing('${item.source}', ${item.id})">Cancel listing</button>`
+                            : `<button class="btn buy-btn" onclick="buyListing('${item.source}', ${item.id})">Buy now</button>`}
+                        <button class="info-toggle" onclick="toggleInfo('${item.key}')">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 11v5M12 8v.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                             NFT info
                         </button>
-                        <div class="info-panel" id="info-panel-${item.id}">
-                            <div class="info-desc" id="info-desc-${item.id}" style="display:none;"></div>
+                        <div class="info-panel" id="info-panel-${item.key}">
+                            <div class="info-desc" id="info-desc-${item.key}" style="display:none;"></div>
                             <div class="info-row"><span>Contract</span><span>${item.nftContract.slice(0,8)}...${item.nftContract.slice(-6)}</span></div>
                             <div class="info-row"><span>Token ID</span><span>#${item.tokenId}</span></div>
                             <div class="info-row"><span>Network</span><span>${NETWORKS[currentNet].chainName}</span></div>
-                            <div class="info-row"><span>Seller</span><span id="seller-${item.id}">${item.seller.slice(0,8)}...${item.seller.slice(-6)}</span></div>
-                            <div class="info-row"><span>Total supply</span><span id="info-supply-${item.id}">Loading...</span></div>
+                            <div class="info-row"><span>Seller</span><span id="seller-${item.key}">${item.seller.slice(0,8)}...${item.seller.slice(-6)}</span></div>
+                            <div class="info-row"><span>Total supply</span><span id="info-supply-${item.key}">Loading...</span></div>
                             <a class="info-explorer-link" href="${getExplorerUrl(item.nftContract, item.tokenId) || '#'}" target="_blank" rel="noopener">View on Explorer ↗</a>
                         </div>
                     </div>
                 `;
                 gridEl.appendChild(card);
                 fetchNftMetadata(item.nftContract, item.tokenId).then(meta => {
-                    const skel = document.getElementById("img-skel-" + item.id);
-                    const imgEl = document.getElementById("img-" + item.id);
+                    const skel = document.getElementById("img-skel-" + item.key);
+                    const imgEl = document.getElementById("img-" + item.key);
                     if (meta.image) {
                         imgEl.src = meta.image;
                         imgEl.onload = () => { skel.style.display = "none"; imgEl.style.display = "block"; };
@@ -711,20 +737,20 @@
                     } else {
                         skel.innerText = "🖼️";
                     }
-                    if (meta.name) document.getElementById("name-" + item.id).innerText = meta.name;
+                    if (meta.name) document.getElementById("name-" + item.key).innerText = meta.name;
                     if (meta.description) {
-                        const descEl = document.getElementById("info-desc-" + item.id);
+                        const descEl = document.getElementById("info-desc-" + item.key);
                         descEl.innerText = meta.description;
                         descEl.style.display = "block";
                     }
                 });
                 fetchTotalSupply(item.nftContract).then(total => {
-                    const el = document.getElementById("info-supply-" + item.id);
+                    const el = document.getElementById("info-supply-" + item.key);
                     if (el) el.innerText = total || "Unknown";
                 });
                 resolveSellerName(item.seller, activeNet, activeProvider).then(domain => {
                     if (myToken !== loadListingsToken) return;
-                    const el = document.getElementById("seller-" + item.id);
+                    const el = document.getElementById("seller-" + item.key);
                     if (el && domain) el.innerText = domain;
                 });
             });
@@ -753,14 +779,15 @@
         }
     }
 
-    function toggleInfo(id) {
-        const panel = document.getElementById("info-panel-" + id);
+    function toggleInfo(key) {
+        const panel = document.getElementById("info-panel-" + key);
         panel.classList.toggle("open");
     }
-    async function cancelListing(listingId) {
+    async function cancelListing(source, listingId) {
         if (!confirm("Cancel this listing? Your NFT will stay in your wallet.")) return;
         try {
-            const tx = await marketplaceContract.cancelListing(listingId);
+            const contract = contractForSource(source);
+            const tx = await contract.cancelListing(listingId);
             await tx.wait();
             alert("Listing cancelled!");
             loadListings();
@@ -768,10 +795,11 @@
             alert(getFriendlyError(err));
         }
     }
-    async function buyListing(listingId) {
+    async function buyListing(source, listingId) {
         try {
-            const listing = await marketplaceContract.getListing(listingId);
-            const tx = await marketplaceContract.buyItem(listingId, { value: listing.price });
+            const contract = contractForSource(source);
+            const listing = await contract.getListing(listingId);
+            const tx = await contract.buyItem(listingId, { value: listing.price });
             await tx.wait();
             alert("Purchase successful!");
             loadListings();
@@ -819,15 +847,25 @@
                 }
 
                 tx = await marketplaceContract.listItem(contractAddr, tokenId, ethers.parseEther(price), supportFee);
+                await tx.wait();
             } else {
                 const ids = document.getElementById("sell-token-ids").value.split(",").map(s => s.trim()).filter(Boolean);
                 const price = document.getElementById("sell-price-collection").value.trim();
                 if (ids.length === 0 || !price) { alert("Fill in token IDs and price."); return; }
                 const priceWei = ethers.parseEther(price);
                 const prices = ids.map(() => priceWei);
+
+                try {
+                    await marketplaceContract.listCollection.staticCall(contractAddr, ids, prices, supportFee);
+                } catch (simErr) {
+                    console.error("SIMULATION REVERT REASON:", simErr.reason || simErr.shortMessage || simErr.info || simErr);
+                    document.getElementById("sell-status").innerText = "Simulation failed: " + (simErr.reason || simErr.shortMessage || "see console");
+                    return;
+                }
+
                 tx = await marketplaceContract.listCollection(contractAddr, ids, prices, supportFee);
+                await tx.wait();
             }
-            await tx.wait();
             document.getElementById("sell-status").innerText = "Listed successfully!";
             showTab("browse");
             loadListings();
