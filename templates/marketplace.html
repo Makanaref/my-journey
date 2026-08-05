@@ -54,7 +54,6 @@
             <button class="tab-btn" id="tab-sell" onclick="showTab('sell')">Sell an NFT</button>
         </div>
 
-        <!-- BROWSE TAB -->
         <div id="panel-browse">
             <div style="text-align:center; margin-bottom:16px;">
                 <button class="btn" onclick="loadListings()">Refresh listings</button>
@@ -63,7 +62,6 @@
             <div id="listings-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:20px; align-items:start;"></div>
         </div>
 
-        <!-- SELL TAB -->
         <div id="panel-sell" style="display:none;">
             <div class="sell-card">
                 <div class="sell-mode-switch">
@@ -359,6 +357,13 @@
         object-fit: cover;
         display: block;
     }
+    .listing-frame {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+        pointer-events: none;
+    }
     .listing-img-skeleton {
         width: 100%;
         height: 100%;
@@ -382,6 +387,18 @@
         padding: 2px 8px;
         border-radius: 10px;
         border: 1px solid rgba(255,255,255,0.15);
+    }
+    .live-badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        background: rgba(126,200,227,0.85);
+        color: #0f1420;
+        font-size: 0.68em;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 10px;
+        letter-spacing: 0.4px;
     }
     @keyframes shimmer {
         to { background-position-x: -200%; }
@@ -556,7 +573,7 @@
             const nft = new ethers.Contract(nftContract, ERC721_ABI, provider);
             let uri = await nft.tokenURI(tokenId);
             uri = resolveUri(uri);
-            if (!uri) return { name: null, image: null };
+            if (!uri) return { name: null, image: null, animationUrl: null, description: null };
             let meta;
             if (uri.startsWith("data:application/json;base64,")) {
                 meta = JSON.parse(atob(uri.split(",")[1]));
@@ -564,10 +581,15 @@
                 const res = await fetch(uri);
                 meta = await res.json();
             }
-            return { name: meta.name || null, image: resolveUri(meta.image), description: meta.description || null };
+            return {
+                name: meta.name || null,
+                image: resolveUri(meta.image),
+                animationUrl: resolveUri(meta.animation_url),
+                description: meta.description || null
+            };
         } catch (err) {
             console.error("fetchNftMetadata error:", err);
-            return { name: null, image: null, description: null };
+            return { name: null, image: null, animationUrl: null, description: null };
         }
     }
 
@@ -696,6 +718,7 @@
                     <div class="listing-img-wrap">
                         <div class="listing-img-skeleton" id="img-skel-${item.key}"></div>
                         <img class="listing-img" id="img-${item.key}" style="display:none;" alt="NFT" />
+                        <iframe class="listing-frame" id="frame-${item.key}" style="display:none;" sandbox="allow-scripts" scrolling="no"></iframe>
                         <div class="qty-badge">1</div>
                     </div>
                     <div class="listing-body">
@@ -730,7 +753,22 @@
                 fetchNftMetadata(item.nftContract, item.tokenId).then(meta => {
                     const skel = document.getElementById("img-skel-" + item.key);
                     const imgEl = document.getElementById("img-" + item.key);
-                    if (meta.image) {
+                    const frameEl = document.getElementById("frame-" + item.key);
+                    const wrapEl = frameEl ? frameEl.closest(".listing-img-wrap") : null;
+                    if (meta.animationUrl) {
+                        frameEl.src = meta.animationUrl;
+                        frameEl.onload = () => {
+                            skel.style.display = "none";
+                            frameEl.style.display = "block";
+                            if (wrapEl) {
+                                const badge = document.createElement("div");
+                                badge.className = "live-badge";
+                                badge.innerText = "LIVE";
+                                wrapEl.appendChild(badge);
+                            }
+                        };
+                        frameEl.onerror = () => { skel.innerText = "🖼️"; };
+                    } else if (meta.image) {
                         imgEl.src = meta.image;
                         imgEl.onload = () => { skel.style.display = "none"; imgEl.style.display = "block"; };
                         imgEl.onerror = () => { skel.innerText = "🖼️"; };
