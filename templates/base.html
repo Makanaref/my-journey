@@ -490,15 +490,21 @@
         }
         .hamburger:active { background: rgba(233,69,96,0.15); }
 
-        .content {
-            animation: fadeIn 0.4s ease-in;
-            flex: 1;
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px 16px;
-            padding-bottom: calc(20px + env(safe-area-inset-bottom));
-        }
+        .page-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
+    animation: fadeIn 0.4s ease-in;
+}
+.content {
+    flex: 1;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+}
         @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         h1 { color: #e94560; font-size: clamp(1.8em, 6vw, 2.8em); margin-bottom: 16px; line-height: 1.2; }
         h2 { color: #e94560; font-size: clamp(1.2em, 4vw, 1.6em); }
@@ -1167,6 +1173,7 @@
     </style>
 </head>
 <body id="body">
+    <div class="page-wrapper">
     <nav id="navbar">
         <a href="/" class="logo-wrapper">
             <span class="logo-icon-container">
@@ -1284,7 +1291,7 @@
             </a>
         </div>
     </footer>
-
+    </div>
     <div class="chat-launcher">
         <div class="chat-blob" id="chatBlob" onclick="chatToggle(event)">
             <span class="chat-blob-icon"><i class="fas fa-comment-dots"></i></span>
