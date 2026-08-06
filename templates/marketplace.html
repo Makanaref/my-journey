@@ -59,7 +59,18 @@
                 <button class="btn" onclick="loadListings()">Refresh listings</button>
             </div>
             <div id="listings-status" style="text-align:center; color:#999; margin-bottom:16px;"></div>
-            <div id="listings-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:20px; align-items:start;"></div>
+
+            <div id="browse-grid-view">
+                <div id="listings-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:20px; align-items:start;"></div>
+            </div>
+
+            <div id="collection-detail-view" style="display:none;">
+                <div style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
+                    <button class="btn cancel-btn" style="width:auto; padding:8px 16px;" onclick="closeCollectionView()">← Back</button>
+                    <div id="collection-detail-title" style="font-weight:600; font-size:1.05em;"></div>
+                </div>
+                <div id="collection-detail-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:20px; align-items:start;"></div>
+            </div>
         </div>
 
         <div id="panel-sell" style="display:none;">
@@ -560,6 +571,7 @@
     ];
 
     let provider, signer, account, marketplaceContract, oldMarketplaceContract, currentNet = null, sellMode = "single";
+    let allListingItems = [];
 
     function resolveUri(uri) {
         if (!uri) return null;
@@ -638,6 +650,7 @@
                 ? new ethers.Contract(OLD_MARKETPLACE_ADDRESSES[net], MARKETPLACE_ABI, signer)
                 : null;
             document.getElementById("marketplace-tabs").style.display = "block";
+            showGroupedView();
             await loadListings();
         } catch (err) {
             alert(getFriendlyError(err));
@@ -688,6 +701,135 @@
         return source === "old" ? oldMarketplaceContract : marketplaceContract;
     }
 
+    function groupListingsByContract(items) {
+        const map = new Map();
+        items.forEach(item => {
+            const key = item.nftContract.toLowerCase();
+            if (!map.has(key)) map.set(key, []);
+            map.get(key).push(item);
+        });
+        return map;
+    }
+
+    function buildListingCardHtml(item, opts) {
+        const priceEth = ethers.formatEther(item.price);
+        const qty = opts.qty || 1;
+        const isSummary = !!opts.isCollectionSummary;
+        const actionHtml = isSummary
+            ? `<button class="btn buy-btn" onclick="openCollection('${item.nftContract}')">Open Collection</button>`
+            : (item.seller.toLowerCase() === account.toLowerCase()
+                ? `<button class="btn cancel-btn" onclick="cancelListing('${item.source}', ${item.id})">Cancel listing</button>`
+                : `<button class="btn buy-btn" onclick="buyListing('${item.source}', ${item.id})">Buy now</button>`);
+        const infoHtml = isSummary ? "" : `
+            <button class="info-toggle" onclick="toggleInfo('${item.key}')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 11v5M12 8v.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                NFT info
+            </button>
+            <div class="info-panel" id="info-panel-${item.key}">
+                <div class="info-desc" id="info-desc-${item.key}" style="display:none;"></div>
+                <div class="info-row"><span>Contract</span><span>${item.nftContract.slice(0,8)}...${item.nftContract.slice(-6)}</span></div>
+                <div class="info-row"><span>Token ID</span><span>#${item.tokenId}</span></div>
+                <div class="info-row"><span>Network</span><span>${NETWORKS[currentNet].chainName}</span></div>
+                <div class="info-row"><span>Seller</span><span id="seller-${item.key}">${item.seller.slice(0,8)}...${item.seller.slice(-6)}</span></div>
+                <div class="info-row"><span>Total supply</span><span id="info-supply-${item.key}">Loading...</span></div>
+                <a class="info-explorer-link" href="${getExplorerUrl(item.nftContract, item.tokenId) || '#'}" target="_blank" rel="noopener">View on Explorer ↗</a>
+            </div>`;
+        return `
+            <div class="listing-card">
+                <div class="listing-img-wrap">
+                    <div class="listing-img-skeleton" id="img-skel-${item.key}"></div>
+                    <img class="listing-img" id="img-${item.key}" style="display:none;" alt="NFT" />
+                    <iframe class="listing-frame" id="frame-${item.key}" style="display:none;" sandbox="allow-scripts" scrolling="no"></iframe>
+                    <div class="qty-badge">${qty}</div>
+                </div>
+                <div class="listing-body">
+                    <div class="listing-name" id="name-${item.key}" ${isSummary ? 'data-summary="1"' : ''}>${isSummary ? qty + " listed" : "#" + item.tokenId}</div>
+                    <div class="listing-contract">${item.nftContract.slice(0,6)}...${item.nftContract.slice(-4)}</div>
+                    <div class="listing-price-row">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="opacity:0.7;">
+                            <path d="M12 2L4 12l8 10 8-10-8-10z" stroke="#c9c9c9" stroke-width="1.4" fill="rgba(255,255,255,0.06)"/>
+                        </svg>
+                        <span class="price">${isSummary ? "from " + priceEth : priceEth}</span>
+                        <span class="price-symbol">${NETWORKS[currentNet].nativeCurrency.symbol}</span>
+                    </div>
+                    ${actionHtml}
+                    ${infoHtml}
+                </div>
+            </div>
+        `;
+    }
+
+    function attachCardBehaviors(item, activeNet, activeProvider, token) {
+        fetchNftMetadata(item.nftContract, item.tokenId).then(meta => {
+            const skel = document.getElementById("img-skel-" + item.key);
+            const imgEl = document.getElementById("img-" + item.key);
+            const frameEl = document.getElementById("frame-" + item.key);
+            const wrapEl = frameEl ? frameEl.closest(".listing-img-wrap") : null;
+            if (!skel) return;
+            if (meta.animationUrl) {
+                frameEl.src = meta.animationUrl;
+                frameEl.onload = () => {
+                    skel.style.display = "none";
+                    frameEl.style.display = "block";
+                    if (wrapEl) {
+                        const badge = document.createElement("div");
+                        badge.className = "live-badge";
+                        badge.innerText = "LIVE";
+                        wrapEl.appendChild(badge);
+                    }
+                };
+                frameEl.onerror = () => { skel.innerText = "🖼️"; };
+            } else if (meta.image) {
+                imgEl.src = meta.image;
+                imgEl.onload = () => { skel.style.display = "none"; imgEl.style.display = "block"; };
+                imgEl.onerror = () => { skel.innerText = "🖼️"; };
+            } else {
+                skel.innerText = "🖼️";
+            }
+            const nameEl = document.getElementById("name-" + item.key);
+            if (meta.name && nameEl && !nameEl.dataset.summary) nameEl.innerText = meta.name;
+            if (meta.description) {
+                const descEl = document.getElementById("info-desc-" + item.key);
+                if (descEl) { descEl.innerText = meta.description; descEl.style.display = "block"; }
+            }
+        });
+        fetchTotalSupply(item.nftContract).then(total => {
+            const el = document.getElementById("info-supply-" + item.key);
+            if (el) el.innerText = total || "Unknown";
+        });
+        resolveSellerName(item.seller, activeNet, activeProvider).then(domain => {
+            if (token !== loadListingsToken) return;
+            const el = document.getElementById("seller-" + item.key);
+            if (el && domain) el.innerText = domain;
+        });
+    }
+
+    function showGroupedView() {
+        document.getElementById("collection-detail-view").style.display = "none";
+        document.getElementById("browse-grid-view").style.display = "block";
+    }
+
+    function closeCollectionView() {
+        showGroupedView();
+    }
+
+    function openCollection(nftContract) {
+        const key = nftContract.toLowerCase();
+        const items = allListingItems.filter(i => i.nftContract.toLowerCase() === key);
+        const grid = document.getElementById("collection-detail-grid");
+        grid.innerHTML = "";
+        document.getElementById("collection-detail-title").innerText =
+            nftContract.slice(0, 6) + "..." + nftContract.slice(-4) + " — " + items.length + " listed";
+        items.forEach(item => {
+            const wrapper = document.createElement("div");
+            wrapper.innerHTML = buildListingCardHtml(item, { qty: 1, isCollectionSummary: false });
+            grid.appendChild(wrapper.firstElementChild);
+            attachCardBehaviors(item, currentNet, provider, loadListingsToken);
+        });
+        document.getElementById("browse-grid-view").style.display = "none";
+        document.getElementById("collection-detail-view").style.display = "block";
+    }
+
     let loadListingsToken = 0;
     async function loadListings() {
         if (!marketplaceContract) return;
@@ -698,6 +840,7 @@
         const gridEl = document.getElementById("listings-grid");
         gridEl.innerHTML = "";
         statusEl.innerText = "Loading listings...";
+        showGroupedView();
         try {
             const [newItems, oldItems] = await Promise.all([
                 fetchListingsFromContract(marketplaceContract, "new"),
@@ -705,92 +848,20 @@
             ]);
             const items = newItems.concat(oldItems);
             if (myToken !== loadListingsToken || activeNet !== currentNet) return;
+            allListingItems = items;
             if (items.length === 0) {
                 statusEl.innerText = "No active listings on this network yet.";
                 return;
             }
             statusEl.innerText = "";
-            items.forEach(item => {
-                const priceEth = ethers.formatEther(item.price);
-                const card = document.createElement("div");
-                card.className = "listing-card";
-                card.innerHTML = `
-                    <div class="listing-img-wrap">
-                        <div class="listing-img-skeleton" id="img-skel-${item.key}"></div>
-                        <img class="listing-img" id="img-${item.key}" style="display:none;" alt="NFT" />
-                        <iframe class="listing-frame" id="frame-${item.key}" style="display:none;" sandbox="allow-scripts" scrolling="no"></iframe>
-                        <div class="qty-badge">1</div>
-                    </div>
-                    <div class="listing-body">
-                        <div class="listing-name" id="name-${item.key}">#${item.tokenId}</div>
-                        <div class="listing-contract">${item.nftContract.slice(0,6)}...${item.nftContract.slice(-4)}</div>
-                        <div class="listing-price-row">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="opacity:0.7;">
-                                <path d="M12 2L4 12l8 10 8-10-8-10z" stroke="#c9c9c9" stroke-width="1.4" fill="rgba(255,255,255,0.06)"/>
-                            </svg>
-                            <span class="price">${priceEth}</span>
-                            <span class="price-symbol">${NETWORKS[currentNet].nativeCurrency.symbol}</span>
-                        </div>
-                        ${item.seller.toLowerCase() === account.toLowerCase()
-                            ? `<button class="btn cancel-btn" onclick="cancelListing('${item.source}', ${item.id})">Cancel listing</button>`
-                            : `<button class="btn buy-btn" onclick="buyListing('${item.source}', ${item.id})">Buy now</button>`}
-                        <button class="info-toggle" onclick="toggleInfo('${item.key}')">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 11v5M12 8v.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                            NFT info
-                        </button>
-                        <div class="info-panel" id="info-panel-${item.key}">
-                            <div class="info-desc" id="info-desc-${item.key}" style="display:none;"></div>
-                            <div class="info-row"><span>Contract</span><span>${item.nftContract.slice(0,8)}...${item.nftContract.slice(-6)}</span></div>
-                            <div class="info-row"><span>Token ID</span><span>#${item.tokenId}</span></div>
-                            <div class="info-row"><span>Network</span><span>${NETWORKS[currentNet].chainName}</span></div>
-                            <div class="info-row"><span>Seller</span><span id="seller-${item.key}">${item.seller.slice(0,8)}...${item.seller.slice(-6)}</span></div>
-                            <div class="info-row"><span>Total supply</span><span id="info-supply-${item.key}">Loading...</span></div>
-                            <a class="info-explorer-link" href="${getExplorerUrl(item.nftContract, item.tokenId) || '#'}" target="_blank" rel="noopener">View on Explorer ↗</a>
-                        </div>
-                    </div>
-                `;
-                gridEl.appendChild(card);
-                fetchNftMetadata(item.nftContract, item.tokenId).then(meta => {
-                    const skel = document.getElementById("img-skel-" + item.key);
-                    const imgEl = document.getElementById("img-" + item.key);
-                    const frameEl = document.getElementById("frame-" + item.key);
-                    const wrapEl = frameEl ? frameEl.closest(".listing-img-wrap") : null;
-                    if (meta.animationUrl) {
-                        frameEl.src = meta.animationUrl;
-                        frameEl.onload = () => {
-                            skel.style.display = "none";
-                            frameEl.style.display = "block";
-                            if (wrapEl) {
-                                const badge = document.createElement("div");
-                                badge.className = "live-badge";
-                                badge.innerText = "LIVE";
-                                wrapEl.appendChild(badge);
-                            }
-                        };
-                        frameEl.onerror = () => { skel.innerText = "🖼️"; };
-                    } else if (meta.image) {
-                        imgEl.src = meta.image;
-                        imgEl.onload = () => { skel.style.display = "none"; imgEl.style.display = "block"; };
-                        imgEl.onerror = () => { skel.innerText = "🖼️"; };
-                    } else {
-                        skel.innerText = "🖼️";
-                    }
-                    if (meta.name) document.getElementById("name-" + item.key).innerText = meta.name;
-                    if (meta.description) {
-                        const descEl = document.getElementById("info-desc-" + item.key);
-                        descEl.innerText = meta.description;
-                        descEl.style.display = "block";
-                    }
-                });
-                fetchTotalSupply(item.nftContract).then(total => {
-                    const el = document.getElementById("info-supply-" + item.key);
-                    if (el) el.innerText = total || "Unknown";
-                });
-                resolveSellerName(item.seller, activeNet, activeProvider).then(domain => {
-                    if (myToken !== loadListingsToken) return;
-                    const el = document.getElementById("seller-" + item.key);
-                    if (el && domain) el.innerText = domain;
-                });
+            const grouped = groupListingsByContract(items);
+            grouped.forEach(group => {
+                const representative = group[0];
+                const isSummary = group.length > 1;
+                const wrapper = document.createElement("div");
+                wrapper.innerHTML = buildListingCardHtml(representative, { qty: group.length, isCollectionSummary: isSummary });
+                gridEl.appendChild(wrapper.firstElementChild);
+                attachCardBehaviors(representative, activeNet, activeProvider, myToken);
             });
         } catch (err) {
             if (myToken !== loadListingsToken) return;
