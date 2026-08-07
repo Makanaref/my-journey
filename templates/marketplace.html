@@ -787,7 +787,7 @@
                 skel.innerText = "🖼️";
             }
             const nameEl = document.getElementById("name-" + item.key);
-            if (meta.name && nameEl) nameEl.innerText = meta.name + " (#" + item.tokenId + ")";
+            if (meta.name && nameEl) nameEl.innerText = meta.name;
             if (meta.description) {
                 const descEl = document.getElementById("info-desc-" + item.key);
                 if (descEl) { descEl.innerText = meta.description; descEl.style.display = "block"; }
