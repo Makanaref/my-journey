@@ -743,7 +743,7 @@
                     <div class="qty-badge">${qty}</div>
                 </div>
                 <div class="listing-body">
-                    <<div class="listing-name" id="name-${item.key}">#${item.tokenId}</div>
+                    <div class="listing-name" id="name-${item.key}">#${item.tokenId}</div>
                     <div class="listing-contract">${item.nftContract.slice(0,6)}...${item.nftContract.slice(-4)}</div>
                     <div class="listing-price-row">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="opacity:0.7;">
@@ -787,7 +787,7 @@
                 skel.innerText = "🖼️";
             }
             const nameEl = document.getElementById("name-" + item.key);
-            if (meta.name && nameEl) nameEl.innerText = meta.name;
+            if (meta.name && nameEl) nameEl.innerText = meta.name + " (#" + item.tokenId + ")";
             if (meta.description) {
                 const descEl = document.getElementById("info-desc-" + item.key);
                 if (descEl) { descEl.innerText = meta.description; descEl.style.display = "block"; }
