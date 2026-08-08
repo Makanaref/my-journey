@@ -161,7 +161,7 @@ def place_bid():
     conn = get_db()
     conn.execute(
         "INSERT INTO bids (network, nft_contract, token_id, bidder_address, amount, status, created_at) VALUES (?,?,?,?,?,?,?)",
-        (network, nft_contract.lower(), token_id, bidder_address.lower(), amount, "pending", datetime.datetime.utcnow().isoformat())
+        (network, nft_contract.lower(), token_id, bidder_address.lower(), amount, "pending", datetime.datetime.now(datetime.timezone.utc).isoformat()
     )
     conn.commit()
     conn.close()
@@ -500,7 +500,7 @@ def api_shorten():
     conn = get_db()
     conn.execute(
         "INSERT INTO short_links (code, target_url, created_at) VALUES (?, ?, ?)",
-        (code, target_url, datetime.datetime.utcnow().isoformat())
+        (code, target_url, datetime.datetime.now(datetime.timezone.utc).isoformat()
     )
     conn.commit()
     conn.close()
@@ -533,7 +533,7 @@ def api_contact():
     conn = get_db()
     conn.execute(
         "INSERT INTO messages (name, email, message, created_at, is_read) VALUES (?, ?, ?, ?, 0)",
-        (name, email, message, datetime.datetime.utcnow().isoformat())
+        (name, email, message, datetime.datetime.now(datetime.timezone.utc).isoformat()
     )
     conn.commit()
     conn.close()
