@@ -161,7 +161,7 @@ def place_bid():
     conn = get_db()
     conn.execute(
         "INSERT INTO bids (network, nft_contract, token_id, bidder_address, amount, status, created_at) VALUES (?,?,?,?,?,?,?)",
-        (network, nft_contract.lower(), token_id, bidder_address.lower(), amount, "pending", datetime.datetime.now(datetime.timezone.utc).isoformat()
+     (network, nft_contract.lower(), token_id, bidder_address.lower(), amount, "pending", datetime.datetime.now(datetime.timezone.utc).isoformat())
     )
     conn.commit()
     conn.close()
