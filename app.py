@@ -500,7 +500,7 @@ def api_shorten():
     conn = get_db()
     conn.execute(
         "INSERT INTO short_links (code, target_url, created_at) VALUES (?, ?, ?)",
-        (code, target_url, datetime.datetime.now(datetime.timezone.utc).isoformat()
+        (code, target_url, datetime.datetime.now(datetime.timezone.utc).isoformat())
     )
     conn.commit()
     conn.close()
@@ -533,7 +533,7 @@ def api_contact():
     conn = get_db()
     conn.execute(
         "INSERT INTO messages (name, email, message, created_at, is_read) VALUES (?, ?, ?, ?, 0)",
-        (name, email, message, datetime.datetime.now(datetime.timezone.utc).isoformat()
+        (name, email, message, datetime.datetime.now(datetime.timezone.utc).isoformat())
     )
     conn.commit()
     conn.close()
