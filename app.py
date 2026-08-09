@@ -31,7 +31,7 @@ app.secret_key = require_env("SECRET_KEY")
 csp = {
     'default-src': "'self'",
     'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-    'script-src': ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+    'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://binaries.soliditylang.org"],
     'img-src': ["'self'", "data:", "https:"],
     'font-src': ["'self'", "https:", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
     'connect-src': ["'self'", "https:"],
