@@ -6,6 +6,7 @@
     .deploy-header { text-align: center; margin-bottom: 32px; }
     .deploy-title { font-size: 2em; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
     .deploy-sub { color: #666; font-size: 0.9em; }
+    .deploy-sub-2 { color: #e94560; font-size: 0.78em; font-weight: 600; margin-top: 6px; letter-spacing: 0.3px; }
 
     .section-label { font-size: 0.72em; color: #666; text-transform: uppercase; letter-spacing: 1.5px; margin: 24px 0 10px; text-align: left; }
 
@@ -63,16 +64,111 @@
     .status-msg a { color: #e94560; text-decoration: none; font-weight: 600; }
     .status-msg a:hover { text-decoration: underline; }
 
-    .result-card { background: rgba(74,222,128,0.06); border: 1px solid rgba(74,222,128,0.25); border-radius: 14px; padding: 20px; margin-top: 20px; display: none; }
-    .result-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 0.85em; }
-    .result-label { color: #888; }
-    .result-value { font-family: monospace; color: #fff; }
+    .result-card {
+        position: relative;
+        background: linear-gradient(160deg, rgba(74,222,128,0.09), rgba(74,222,128,0.02));
+        border: 1px solid rgba(74,222,128,0.28);
+        border-radius: 18px;
+        padding: 26px 24px;
+        margin-top: 22px;
+        display: none;
+        overflow: hidden;
+        animation: resultPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .result-card::before {
+        content: "";
+        position: absolute;
+        top: -60%;
+        left: -20%;
+        width: 140%;
+        height: 140%;
+        background: radial-gradient(circle at 30% 20%, rgba(74,222,128,0.12), transparent 60%);
+        pointer-events: none;
+    }
+    @keyframes resultPop {
+        0% { opacity: 0; transform: translateY(10px) scale(0.97); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .result-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    .result-check {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(74,222,128,0.15);
+        border: 1px solid rgba(74,222,128,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #4ade80;
+        font-size: 1.1em;
+        flex-shrink: 0;
+        box-shadow: 0 0 20px rgba(74,222,128,0.15);
+    }
+    .result-head-text .result-title { font-size: 1.05em; font-weight: 700; color: #fff; }
+    .result-head-text .result-desc { font-size: 0.78em; color: #8fae9c; margin-top: 2px; }
+
+    .result-item {
+        position: relative;
+        background: rgba(255,255,255,0.025);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 10px;
+    }
+    .result-item:last-child { margin-bottom: 0; }
+    .result-item-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+    .result-label { color: #789; font-size: 0.7em; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+    .result-copy-btn {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.35);
+        cursor: pointer;
+        font-size: 0.85em;
+        padding: 2px 6px;
+        border-radius: 6px;
+        transition: color 0.2s, background 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .result-copy-btn:hover { color: #4ade80; background: rgba(74,222,128,0.08); }
+    .result-copy-btn.copied { color: #4ade80; }
+    .result-value-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .result-value { font-family: monospace; color: #fff; font-size: 0.88em; word-break: break-all; }
+    .result-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #4ade80;
+        text-decoration: none;
+        font-size: 0.7em;
+        font-weight: 600;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+    .result-link:hover { text-decoration: underline; }
 </style>
 
 <div class="deploy-wrap">
     <div class="deploy-header">
         <h1 class="deploy-title">🚀 Deploy Contract</h1>
         <p class="deploy-sub">Compile and deploy your own contract onchain.</p>
+        <p class="deploy-sub-2">With the lowest gas fee on the network</p>
     </div>
 
     <div id="connect-section" style="text-align:center;">
@@ -101,17 +197,41 @@
             <p class="status-msg" id="deploy-status"></p>
 
             <div class="result-card" id="result-card">
-                <div class="result-row">
-                    <span class="result-label">Contract</span>
-                    <span class="result-value" id="result-name"></span>
+                <div class="result-head">
+                    <div class="result-check"><i class="fas fa-check"></i></div>
+                    <div class="result-head-text">
+                        <div class="result-title">Deployed successfully</div>
+                        <div class="result-desc">Your contract is live onchain</div>
+                    </div>
                 </div>
-                <div class="result-row">
-                    <span class="result-label">Address</span>
-                    <span class="result-value" id="result-address"></span>
+
+                <div class="result-item">
+                    <div class="result-item-top">
+                        <span class="result-label">Contract</span>
+                    </div>
+                    <div class="result-value" id="result-name"></div>
                 </div>
-                <div class="result-row">
-                    <span class="result-label">Tx Hash</span>
-                    <span class="result-value" id="result-tx"></span>
+
+                <div class="result-item">
+                    <div class="result-item-top">
+                        <span class="result-label">Address</span>
+                        <button class="result-copy-btn" onclick="copyResultValue('result-address', this)"><i class="fas fa-copy"></i> Copy</button>
+                    </div>
+                    <div class="result-value-row">
+                        <span class="result-value" id="result-address"></span>
+                        <a class="result-link" id="result-address-link" href="#" target="_blank" rel="noopener"><i class="fas fa-arrow-up-right-from-square"></i> View</a>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-item-top">
+                        <span class="result-label">Tx Hash</span>
+                        <button class="result-copy-btn" onclick="copyResultValue('result-tx', this)"><i class="fas fa-copy"></i> Copy</button>
+                    </div>
+                    <div class="result-value-row">
+                        <span class="result-value" id="result-tx"></span>
+                        <a class="result-link" id="result-tx-link" href="#" target="_blank" rel="noopener"><i class="fas fa-arrow-up-right-from-square"></i> View</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -198,6 +318,16 @@
         } catch (err) { alert("Network switch failed: " + err.message); }
     }
 
+    function copyResultValue(elId, btn) {
+        const text = document.getElementById(elId).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied';
+            btn.classList.add("copied");
+            setTimeout(() => { btn.innerHTML = original; btn.classList.remove("copied"); }, 1500);
+        });
+    }
+
     function isValidContractName(name) {
         return /^[A-Za-z][A-Za-z0-9_]{0,59}$/.test(name);
     }
@@ -251,10 +381,24 @@
             const address = await deployed.getAddress();
             const txHash = deployed.deploymentTransaction().hash;
 
-            statusEl.innerHTML = "Deployed successfully!";
+            statusEl.innerText = "";
             document.getElementById("result-name").innerText = name;
             document.getElementById("result-address").innerText = address;
             document.getElementById("result-tx").innerText = txHash;
+
+            const explorerBase = (NETWORKS[currentNet].blockExplorerUrls && NETWORKS[currentNet].blockExplorerUrls[0]) ? NETWORKS[currentNet].blockExplorerUrls[0].replace(/\/$/, "") : "";
+            const addressLink = document.getElementById("result-address-link");
+            const txLink = document.getElementById("result-tx-link");
+            if (explorerBase) {
+                addressLink.href = explorerBase + "/address/" + address;
+                txLink.href = explorerBase + "/tx/" + txHash;
+                addressLink.style.display = "inline-flex";
+                txLink.style.display = "inline-flex";
+            } else {
+                addressLink.style.display = "none";
+                txLink.style.display = "none";
+            }
+
             document.getElementById("result-card").style.display = "block";
         } catch (err) {
             statusEl.innerText = "Failed: " + (err.reason || err.message || err);
