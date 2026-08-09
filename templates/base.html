@@ -1237,7 +1237,20 @@
 
             <a href="/b20"><i class="fas fa-fire"></i> B20</a>
             <a href="/swap"><i class="fas fa-arrows-rotate"></i> Swap</a>
-            <a href="/domain"><i class="fas fa-globe"></i> Domain</a>
+            <div class="dropdown" id="domainDropdown">
+    <button class="dropbtn" onclick="toggleDropdown(event)">
+        <i class="fas fa-globe"></i> Domain
+        <i class="fas fa-chevron-down" style="font-size:0.6em; margin-left:6px;"></i>
+    </button>
+    <div class="dropdown-content" style="width:220px;">
+        <div class="dropdown-grid" style="grid-template-columns:1fr;">
+            <div class="dropdown-col">
+                <a href="/domain"><i class="fas fa-globe"></i> Domain</a>
+                <a href="/deploy-contract"><i class="fas fa-rocket"></i> Deploy Contract</a>
+            </div>
+        </div>
+    </div>
+</div>
             <a href="/my-store"><i class="fas fa-store"></i> My Store</a>
 
             <div class="theme-switch-wrapper">
@@ -1345,12 +1358,13 @@
         }, { passive: true });
 
         function toggleMenu() {
-            document.getElementById("navlinks").classList.toggle("open");
-            document.getElementById("navOverlay").classList.toggle("open");
-            if (!document.getElementById("navlinks").classList.contains("open")) {
-                document.getElementById("toolsDropdown")?.classList.remove("open");
-            }
-        }
+    document.getElementById("navlinks").classList.toggle("open");
+    document.getElementById("navOverlay").classList.toggle("open");
+    if (!document.getElementById("navlinks").classList.contains("open")) {
+        document.getElementById("toolsDropdown")?.classList.remove("open");
+        document.getElementById("domainDropdown")?.classList.remove("open");
+    }
+}
 
         function toggleDropdown(e) {
             e.stopPropagation();
@@ -1382,10 +1396,11 @@
         }
 
         window.addEventListener("resize", function() {
-            if (window.innerWidth > 700) {
-                document.getElementById("toolsDropdown")?.classList.remove("open");
-            }
-        });
+    if (window.innerWidth > 700) {
+        document.getElementById("toolsDropdown")?.classList.remove("open");
+        document.getElementById("domainDropdown")?.classList.remove("open");
+    }
+});
 
     </script>
 

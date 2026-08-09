@@ -262,6 +262,9 @@ def mint():
 @app.route("/domain")
 def domain():
     return render_template("domain.html")
+@app.route("/deploy-contract")
+def deploy_contract():
+    return render_template("deploy_contract.html")
 @app.route("/flip")
 def flip():
     return render_template("flip.html")
