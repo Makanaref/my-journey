@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% block title %}Deploy Contract{% endblock %}
+{% block content %}
+<style>
+    .deploy-wrap { max-width: 520px; margin: 0 auto; }
+    .deploy-header { text-align: center; margin-bottom: 32px; }
+    .deploy-title { font-size: 2em; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .deploy-sub { color: #666; font-size: 0.9em; }
+
+    .section-label { font-size: 0.72em; color: #666; text-transform: uppercase; letter-spacing: 1.5px; margin: 24px 0 10px; text-align: left; }
+
+    .net-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .net-card {
+        position: relative;
+        background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.09);
+        border-radius: 14px; padding: 14px 16px;
+        cursor: pointer; transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+        text-align: left; overflow: hidden;
+    }
+    .net-card::before {
+        content: "";
+        position: absolute; inset: 0;
+        background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.06), rgba(0,0,0,0) 60%);
+        pointer-events: none;
+    }
+    .net-card:hover {
+        border-color: rgba(233,69,96,0.45);
+        background: linear-gradient(160deg, rgba(233,69,96,0.08), rgba(255,255,255,0.02));
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(233,69,96,0.12);
+    }
+    .net-card.active {
+        border-color: #e94560;
+        background: linear-gradient(160deg, rgba(233,69,96,0.14), rgba(233,69,96,0.03));
+        box-shadow: 0 8px 20px rgba(233,69,96,0.18);
+    }
+    .net-card .symbol {
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 1.1em; font-weight: 700; color: #fff;
+        letter-spacing: 0.03em; position: relative;
+    }
+    .net-card .name {
+        color: rgba(255,255,255,0.4); font-size: 0.73em;
+        margin-top: 3px; position: relative;
+    }
+
+    .wallet-pill { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 9px 18px; border-radius: 30px; font-size: 0.85em; color: #bbb; font-family: monospace; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+
+    .deploy-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 28px; margin-top: 24px; }
+    .deploy-card label { display: block; font-size: 0.78em; color: #888; margin-bottom: 8px; letter-spacing: 0.4px; }
+    .deploy-input { width: 100%; padding: 13px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #fff; font-size: 0.95em; box-sizing: border-box; font-family: monospace; }
+    .deploy-input:focus { outline: none; border-color: #e94560; box-shadow: 0 0 0 3px rgba(233,69,96,0.15); }
+    .deploy-hint { font-size: 0.72em; color: #555; margin-top: 6px; }
+
+    .deploy-btn-wrap { text-align: center; margin-top: 22px; }
+    .deploy-btn { padding: 14px 40px; font-size: 1em; }
+    .deploy-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .status-msg { min-height: 20px; color: #777; font-size: 0.85em; margin-top: 16px; text-align: center; line-height: 1.6; word-break: break-all; }
+    .status-msg a { color: #e94560; text-decoration: none; font-weight: 600; }
+    .status-msg a:hover { text-decoration: underline; }
+
+    .result-card { background: rgba(74,222,128,0.06); border: 1px solid rgba(74,222,128,0.25); border-radius: 14px; padding: 20px; margin-top: 20px; display: none; }
+    .result-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 0.85em; }
+    .result-label { color: #888; }
+    .result-value { font-family: monospace; color: #fff; }
+</style>
+
+<div class="deploy-wrap">
+    <div class="deploy-header">
+        <h1 class="deploy-title">🚀 Deploy Contract</h1>
+        <p class="deploy-sub">Compile and deploy your own contract onchain.</p>
+    </div>
+
+    <div id="connect-section" style="text-align:center;">
+        <button class="btn" onclick="connectWallet()" style="padding:12px 32px;">Connect wallet</button>
+    </div>
+
+    <div id="wallet-info" style="display:none;text-align:center;">
+        <span class="wallet-pill"><span class="dot"></span><span id="wallet-addr"></span></span>
+    </div>
+
+    <div id="network-section" style="display:none;">
+        <p class="section-label">Choose network</p>
+        <div class="net-grid" id="net-grid"></div>
+    </div>
+
+    <div id="main-section" style="display:none;">
+        <div class="deploy-card">
+            <label for="contract-name">What do you want your contract name to be?</label>
+            <input class="deploy-input" id="contract-name" placeholder="MyContract" maxlength="60">
+            <p class="deploy-hint">Letters, numbers and underscores only, must start with a letter.</p>
+
+            <div class="deploy-btn-wrap">
+                <button class="btn deploy-btn" id="deploy-btn" onclick="deployContract()">Deploy it!</button>
+            </div>
+
+            <p class="status-msg" id="deploy-status"></p>
+
+            <div class="result-card" id="result-card">
+                <div class="result-row">
+                    <span class="result-label">Contract</span>
+                    <span class="result-value" id="result-name"></span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Address</span>
+                    <span class="result-value" id="result-address"></span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Tx Hash</span>
+                    <span class="result-value" id="result-tx"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+<script src="/static/js/dapp-common.js"></script>
+<script>
+    let provider, signer, account, currentNet, solcModule, solcCompile;
+    const SOLC_URL = "https://binaries.soliditylang.org/bin/soljson-v0.8.26+commit.8a97fa7a.js";
+
+    function buildNetworkGrid() {
+        const grid = document.getElementById("net-grid");
+        grid.innerHTML = Object.keys(NETWORKS).map(key => {
+            const cfg = NETWORKS[key];
+            const symbol = (cfg.nativeCurrency && cfg.nativeCurrency.symbol) ? cfg.nativeCurrency.symbol : key.toUpperCase();
+            return `
+                <div class="net-card" id="net-${key}" onclick="switchNetwork('${key}')">
+                    <div class="symbol">${symbol}</div>
+                    <div class="name">${cfg.chainName}</div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    async function connectWallet() {
+        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
+        try {
+            provider = new ethers.BrowserProvider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = await provider.getSigner();
+            account = await signer.getAddress();
+            document.getElementById("connect-section").style.display = "none";
+            document.getElementById("wallet-info").style.display = "block";
+            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+            document.getElementById("network-section").style.display = "block";
+            buildNetworkGrid();
+        } catch (err) { alert("Failed: " + err.message); }
+    }
+
+    async function switchNetwork(net) {
+        const config = NETWORKS[net];
+        try {
+            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
+            Object.keys(NETWORKS).forEach(n => document.getElementById("net-" + n).classList.remove("active"));
+            document.getElementById("net-" + net).classList.add("active");
+            provider = new ethers.BrowserProvider(window.ethereum);
+            signer = await provider.getSigner();
+            account = await signer.getAddress();
+            currentNet = net;
+            document.getElementById("main-section").style.display = "block";
+        } catch (err) { alert("Network switch failed: " + err.message); }
+    }
+
+    function loadSolc() {
+        return new Promise((resolve, reject) => {
+            if (window.Module && solcCompile) { resolve(); return; }
+            const script = document.createElement("script");
+            script.src = SOLC_URL;
+            script.onload = () => {
+                try {
+                    solcModule = window.Module;
+                    solcCompile = solcModule.cwrap("solidity_compile", "string", ["string", "number"]);
+                    resolve();
+                } catch (err) { reject(err); }
+            };
+            script.onerror = () => reject(new Error("Could not load compiler"));
+            document.head.appendChild(script);
+        });
+    }
+
+    function isValidContractName(name) {
+        return /^[A-Za-z][A-Za-z0-9_]{0,59}$/.test(name);
+    }
+
+    async function deployContract() {
+        const statusEl = document.getElementById("deploy-status");
+        const btn = document.getElementById("deploy-btn");
+        document.getElementById("result-card").style.display = "none";
+
+        if (!currentNet) { statusEl.innerText = "Select a network first."; return; }
+        const name = document.getElementById("contract-name").value.trim();
+        if (!isValidContractName(name)) {
+            statusEl.innerText = "Enter a valid contract name (letters, numbers, underscores, must start with a letter).";
+            return;
+        }
+
+        btn.disabled = true;
+        statusEl.innerText = "Loading compiler...";
+
+        try {
+            await loadSolc();
+
+            const source = `// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\ncontract ${name} {}\n`;
+            const input = {
+                language: "Solidity",
+                sources: { "contract.sol": { content: source } },
+                settings: { outputSelection: { "*": { "*": ["abi", "evm.bytecode.object"] } } }
+            };
+
+            statusEl.innerText = "Compiling...";
+            const outputRaw = solcCompile(JSON.stringify(input), 0);
+            const output = JSON.parse(outputRaw);
+
+            if (output.errors) {
+                const fatal = output.errors.filter(e => e.severity === "error");
+                if (fatal.length > 0) {
+                    statusEl.innerText = "Compile error: " + fatal[0].formattedMessage;
+                    btn.disabled = false;
+                    return;
+                }
+            }
+
+            const compiled = output.contracts["contract.sol"][name];
+            const abi = compiled.abi;
+            const bytecode = "0x" + compiled.evm.bytecode.object;
+
+            statusEl.innerText = "Confirm the transaction in your wallet...";
+            const factory = new ethers.ContractFactory(abi, bytecode, signer);
+            const deployed = await factory.deploy();
+
+            statusEl.innerText = "Waiting for confirmation...";
+            await deployed.waitForDeployment();
+
+            const address = await deployed.getAddress();
+            const txHash = deployed.deploymentTransaction().hash;
+
+            statusEl.innerHTML = "Deployed successfully!";
+            document.getElementById("result-name").innerText = name;
+            document.getElementById("result-address").innerText = address;
+            document.getElementById("result-tx").innerText = txHash;
+            document.getElementById("result-card").style.display = "block";
+        } catch (err) {
+            statusEl.innerText = "Failed: " + (err.reason || err.message || err);
+        }
+        btn.disabled = false;
+    }
+</script>
+{% endblock %}
