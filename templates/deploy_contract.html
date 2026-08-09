@@ -121,8 +121,39 @@
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script src="/static/js/dapp-common.js"></script>
 <script>
-    let provider, signer, account, currentNet, solcModule, solcCompile;
+    let provider, signer, account, currentNet, solcWorker;
     const SOLC_URL = "https://binaries.soliditylang.org/bin/soljson-v0.8.26+commit.8a97fa7a.js";
+
+    function getSolcWorker() {
+        if (solcWorker) return solcWorker;
+        const workerCode = `
+            self.onmessage = function(e) {
+                try {
+                    importScripts('${SOLC_URL}');
+                    const compileFn = Module.cwrap('solidity_compile', 'string', ['string', 'number']);
+                    const result = compileFn(e.data.input, 0);
+                    self.postMessage({ ok: true, result: result });
+                } catch (err) {
+                    self.postMessage({ ok: false, error: (err && err.message) ? err.message : String(err) });
+                }
+            };
+        `;
+        const blob = new Blob([workerCode], { type: "application/javascript" });
+        solcWorker = new Worker(URL.createObjectURL(blob));
+        return solcWorker;
+    }
+
+    function compileWithWorker(inputJson) {
+        return new Promise((resolve, reject) => {
+            const worker = getSolcWorker();
+            worker.onmessage = (e) => {
+                if (e.data.ok) resolve(e.data.result);
+                else reject(new Error(e.data.error));
+            };
+            worker.onerror = (err) => reject(new Error(err.message || "Worker error"));
+            worker.postMessage({ input: inputJson });
+        });
+    }
 
     function buildNetworkGrid() {
         const grid = document.getElementById("net-grid");
@@ -167,23 +198,6 @@
         } catch (err) { alert("Network switch failed: " + err.message); }
     }
 
-    function loadSolc() {
-        return new Promise((resolve, reject) => {
-            if (window.Module && solcCompile) { resolve(); return; }
-            const script = document.createElement("script");
-            script.src = SOLC_URL;
-            script.onload = () => {
-                try {
-                    solcModule = window.Module;
-                    solcCompile = solcModule.cwrap("solidity_compile", "string", ["string", "number"]);
-                    resolve();
-                } catch (err) { reject(err); }
-            };
-            script.onerror = () => reject(new Error("Could not load compiler"));
-            document.head.appendChild(script);
-        });
-    }
-
     function isValidContractName(name) {
         return /^[A-Za-z][A-Za-z0-9_]{0,59}$/.test(name);
     }
@@ -201,11 +215,9 @@
         }
 
         btn.disabled = true;
-        statusEl.innerText = "Loading compiler...";
+        statusEl.innerText = "Compiling...";
 
         try {
-            await loadSolc();
-
             const source = `// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\ncontract ${name} {}\n`;
             const input = {
                 language: "Solidity",
@@ -213,8 +225,7 @@
                 settings: { outputSelection: { "*": { "*": ["abi", "evm.bytecode.object"] } } }
             };
 
-            statusEl.innerText = "Compiling...";
-            const outputRaw = solcCompile(JSON.stringify(input), 0);
+            const outputRaw = await compileWithWorker(JSON.stringify(input));
             const output = JSON.parse(outputRaw);
 
             if (output.errors) {
