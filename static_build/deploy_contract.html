@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#16213e">
-    <title>GM</title>
+    <title>Deploy Contract</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -1281,47 +1281,24 @@
     <div class="content">
         
 <style>
-    .gm-wrap { max-width: 480px; margin: 0 auto; padding: 50px 20px; text-align: center; }
-    .gm-orb {
-        width: 96px; height: 96px; margin: 0 auto 24px;
-        border-radius: 50%;
-        background: #1a1024;
-        border: 1px solid rgba(233,69,96,0.4);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 2.4em;
-        position: relative;
-    }
-    .gm-orb::after {
-        content: "";
-        position: absolute; inset: -12px;
-        border-radius: 50%;
-        border: 1px solid rgba(233,69,96,0.15);
-    }
-    .gm-title { font-size: 2.2em; margin-bottom: 6px; letter-spacing: -0.5px; }
-    .gm-sub { color: #777; font-size: 0.95em; margin-bottom: 28px; }
-    .wallet-pill {
-        display: inline-flex; align-items: center; gap: 8px;
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
-        padding: 9px 18px; border-radius: 30px;
-        font-size: 0.85em; color: #bbb; font-family: monospace;
-    }
-    .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; }
-    .section-label {
-        font-size: 0.72em; color: #666; text-transform: uppercase;
-        letter-spacing: 1.5px; margin: 32px 0 12px; text-align: left;
-    }
-    .net-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .deploy-wrap { max-width: 520px; margin: 0 auto; }
+    .deploy-header { text-align: center; margin-bottom: 32px; }
+    .deploy-title { font-size: 2em; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .deploy-sub { color: #666; font-size: 0.9em; }
+    .deploy-sub-2 { color: #e94560; font-size: 0.78em; font-weight: 600; margin-top: 6px; letter-spacing: 0.3px; }
+
+    .section-label { font-size: 0.72em; color: #666; text-transform: uppercase; letter-spacing: 1.5px; margin: 24px 0 10px; text-align: left; }
+
+    .net-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
     .net-card {
-    position: relative;
-    background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.09);
-    border-radius: 14px; padding: 16px 10px;
-    cursor: pointer; transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
-    text-align: left;
-    overflow: hidden;
-}
+        position: relative;
+        background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.09);
+        border-radius: 14px; padding: 14px 16px;
+        cursor: pointer; transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+        text-align: left; overflow: hidden;
+    }
     .net-card::before {
         content: "";
         position: absolute; inset: 0;
@@ -1341,329 +1318,105 @@
     }
     .net-card .symbol {
         font-family: Georgia, 'Times New Roman', serif;
-        font-size: 1.2em; font-weight: 700; color: #fff;
-        letter-spacing: 0.03em;
-        position: relative;
+        font-size: 1.1em; font-weight: 700; color: #fff;
+        letter-spacing: 0.03em; position: relative;
     }
     .net-card .name {
-        color: rgba(255,255,255,0.4); font-size: 0.78em;
-        margin-top: 3px; letter-spacing: 0.02em;
-        position: relative;
+        color: rgba(255,255,255,0.4); font-size: 0.73em;
+        margin-top: 3px; position: relative;
     }
-    .gm-action { display: flex; flex-direction: column; align-items: center; margin-top: 36px; }
-    .gm-button {
-        width: 140px; height: 140px; border-radius: 50%;
-        background: #e94560;
-        border: none; color: white; font-size: 1.15em; font-weight: 600;
-        cursor: pointer; transition: transform 0.15s, background 0.15s;
-    }
-    .gm-button:hover { background: #d63951; transform: scale(1.03); }
-    .gm-button:active { transform: scale(0.97); }
-    .gm-button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-    .status-msg { min-height: 20px; color: #777; font-size: 0.85em; margin-top: 14px; }
-    .stat-row { display: flex; justify-content: center; gap: 12px; margin-top: 22px; }
-    .stat-box {
-        background: rgba(255,255,255,0.02);
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 12px; padding: 14px 28px; min-width: 100px;
-    }
-    .stat-box .num { font-size: 1.6em; color: #fff; font-weight: 600; }
-    .stat-box .lbl { color: #666; font-size: 0.72em; margin-top: 4px; letter-spacing: 0.5px; }
 
-    /* === Leaderboard toggle button === */
-    .lb-toggle-btn {
-        display: flex; align-items: center; justify-content: center; gap: 8px;
-        width: 100%; margin-top: 36px;
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.09);
-        border-radius: 14px; padding: 14px 18px;
-        color: #ccc; font-size: 0.9em; font-weight: 600;
-        cursor: pointer; transition: all 0.2s ease;
-    }
-    .lb-toggle-btn:hover {
-        border-color: rgba(233,69,96,0.4);
-        background: rgba(233,69,96,0.06);
-        transform: translateY(-1px);
-    }
-    .lb-toggle-btn .chev { transition: transform 0.25s ease; color: #666; }
-    .lb-toggle-btn.open .chev { transform: rotate(180deg); }
+    .wallet-pill { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 9px 18px; border-radius: 30px; font-size: 0.85em; color: #bbb; font-family: monospace; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 6px #4ade80; }
 
-    .lb-wrap {
-        background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
-        border: 1px solid rgba(255,255,255,0.08);
-        border-top: none;
-        border-radius: 0 0 14px 14px; padding: 16px; text-align: left;
-        position: relative;
-        overflow: hidden;
-        display: none;
-    }
-    .lb-wrap.open { display: block; }
-    .lb-wrap::before {
-        content: "";
-        position: absolute; top: 0; left: 0; right: 0; height: 2px;
-        background: linear-gradient(90deg, transparent, #e94560, transparent);
-        opacity: 0.6;
-    }
-    .lb-row {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 8px 12px; border-radius: 8px; margin-bottom: 5px;
-        background: rgba(255,255,255,0.02);
-        border: 1px solid rgba(255,255,255,0.04);
-        transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
-    }
-    .lb-row:hover {
-        background: rgba(255,255,255,0.05);
-        border-color: rgba(255,255,255,0.1);
-        transform: translateX(2px);
-    }
-    .lb-row.top1 {
-        background: linear-gradient(90deg, rgba(255,196,0,0.12), rgba(255,196,0,0.02));
-        border: 1px solid rgba(255,196,0,0.3);
-    }
-    .lb-row.top2 {
-        background: linear-gradient(90deg, rgba(192,192,210,0.10), rgba(192,192,210,0.02));
-        border: 1px solid rgba(192,192,210,0.25);
-    }
-    .lb-row.top3 {
-        background: linear-gradient(90deg, rgba(205,127,50,0.12), rgba(205,127,50,0.02));
-        border: 1px solid rgba(205,127,50,0.28);
-    }
-    .lb-rank {
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 700; color: #777; width: 24px; height: 24px;
-        font-size: 0.7em; border-radius: 50%;
-        background: rgba(255,255,255,0.04);
-        flex-shrink: 0;
-    }
-    .lb-row.top1 .lb-rank { color: #ffc400; background: rgba(255,196,0,0.15); }
-    .lb-row.top2 .lb-rank { color: #c0c0d2; background: rgba(192,192,210,0.15); }
-    .lb-row.top3 .lb-rank { color: #cd7f32; background: rgba(205,127,50,0.15); }
-    .lb-addr {
-        font-family: monospace; color: #ccc; font-size: 0.8em;
-        flex: 1; margin: 0 10px; letter-spacing: 0.3px;
-    }
-    .lb-score {
-        color: #4ade80; font-weight: 700; font-size: 0.78em;
-        background: rgba(74,222,128,0.1);
-        padding: 3px 9px; border-radius: 20px;
-        white-space: nowrap;
-        font-variant-numeric: tabular-nums;
-    }
-    .lb-loading { text-align:center; color:#666; font-size:0.85em; padding: 10px 0; }
+    .deploy-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 28px; margin-top: 24px; }
+    .deploy-card label { display: block; font-size: 0.78em; color: #888; margin-bottom: 8px; letter-spacing: 0.4px; }
+    .deploy-input { width: 100%; padding: 13px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #fff; font-size: 0.95em; box-sizing: border-box; font-family: monospace; }
+    .deploy-input:focus { outline: none; border-color: #e94560; box-shadow: 0 0 0 3px rgba(233,69,96,0.15); }
+    .deploy-hint { font-size: 0.72em; color: #555; margin-top: 6px; }
 
-    /* === LAMPS === */
-    .lamps-scene {
-    background: #0a0a14;
-    border-radius: 0 0 12px 12px;
-    padding-bottom: 16px;
-    margin-bottom: 0;
-    overflow: hidden;
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
-    margin-top: -20px;
-}
-    .lamps-ceiling { width: 100%; height: 2px; background: #1e1e30; }
-    .lamps-row { display: flex; justify-content: center; align-items: flex-start; padding: 0 20px; }
-    .lamp { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
-    .lamp-wire { width: 1px; background: #2a2a40; }
-    .lamp-cap { background: #2a2a40; border-radius: 1px 1px 0 0; }
-    .lamp-bulb {
-        border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
-        border: 1px solid #2a2a40;
-        background: #141422;
-        transition: all 0.5s ease;
-        position: relative;
-        margin-top: -1px;
-    }
-    .lamp-bulb.on {
-        border-color: rgba(233,69,96,0.5);
-        background: radial-gradient(circle at 50% 38%, #ff7050 0%, #e94560 50%, #6b1020 100%);
-        box-shadow: 0 0 10px rgba(233,69,96,0.35);
-    }
-    .lamp-bulb.flicker {
-        animation: lampFlicker 0.7s ease;
-    }
-    @keyframes lampFlicker {
-        0% { filter: brightness(0.3); }
-        20% { filter: brightness(1.7); }
-        35% { filter: brightness(0.5); }
-        55% { filter: brightness(1.4); }
-        75% { filter: brightness(0.8); }
-        100% { filter: brightness(1); }
-    }
-    .lamp-glow {
-        position: absolute;
-        border-radius: 50%;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.5s ease;
-        left: 50%;
-        transform: translateX(-50%);
-        background: radial-gradient(circle, rgba(233,69,96,0.15) 0%, transparent 70%);
-    }
-    .lamp-glow.on { opacity: 1; }
-    .lamps-count { text-align: center; color: #444; font-size: 11px; font-family: monospace; margin-top: 12px; }
-    .lamps-count span { color: #e94560; }
+    .deploy-btn-wrap { text-align: center; margin-top: 22px; }
+    .deploy-btn { padding: 14px 40px; font-size: 1em; }
+    .deploy-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
-    .lb-page-btn {
-        padding:8px 18px; border-radius:10px; font-size:0.85em; font-weight:600;
-        border:1px solid rgba(233,69,96,0.35); background:rgba(233,69,96,0.08);
-        color:#e94560; cursor:pointer;
-        transition:background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .lb-page-btn:hover:not(:disabled) {
-        background:rgba(233,69,96,0.18); transform:translateY(-1px);
-        box-shadow: 0 4px 12px rgba(233,69,96,0.15);
-    }
-    .lb-page-btn:disabled { opacity:0.35; cursor:not-allowed; }
+    .status-msg { min-height: 20px; color: #777; font-size: 0.85em; margin-top: 16px; text-align: center; line-height: 1.6; word-break: break-all; }
+    .status-msg a { color: #e94560; text-decoration: none; font-weight: 600; }
+    .status-msg a:hover { text-decoration: underline; }
 
-    .mode-tab {
-        flex: 1;
-        padding: 10px;
-        border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.09);
-        background: rgba(255,255,255,0.02);
-        color: #888;
-        font-size: 0.85em;
-        font-weight: 700;
+    .result-card { background: rgba(74,222,128,0.06); border: 1px solid rgba(74,222,128,0.25); border-radius: 14px; padding: 20px 22px; margin-top: 20px; display: none; }
+    .result-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; font-size: 0.85em; border-bottom: 1px solid rgba(255,255,255,0.04); gap: 14px; }
+    .result-row:last-child { border-bottom: none; }
+    .result-label { color: #888; flex-shrink: 0; }
+    .result-value-group { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .result-value { font-family: monospace; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .result-copy-btn {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.3);
         cursor: pointer;
-        transition: all 0.2s ease;
+        font-size: 0.9em;
+        padding: 3px;
+        line-height: 1;
+        flex-shrink: 0;
+        transition: color 0.2s;
     }
-    .mode-tab.active {
-        border-color: #e94560;
-        color: #e94560;
-        background: rgba(233,69,96,0.08);
-    }
-    .gmplus-desc {
-        color: #999;
-        font-size: 0.8em;
-        line-height: 1.5;
-        text-align: center;
-        margin-top: 24px;
-        margin-bottom: 18px;
-    }
-    .gmplus-note {
-        text-align: center;
-        color: #666;
-        font-size: 0.8em;
-        margin-top: 16px;
-    }
+    .result-copy-btn:hover { color: #4ade80; }
+    .result-copy-btn.copied { color: #4ade80; }
 </style>
 
-<!-- Lamps scene (بالای صفحه، بدون padding) -->
-<div class="lamps-scene">
-    <div class="lamps-ceiling"></div>
-    <div class="lamps-row" id="lamps-row"></div>
-    <div class="lamps-count" id="lamps-count"><span>0</span> GM today</div>
-</div>
+<div class="deploy-wrap">
+    <div class="deploy-header">
+        <h1 class="deploy-title">🚀 Deploy Contract</h1>
+        <p class="deploy-sub">Compile and deploy your own contract onchain.</p>
+        <p class="deploy-sub-2">With the lowest gas fee on the network</p>
+    </div>
 
-<div class="gm-wrap">
-    <div class="gm-orb">👋</div>
-    <h1 class="gm-title">GM</h1>
-    <p class="gm-sub">Say good morning onchain, every day.</p>
-
-    <div id="connect-section">
+    <div id="connect-section" style="text-align:center;">
         <button class="btn" onclick="connectWallet()" style="padding:12px 32px;">Connect wallet</button>
     </div>
 
-    <div id="wallet-info" style="display:none;">
+    <div id="wallet-info" style="display:none;text-align:center;">
         <span class="wallet-pill"><span class="dot"></span><span id="wallet-addr"></span></span>
     </div>
 
-    <div id="network-card" style="display:none; width:700px; max-width:90vw; margin:0 auto; position:relative; left:50%; transform:translateX(-50%);">
+    <div id="network-section" style="display:none;">
         <p class="section-label">Choose network</p>
-        <div class="net-grid">
-            <div class="net-card" id="net-ink" onclick="switchNetwork('ink')">
-                <div class="symbol">INK</div>
-                <div class="name">Inkonchain</div>
-            </div>
-            <div class="net-card" id="net-base" onclick="switchNetwork('base')">
-                <div class="symbol">BASE</div>
-                <div class="name">Base</div>
-            </div>
-            <div class="net-card" id="net-robinhood" onclick="switchNetwork('robinhood')">
-                <div class="symbol">HOOD</div>
-                <div class="name">Robinhood</div>
-            </div>
-            <div class="net-card" id="net-optimism" onclick="switchNetwork('optimism')">
-                <div class="symbol">OP</div>
-                <div class="name">Optimism</div>
-            </div>
-            <div class="net-card" id="net-avax" onclick="switchNetwork('avax')">
-                <div class="symbol">AVAX</div>
-                <div class="name">Avalanche</div>
-            </div>
-            <div class="net-card" id="net-plume" onclick="switchNetwork('plume')">
-                <div class="symbol">PLUME</div>
-                <div class="name">Plume</div>
-            </div>
-            <div class="net-card" id="net-zetachain" onclick="switchNetwork('zetachain')">
-                <div class="symbol">ZETA</div>
-                <div class="name">ZetaChain</div>
-            </div>
-            <div class="net-card" id="net-nexus" onclick="switchNetwork('nexus')">
-                <div class="symbol">NEX</div>
-                <div class="name">Nexus</div>
-            </div>
-            <div class="net-card" id="net-lamina1" onclick="switchNetwork('lamina1')">
-                <div class="symbol">L1</div>
-                <div class="name">Lamina1</div>
-            </div>
-        </div>
+        <div class="net-grid" id="net-grid"></div>
     </div>
 
-    <div id="gm-tabs" style="display:none; gap:8px; margin-top:8px;">
-        <button class="mode-tab active" id="tab-btn-gm" onclick="switchMode('gm')">GM</button>
-        <button class="mode-tab" id="tab-btn-gmplus" onclick="switchMode('gmplus')">GM+</button>
-    </div>
+    <div id="main-section" style="display:none;">
+        <div class="deploy-card">
+            <label for="contract-name">What do you want your contract name to be?</label>
+            <input class="deploy-input" id="contract-name" placeholder="MyContract" maxlength="60">
+            <p class="deploy-hint">Letters, numbers and underscores only, must start with a letter.</p>
 
-    <div id="gm-card" style="display:none;">
-        <div class="gm-action">
-            <button class="gm-button" id="gm-button" onclick="sayGM()">GM</button>
-            <p class="status-msg" id="tx-status"></p>
-        </div>
-        <div class="stat-row">
-            <div class="stat-box">
-                <div class="num" id="my-streak">—</div>
-                <div class="lbl">STREAK</div>
+            <div class="deploy-btn-wrap">
+                <button class="btn deploy-btn" id="deploy-btn" onclick="deployContract()">Deploy it!</button>
             </div>
-            <div class="stat-box">
-                <div class="num" id="my-score">—</div>
-                <div class="lbl">SCORE</div>
-            </div>
-        </div>
-    </div>
 
-    <div id="gmplus-card" style="display:none;">
-        <p class="gmplus-desc">Referral only — the inviter gets 5 SGM, the invitee gets 5 SGM too.</p>
-        <button class="btn" id="gmplus-invite-btn" onclick="gmPlusCopyInviteLink()" style="width:100%; padding:12px;">Copy my invite link</button>
-        <p class="status-msg" id="gmplus-invite-status"></p>
-        <div class="stat-row">
-            <div class="stat-box">
-                <div class="num" id="gmplus-total">—</div>
-                <div class="lbl">INVITED</div>
-            </div>
-            <div class="stat-box">
-                <div class="num" id="gmplus-pending">—</div>
-                <div class="lbl">READY TO CLAIM</div>
-            </div>
-        </div>
-        <button class="gm-button" id="gmplus-claim-btn" onclick="gmPlusClaimRewards()" style="width:100%; height:auto; border-radius:14px; padding:16px; margin-top:22px; font-size:1em;" disabled>Claim rewards</button>
-        <p class="status-msg" id="gmplus-claim-status"></p>
-        <p class="gmplus-note" id="gmplus-unsupported" style="display:none;">GM+ isn't live on this network yet.</p>
-    </div>
+            <p class="status-msg" id="deploy-status"></p>
 
-    <div id="leaderboard-card" style="display:none;">
-        <div class="lb-toggle-btn" id="lb-toggle-btn" onclick="toggleLeaderboard()">
-            <span>🏆 Leaderboard</span>
-            <span class="chev">▾</span>
-        </div>
-        <div class="lb-wrap" id="lb-wrap">
-            <div id="leaderboard-list"><div class="lb-loading">Tap to load leaderboard…</div></div>
-            <div id="lb-pagination" style="display:none; align-items:center; justify-content:center; gap:16px; margin-top:16px;">
-                <button id="lb-prev" onclick="leaderboardPrevPage()" class="lb-page-btn">← Prev</button>
-                <span id="lb-page-indicator" style="color:#999; font-size:0.85em;"></span>
-                <button id="lb-next" onclick="leaderboardNextPage()" class="lb-page-btn">Next →</button>
+            <div class="result-card" id="result-card">
+                <div class="result-row">
+                    <span class="result-label">Contract</span>
+                    <div class="result-value-group">
+                        <span class="result-value" id="result-name"></span>
+                    </div>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Address</span>
+                    <div class="result-value-group">
+                        <span class="result-value" id="result-address"></span>
+                        <button class="result-copy-btn" onclick="copyResultValue('result-address', this)" title="Copy"><i class="fas fa-copy"></i></button>
+                    </div>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Tx Hash</span>
+                    <div class="result-value-group">
+                        <span class="result-value" id="result-tx"></span>
+                        <button class="result-copy-btn" onclick="copyResultValue('result-tx', this)" title="Copy"><i class="fas fa-copy"></i></button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1672,99 +1425,53 @@
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script src="/static/js/dapp-common.js"></script>
 <script>
+    let provider, signer, account, currentNet, solcWorker;
+    const SOLC_URL = "https://binaries.soliditylang.org/bin/soljson-v0.8.26+commit.8a97fa7a.js";
 
+    function getSolcWorker() {
+        if (solcWorker) return solcWorker;
+        const workerCode = `
+            self.onmessage = function(e) {
+                try {
+                    importScripts('${SOLC_URL}');
+                    const compileFn = Module.cwrap('solidity_compile', 'string', ['string', 'number']);
+                    const result = compileFn(e.data.input, 0);
+                    self.postMessage({ ok: true, result: result });
+                } catch (err) {
+                    self.postMessage({ ok: false, error: (err && err.message) ? err.message : String(err) });
+                }
+            };
+        `;
+        const blob = new Blob([workerCode], { type: "application/javascript" });
+        solcWorker = new Worker(URL.createObjectURL(blob));
+        return solcWorker;
+    }
 
-    /* === LAMPS === */
-    const LAMP_CFG = [
-        {w:44,s:20,g:60},{w:64,s:24,g:72},{w:34,s:18,g:54},
-        {w:78,s:26,g:80},{w:50,s:22,g:66},{w:38,s:19,g:58},{w:60,s:23,g:70}
-    ];
-    function buildLamps() {
-        const row = document.getElementById('lamps-row');
-        LAMP_CFG.forEach((c, i) => {
-            const div = document.createElement('div');
-            div.className = 'lamp';
-            div.innerHTML = `
-                <div class="lamp-wire" style="height:${c.w}px"></div>
-                <div class="lamp-cap" style="width:${Math.round(c.s*0.5)}px;height:5px"></div>
-                <div class="lamp-bulb" id="bulb-${i}" style="width:${c.s}px;height:${c.s+3}px;">
-                    <div class="lamp-glow" id="glow-${i}" style="width:${c.g}px;height:${c.g}px;top:${Math.round(c.s*0.2)}px;"></div>
+    function compileWithWorker(inputJson) {
+        return new Promise((resolve, reject) => {
+            const worker = getSolcWorker();
+            worker.onmessage = (e) => {
+                if (e.data.ok) resolve(e.data.result);
+                else reject(new Error(e.data.error));
+            };
+            worker.onerror = (err) => reject(new Error(err.message || "Worker error"));
+            worker.postMessage({ input: inputJson });
+        });
+    }
+
+    function buildNetworkGrid() {
+        const grid = document.getElementById("net-grid");
+        grid.innerHTML = Object.keys(NETWORKS).map(key => {
+            const cfg = NETWORKS[key];
+            const symbol = (cfg.nativeCurrency && cfg.nativeCurrency.symbol) ? cfg.nativeCurrency.symbol : key.toUpperCase();
+            return `
+                <div class="net-card" id="net-${key}" onclick="switchNetwork('${key}')">
+                    <div class="symbol">${symbol}</div>
+                    <div class="name">${cfg.chainName}</div>
                 </div>
             `;
-            row.appendChild(div);
-        });
+        }).join("");
     }
-    let lastLampCount = 0;
-    function updateLamps(count) {
-        LAMP_CFG.forEach((_, i) => {
-            const bulb = document.getElementById('bulb-'+i);
-            const glow = document.getElementById('glow-'+i);
-            const shouldBeOn = i < count;
-            const wasOn = i < lastLampCount;
-            bulb.classList.toggle('on', shouldBeOn);
-            glow.classList.toggle('on', shouldBeOn);
-            if (shouldBeOn && !wasOn) {
-                bulb.classList.remove('flicker');
-                void bulb.offsetWidth;
-                bulb.classList.add('flicker');
-            }
-        });
-        document.getElementById('lamps-count').innerHTML = `<span>${count}</span> GM today`;
-        lastLampCount = count;
-    }
-    buildLamps();
-
-    /* === WALLET & CONTRACT === */
-    let provider, signer, account, contract, currentNet;
-    const CONTRACT_ADDRESSES = {
-        lamina1:   "0x91A68410C13866d1c4262C012680A623B79BeF20",
-        nexus:     "0x91A68410C13866d1c4262C012680A623B79BeF20",
-        ink:       "0xc5B1Bb3e6CE937F64440895a6b976455F64dbaAE",
-        base:      "0x0d246A70E2c9ddCDacF690E854E9a528aaE9c3f6",
-        robinhood: "0xEC76D7a9801Fd7De132b299a36B6E0125802430B",
-        avax: "0x4DF798fD9F5Ff9109e6D42B67D3eE86FE09D3bf1",
-        plume: "0xB72b9D6BF3a0d20a5A3152bcDD627A67eaDad56C",
-        zetachain: "0xdA8F4Da59a24b4F5ab1F1f2bd6D000F069F54080",
-        optimism:  "0xc766525C577055bd918d257a0A09E45B859f139D"
-    };
-    const CONTRACT_ABI = [
-        "function sayGM() public",
-        "function getStats(address user) public view returns (uint256 streak, uint256 totalScoreX100, uint256 lastGmDay)",
-        "function getLeaderboard() public view returns (address[] memory addrs, uint256[] memory streaks, uint256[] memory scoresX100)"
-    ];
-    const GMPLUS_ADDRESSES = {
-        ink:       "0x4C8d262cE9602B03D961434162558B7079ef99f9",
-        nexus:     "0x02fFD8C9D9c6ea769cdFd530625eE9154a719786",
-        lamina1:   "0x1E436eC80961b994b3F397092C934a1361EcaF08",
-        optimism:  "0x30E506e27F90bBAb61c9b5B6be673bb5f9FF4dA0",
-        base:      "0x8A42f95c0F577aC0c43B8b9322044f5853008848",
-        zetachain: "0x0adeE88B5587E37CE5516964F2414b015aD73967",
-        avax:      "0x971364BC185a694D817c143865Ec1aF7252ff063",
-        plume:     "0x9d683961235260eB77bAB60c93b33f6205c0fa36"
-        // robinhood not deployed yet
-    };
-    const GMPLUS_ABI = [
-        "function registerReferral(address referrer) external",
-        "function referrerOf(address) view returns (address)",
-        "function pendingRewardCount(address referrer) view returns (uint256)",
-        "function totalReferrals(address referrer) view returns (uint256)",
-        "function claimReferralRewards() external"
-    ];
-    const DOMAIN_ADDRESSES = {
-        lamina1:   "0xA0F865285beBC988008FE081a9A4dFC1320E31A7",
-        nexus:     "0xC2B99F200C4523900b73912269652095aFa84AFd",
-        ink:       "0xB3e03b39bB3eAb9B63763A601d1Cb2DB0FA0f5c2",
-        plume:     "0xa7967A3C93281785DF7020717419bEd603da948F",
-        zetachain: "0x678D45B398331A1A1ef484FfB5370A1a2034737d",
-        optimism:  "0x620145Db1914c1F9c327FA282BD95b9039647Bc6",
-        base:      "0x9242fBcF3AF8137cddE0bf7046b9DDb881d105CC"
-    };
-    const DOMAIN_ABI = [
-        "function resolve(string name) view returns (address)",
-        "function nameOf(address holder) view returns (string)"
-    ];
-    // networks object now provided by /static/js/dapp-common.js (as NETWORKS)
-    const networks = NETWORKS;
 
     async function connectWallet() {
         if (!window.ethereum) { alert("Please install MetaMask!"); return; }
@@ -1773,313 +1480,101 @@
             await provider.send("eth_requestAccounts", []);
             signer = await provider.getSigner();
             account = await signer.getAddress();
-            claimPendingRefForAccount();
             document.getElementById("connect-section").style.display = "none";
             document.getElementById("wallet-info").style.display = "block";
             document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
-            document.getElementById("network-card").style.display = "block";
-        } catch (err) { alert("Connection failed: " + err.message); }
+            document.getElementById("network-section").style.display = "block";
+            buildNetworkGrid();
+        } catch (err) { alert("Failed: " + err.message); }
     }
-
-    function claimPendingRefForAccount() {
-        const pending = localStorage.getItem("sgm_ref_pending");
-        if (!pending || !account) return;
-        const accountKey = "sgm_ref_" + account.toLowerCase();
-        if (!localStorage.getItem(accountKey)) {
-            localStorage.setItem(accountKey, pending);
-        }
-    }
-
-    let leaderboardLoadedForNet = null;
 
     async function switchNetwork(net) {
-        const config = networks[net];
+        const config = NETWORKS[net];
         try {
             await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
-            currentNet = net;
-            Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
-            document.getElementById("net-"+net).classList.add("active");
+            Object.keys(NETWORKS).forEach(n => document.getElementById("net-" + n).classList.remove("active"));
+            document.getElementById("net-" + net).classList.add("active");
             provider = new ethers.BrowserProvider(window.ethereum);
             signer = await provider.getSigner();
             account = await signer.getAddress();
-            contract = new ethers.Contract(CONTRACT_ADDRESSES[net], CONTRACT_ABI, signer);
-            document.getElementById("gm-tabs").style.display = "flex";
-            document.getElementById("gm-card").style.display = "block";
-            document.getElementById("leaderboard-card").style.display = "block";
-            document.getElementById("tx-status").innerText = "";
-            switchMode("gm");
-
-            // Reset leaderboard to closed/unloaded state on network switch
-            leaderboardLoadedForNet = null;
-            document.getElementById("lb-wrap").classList.remove("open");
-            document.getElementById("lb-toggle-btn").classList.remove("open");
-            document.getElementById("leaderboard-list").innerHTML = "<div class='lb-loading'>Tap to load leaderboard…</div>";
-            document.getElementById("lb-pagination").style.display = "none";
-            updateLamps(0);
-
-           
-            await loadStats();
+            currentNet = net;
+            document.getElementById("main-section").style.display = "block";
         } catch (err) { alert("Network switch failed: " + err.message); }
     }
 
-    function switchMode(mode) {
-        document.getElementById("tab-btn-gm").classList.toggle("active", mode === "gm");
-        document.getElementById("tab-btn-gmplus").classList.toggle("active", mode === "gmplus");
-        document.getElementById("gm-card").style.display = mode === "gm" ? "block" : "none";
-        document.getElementById("gmplus-card").style.display = mode === "gmplus" ? "block" : "none";
-        if (mode === "gmplus") refreshGMPlusPanel();
+    function copyResultValue(elId, btn) {
+        const text = document.getElementById(elId).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            btn.classList.add("copied");
+            setTimeout(() => { btn.innerHTML = original; btn.classList.remove("copied"); }, 1200);
+        });
     }
 
-    async function trySilentReferralRegister() {
-        if (!GMPLUS_ADDRESSES[currentNet]) return;
-        try {
-            let ref = localStorage.getItem("sgm_ref_" + account.toLowerCase());
-            if (!ref) return;
-
-            if (!ethers.isAddress(ref)) {
-                if (!DOMAIN_ADDRESSES[currentNet]) return; // no domain registry on this net
-                const cleanName = ref.toLowerCase().replace(/\.sgm$/, "");
-                const domainContract = new ethers.Contract(DOMAIN_ADDRESSES[currentNet], DOMAIN_ABI, signer);
-                const resolved = await domainContract.resolve(cleanName);
-                if (!resolved || resolved === ethers.ZeroAddress) return;
-                ref = resolved;
-            }
-
-            if (ref.toLowerCase() === account.toLowerCase()) return;
-
-            const gmPlusContract = new ethers.Contract(GMPLUS_ADDRESSES[currentNet], GMPLUS_ABI, signer);
-            const existing = await gmPlusContract.referrerOf(account);
-            if (existing && existing !== ethers.ZeroAddress) return;
-
-            const gasPriceHex = await provider.send("eth_gasPrice", []);
-            const gasPrice = BigInt(gasPriceHex) * 85n / 100n;
-            const tx = await gmPlusContract.registerReferral(ref, { gasPrice });
-            await tx.wait();
-        } catch (err) {
-            console.log("Referral registration skipped:", err);
-        }
+    function isValidContractName(name) {
+        return /^[A-Za-z][A-Za-z0-9_]{0,59}$/.test(name);
     }
 
-    async function refreshGMPlusPanel() {
-        const unsupportedEl = document.getElementById("gmplus-unsupported");
-        const claimBtn = document.getElementById("gmplus-claim-btn");
-        const inviteBtn = document.getElementById("gmplus-invite-btn");
+    async function deployContract() {
+        const statusEl = document.getElementById("deploy-status");
+        const btn = document.getElementById("deploy-btn");
+        document.getElementById("result-card").style.display = "none";
 
-        if (!GMPLUS_ADDRESSES[currentNet]) {
-            unsupportedEl.style.display = "block";
-            claimBtn.style.display = "none";
-            inviteBtn.style.display = "none";
-            document.getElementById("gmplus-total").innerText = "—";
-            document.getElementById("gmplus-pending").innerText = "—";
-            return;
-        }
-        unsupportedEl.style.display = "none";
-        claimBtn.style.display = "block";
-        inviteBtn.style.display = "block";
-
-        try {
-            const gmPlusContract = new ethers.Contract(GMPLUS_ADDRESSES[currentNet], GMPLUS_ABI, signer);
-            const [total, pending] = await Promise.all([
-                gmPlusContract.totalReferrals(account),
-                gmPlusContract.pendingRewardCount(account)
-            ]);
-            document.getElementById("gmplus-total").innerText = total.toString();
-            document.getElementById("gmplus-pending").innerText = pending.toString();
-            claimBtn.disabled = Number(pending) === 0;
-        } catch (err) {
-            console.log(err);
-        }
-    }
-
-    async function gmPlusCopyInviteLink() {
-        const statusEl = document.getElementById("gmplus-invite-status");
-        if (!account) { statusEl.innerText = "Connect your wallet first"; return; }
-
-        let refValue = account;
-        if (DOMAIN_ADDRESSES[currentNet]) {
-            try {
-                const domainContract = new ethers.Contract(DOMAIN_ADDRESSES[currentNet], DOMAIN_ABI, signer);
-                const myDomain = await domainContract.nameOf(account);
-                if (myDomain) refValue = myDomain + ".sgm";
-            } catch (err) { console.log(err); }
-        }
-
-        const link = window.location.origin + "/?ref=" + refValue;
-        navigator.clipboard.writeText(link);
-        statusEl.innerText = "Link copied! Share it with friends.";
-    }
-
-    async function gmPlusClaimRewards() {
-        const btn = document.getElementById("gmplus-claim-btn");
-        const statusEl = document.getElementById("gmplus-claim-status");
-        btn.disabled = true;
-        statusEl.innerText = "Sending transaction...";
-        try {
-            const gmPlusContract = new ethers.Contract(GMPLUS_ADDRESSES[currentNet], GMPLUS_ABI, signer);
-            const gasPriceHex = await provider.send("eth_gasPrice", []);
-            const gasPrice = BigInt(gasPriceHex) * 85n / 100n;
-            const tx = await gmPlusContract.claimReferralRewards({ gasPrice });
-            statusEl.innerText = "Confirming...";
-            await tx.wait();
-            statusEl.innerText = "Rewards claimed 🎉";
-            await refreshGMPlusPanel();
-        } catch (err) {
-            statusEl.innerText = "Failed: " + ((err && (err.reason || err.message)) || "Try again");
-            btn.disabled = false;
-        }
-    }
-
-    async function toggleLeaderboard() {
-        const wrapEl = document.getElementById("lb-wrap");
-        const btnEl = document.getElementById("lb-toggle-btn");
-        const isOpen = wrapEl.classList.contains("open");
-
-        if (isOpen) {
-            wrapEl.classList.remove("open");
-            btnEl.classList.remove("open");
+        if (!currentNet) { statusEl.innerText = "Select a network first."; return; }
+        const name = document.getElementById("contract-name").value.trim();
+        if (!isValidContractName(name)) {
+            statusEl.innerText = "Enter a valid contract name (letters, numbers, underscores, must start with a letter).";
             return;
         }
 
-        wrapEl.classList.add("open");
-        btnEl.classList.add("open");
-
-        // Lazy-load leaderboard data only the first time it's opened per network
-        if (leaderboardLoadedForNet !== currentNet) {
-            document.getElementById("leaderboard-list").innerHTML = "<div class='lb-loading'>Loading leaderboard…</div>";
-            await loadLeaderboard();
-            leaderboardLoadedForNet = currentNet;
-        }
-    }
-
-    async function sayGM() {
-        const btn = document.getElementById("gm-button");
         btn.disabled = true;
-        document.getElementById("tx-status").innerText = "Sending transaction...";
-        try {
-            const gasPriceHex = await provider.send("eth_gasPrice", []);
-            const networkGasPrice = BigInt(gasPriceHex);
-            const gasPricePercent = { lamina1: 40, nexus: 8, ink: 13, base: 85, robinhood: 100, avax: 700, plume: 25, zetachain: 100, optimism: 85 };
-            const percent = BigInt(gasPricePercent[currentNet] !== undefined ? gasPricePercent[currentNet] : 25);
-            const gasPrice = networkGasPrice * percent / 100n;
-            const txOverrides = { gasPrice };
-            if (["lamina1", "plume", "avax"].includes(currentNet)) txOverrides.gasLimit = 150000;
-            const tx = await contract.sayGM(txOverrides);
-            document.getElementById("tx-status").innerText = "Confirming...";
-            await tx.wait();
-            document.getElementById("tx-status").innerText = "GM confirmed ✅";
-            updateLamps(Math.min(lastLampCount + 1, LAMP_CFG.length));
-            await loadStats();
-            trySilentReferralRegister();
+        statusEl.innerText = "Compiling...";
 
-            // Refresh leaderboard silently if it's currently open
-            if (document.getElementById("lb-wrap").classList.contains("open")) {
-                await loadLeaderboard();
+        try {
+            const source = `// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\ncontract ${name} {}\n`;
+            const input = {
+                language: "Solidity",
+                sources: { "contract.sol": { content: source } },
+                settings: { outputSelection: { "*": { "*": ["abi", "evm.bytecode.object"] } } }
+            };
+
+            const outputRaw = await compileWithWorker(JSON.stringify(input));
+            const output = JSON.parse(outputRaw);
+
+            if (output.errors) {
+                const fatal = output.errors.filter(e => e.severity === "error");
+                if (fatal.length > 0) {
+                    statusEl.innerText = "Compile error: " + fatal[0].formattedMessage;
+                    btn.disabled = false;
+                    return;
+                }
             }
+
+            const compiled = output.contracts["contract.sol"][name];
+            const abi = compiled.abi;
+            const bytecode = "0x" + compiled.evm.bytecode.object;
+
+            statusEl.innerText = "Confirm the transaction in your wallet...";
+            const factory = new ethers.ContractFactory(abi, bytecode, signer);
+            const deployed = await factory.deploy();
+
+            statusEl.innerText = "Waiting for confirmation...";
+            await deployed.waitForDeployment();
+
+            const address = await deployed.getAddress();
+            const txHash = deployed.deploymentTransaction().hash;
+
+            statusEl.innerText = "Deployed successfully!";
+            document.getElementById("result-name").innerText = name;
+            document.getElementById("result-address").innerText = address;
+            document.getElementById("result-tx").innerText = txHash;
+            document.getElementById("result-card").style.display = "block";
         } catch (err) {
-            const reason = getFriendlyError(err);
-            if (reason.includes("Already said GM today")) {
-                document.getElementById("tx-status").innerText = "Once a day. Come back tomorrow 🌅";
-            } else {
-                document.getElementById("tx-status").innerText = "Failed: " + reason;
-            }
+            statusEl.innerText = "Failed: " + (err.reason || err.message || err);
         }
         btn.disabled = false;
     }
-
-    const TEHRAN_OFFSET = 12600;
-    function todayDayNumber() {
-        return Math.floor((Math.floor(Date.now() / 1000) + TEHRAN_OFFSET) / 86400);
-    }
-
-    async function loadStats() {
-        try {
-            const result = await contract.getStats(account);
-            document.getElementById("my-streak").innerText = result[0].toString();
-            document.getElementById("my-score").innerText = (Number(result[1]) / 100).toFixed(2);
-            const lastGmDay = Number(result[2]);
-            const btn = document.getElementById("gm-button");
-            const statusEl = document.getElementById("tx-status");
-            if (lastGmDay === todayDayNumber()) {
-                btn.disabled = true;
-                btn.style.opacity = "0.5";
-                btn.style.cursor = "not-allowed";
-                statusEl.innerText = "Already said GM today. Come back tomorrow 🌅";
-            } else {
-                btn.disabled = false;
-                btn.style.opacity = "1";
-                btn.style.cursor = "pointer";
-                statusEl.innerText = "";
-            }
-        } catch (err) { console.log(err); }
-    }
-
-    let leaderboardRows = [];
-    let leaderboardPage = 0;
-    const LB_PAGE_SIZE = 10;
-
-    async function loadLeaderboard() {
-        try {
-            const result = await contract.getLeaderboard();
-            const addrs = result[0], streaks = result[1], scores = result[2];
-            let rows = [];
-            for (let i = 0; i < addrs.length; i++) {
-                rows.push({ addr: addrs[i], streak: Number(streaks[i]), score: Number(scores[i]) / 100 });
-            }
-            rows.sort((a, b) => b.score - a.score);
-            leaderboardRows = rows;
-            leaderboardPage = 0;
-
-            const today = todayDayNumber();
-            const statsResults = await Promise.all(
-                addrs.map(addr => contract.getStats(addr).catch(() => null))
-            );
-            const todayCount = statsResults.filter(s => s && Number(s[2]) === today).length;
-            updateLamps(Math.min(todayCount, LAMP_CFG.length));
-
-            renderLeaderboardPage();
-        } catch (err) { console.log(err); }
-    }
-
-    function renderLeaderboardPage() {
-        const listEl = document.getElementById("leaderboard-list");
-        const paginationEl = document.getElementById("lb-pagination");
-        if (leaderboardRows.length === 0) {
-            listEl.innerHTML = "<p style='color:#666;text-align:center;font-size:0.85em;'>No GMs yet. Be the first.</p>";
-            paginationEl.style.display = "none";
-            return;
-        }
-        const totalPages = Math.ceil(leaderboardRows.length / LB_PAGE_SIZE);
-        const start = leaderboardPage * LB_PAGE_SIZE;
-        const pageRows = leaderboardRows.slice(start, start + LB_PAGE_SIZE);
-        listEl.innerHTML = pageRows.map((r, i) => {
-            const rank = start + i;
-            const rankClass = rank === 0 ? 'top1' : rank === 1 ? 'top2' : rank === 2 ? 'top3' : '';
-            const medal = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : `#${rank + 1}`;
-            return `
-            <div class="lb-row ${rankClass}">
-                <span class="lb-rank">${medal}</span>
-                <span class="lb-addr">${r.addr.slice(0,6)}...${r.addr.slice(-4)}</span>
-                <span class="lb-score">${r.score.toFixed(2)}</span>
-            </div>
-        `;
-        }).join("");
-        if (totalPages > 1) {
-            paginationEl.style.display = "flex";
-            document.getElementById("lb-page-indicator").innerText = `Page ${leaderboardPage + 1} of ${totalPages}`;
-            document.getElementById("lb-prev").disabled = leaderboardPage === 0;
-            document.getElementById("lb-next").disabled = leaderboardPage >= totalPages - 1;
-        } else {
-            paginationEl.style.display = "none";
-        }
-    }
-
-    function leaderboardPrevPage() { if (leaderboardPage > 0) { leaderboardPage--; renderLeaderboardPage(); } }
-    function leaderboardNextPage() { const t = Math.ceil(leaderboardRows.length / LB_PAGE_SIZE); if (leaderboardPage < t - 1) { leaderboardPage++; renderLeaderboardPage(); } }
-
-    // Keep lamps in sync with Tehran midnight reset even if the page stays open
-    setInterval(() => {
-        if (contract) loadLeaderboard();
-    }, 120000);
 </script>
 
     </div>

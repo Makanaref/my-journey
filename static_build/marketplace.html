@@ -312,27 +312,27 @@
             display: inline-block;
         }
         .dropdown-content {
-            display: block;
-            opacity: 0;
-            visibility: hidden;
-            position: absolute;
-            top: calc(100% + 14px);
-            left: 50%;
-            transform: translateX(-50%) scale(0.92) translateY(-12px);
-            width: 580px;
-            max-width: 92vw;
-            background: rgba(22, 33, 62, 0.88);
-            backdrop-filter: blur(40px) saturate(1.3);
-            -webkit-backdrop-filter: blur(40px) saturate(1.3);
-            border-radius: 24px;
-            padding: 20px 16px;
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(233, 69, 96, 0.08);
-            border: 1px solid rgba(233, 69, 96, 0.06);
-            z-index: 200;
-            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-            transform-origin: top center;
-            pointer-events: none;
-        }
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.92) translateY(-12px);
+    width: 580px;
+    max-width: 92vw;
+    background: rgba(22, 33, 62, 0.88);
+    backdrop-filter: blur(40px) saturate(1.3);
+    -webkit-backdrop-filter: blur(40px) saturate(1.3);
+    border-radius: 24px;
+    padding: 34px 16px 20px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(233, 69, 96, 0.08);
+    border: 1px solid rgba(233, 69, 96, 0.06);
+    z-index: 200;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: top center;
+    pointer-events: none;
+}
         .dropdown:hover .dropdown-content {
             opacity: 1;
             visibility: visible;
@@ -490,15 +490,21 @@
         }
         .hamburger:active { background: rgba(233,69,96,0.15); }
 
-        .content {
-            animation: fadeIn 0.4s ease-in;
-            flex: 1;
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px 16px;
-            padding-bottom: calc(20px + env(safe-area-inset-bottom));
-        }
+        .page-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
+    animation: fadeIn 0.4s ease-in;
+}
+.content {
+    flex: 1;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+}
         @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         h1 { color: #e94560; font-size: clamp(1.8em, 6vw, 2.8em); margin-bottom: 16px; line-height: 1.2; }
         h2 { color: #e94560; font-size: clamp(1.2em, 4vw, 1.6em); }
@@ -1167,6 +1173,7 @@
     </style>
 </head>
 <body id="body">
+    <div class="page-wrapper">
     <nav id="navbar">
         <a href="/" class="logo-wrapper">
             <span class="logo-icon-container">
@@ -1230,7 +1237,20 @@
 
             <a href="/b20"><i class="fas fa-fire"></i> B20</a>
             <a href="/swap"><i class="fas fa-arrows-rotate"></i> Swap</a>
-            <a href="/domain"><i class="fas fa-globe"></i> Domain</a>
+            <div class="dropdown" id="domainDropdown">
+    <button class="dropbtn" onclick="toggleDropdown(event)">
+        <i class="fas fa-globe"></i> Domain
+        <i class="fas fa-chevron-down" style="font-size:0.6em; margin-left:6px;"></i>
+    </button>
+    <div class="dropdown-content" style="width:220px;">
+        <div class="dropdown-grid" style="grid-template-columns:1fr;">
+            <div class="dropdown-col">
+                <a href="/domain"><i class="fas fa-globe"></i> Domain</a>
+                <a href="/deploy-contract"><i class="fas fa-rocket"></i> Deploy Contract</a>
+            </div>
+        </div>
+    </div>
+</div>
             <a href="/my-store"><i class="fas fa-store"></i> My Store</a>
 
             <div class="theme-switch-wrapper">
@@ -1313,16 +1333,25 @@
             <button class="tab-btn" id="tab-sell" onclick="showTab('sell')">Sell an NFT</button>
         </div>
 
-        <!-- BROWSE TAB -->
         <div id="panel-browse">
             <div style="text-align:center; margin-bottom:16px;">
                 <button class="btn" onclick="loadListings()">Refresh listings</button>
             </div>
             <div id="listings-status" style="text-align:center; color:#999; margin-bottom:16px;"></div>
-            <div id="listings-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:20px; align-items:start;"></div>
+
+            <div id="browse-grid-view">
+                <div id="listings-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:20px; align-items:start;"></div>
+            </div>
+
+            <div id="collection-detail-view" style="display:none;">
+                <div style="display:flex; align-items:center; gap:14px; margin-bottom:20px;">
+                    <button class="btn cancel-btn" style="width:auto; padding:8px 16px;" onclick="closeCollectionView()">← Back</button>
+                    <div id="collection-detail-title" style="font-weight:600; font-size:1.05em;"></div>
+                </div>
+                <div id="collection-detail-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:20px; align-items:start;"></div>
+            </div>
         </div>
 
-        <!-- SELL TAB -->
         <div id="panel-sell" style="display:none;">
             <div class="sell-card">
                 <div class="sell-mode-switch">
@@ -1618,6 +1647,13 @@
         object-fit: cover;
         display: block;
     }
+    .listing-frame {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+        pointer-events: none;
+    }
     .listing-img-skeleton {
         width: 100%;
         height: 100%;
@@ -1641,6 +1677,18 @@
         padding: 2px 8px;
         border-radius: 10px;
         border: 1px solid rgba(255,255,255,0.15);
+    }
+    .live-badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        background: rgba(126,200,227,0.85);
+        color: #0f1420;
+        font-size: 0.68em;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 10px;
+        letter-spacing: 0.4px;
     }
     @keyframes shimmer {
         to { background-position-x: -200%; }
@@ -1753,11 +1801,21 @@
 <script>
     const MARKETPLACE_ADDRESSES = {
         base:      "0x4cb8B00F8e37aA7e7f41c9d358070cC85B7B146e",
+        optimism:  "0x973a8F9063FF21DC2643aCb5105db437F1b97F1b",
+        zetachain: "0xF81Ed85B5E6Cb9d66350aE9E5A6E424b6da6e017",
+        nexus:     "0x24161AfF13B5c8D81BD49BD75e4FF026cd099485",
+        ink:       "0x49e20Fe256DDffC8247B3e02CAFdF91051b19Ad9",
+        robinhood: "0xeC1157D5A3d6F05e6C6D0da38E3F0E2401688696",
+        plume:     ""
+    };
+
+    const OLD_MARKETPLACE_ADDRESSES = {
+        base:      "",
         optimism:  "0x47bF3beEa8AF1B6E69A02f0a8014dC0f29aA4236",
         zetachain: "0x7f33d74c4B10bCF49B4CD9E668270eE01834AC98",
         nexus:     "0x2176d8338f55b2c31382FdD92121cf707bD4A0Bb",
         ink:       "0x6A58bCa51905c73071cC6462380B2f82E2c75962",
-        robinhood: "0xeC1157D5A3d6F05e6C6D0da38E3F0E2401688696",
+        robinhood: "",
         plume:     ""
     };
 
@@ -1791,7 +1849,8 @@
         "function nameOf(address holder) public view returns (string)"
     ];
 
-    let provider, signer, account, marketplaceContract, currentNet = null, sellMode = "single";
+    let provider, signer, account, marketplaceContract, oldMarketplaceContract, currentNet = null, sellMode = "single";
+    let allListingItems = [];
 
     function resolveUri(uri) {
         if (!uri) return null;
@@ -1804,10 +1863,8 @@
         try {
             const nft = new ethers.Contract(nftContract, ERC721_ABI, provider);
             let uri = await nft.tokenURI(tokenId);
-            console.log("tokenURI raw:", uri);
             uri = resolveUri(uri);
-            console.log("tokenURI resolved:", uri);
-            if (!uri) return { name: null, image: null };
+            if (!uri) return { name: null, image: null, animationUrl: null, description: null };
             let meta;
             if (uri.startsWith("data:application/json;base64,")) {
                 meta = JSON.parse(atob(uri.split(",")[1]));
@@ -1815,11 +1872,15 @@
                 const res = await fetch(uri);
                 meta = await res.json();
             }
-            console.log("metadata:", meta);
-            return { name: meta.name || null, image: resolveUri(meta.image), description: meta.description || null };
+            return {
+                name: meta.name || null,
+                image: resolveUri(meta.image),
+                animationUrl: resolveUri(meta.animation_url),
+                description: meta.description || null
+            };
         } catch (err) {
             console.error("fetchNftMetadata error:", err);
-            return { name: null, image: null, description: null };
+            return { name: null, image: null, animationUrl: null, description: null };
         }
     }
 
@@ -1864,7 +1925,11 @@
             provider = new ethers.BrowserProvider(window.ethereum);
             signer = await provider.getSigner();
             marketplaceContract = new ethers.Contract(MARKETPLACE_ADDRESSES[net], MARKETPLACE_ABI, signer);
+            oldMarketplaceContract = OLD_MARKETPLACE_ADDRESSES[net]
+                ? new ethers.Contract(OLD_MARKETPLACE_ADDRESSES[net], MARKETPLACE_ABI, signer)
+                : null;
             document.getElementById("marketplace-tabs").style.display = "block";
+            showGroupedView();
             await loadListings();
         } catch (err) {
             alert(getFriendlyError(err));
@@ -1888,6 +1953,162 @@
         document.getElementById("approve-btn").innerText = "1. Approve marketplace";
     }
 
+    async function fetchListingsFromContract(contract, source) {
+        if (!contract) return [];
+        const total = await contract.nextListingId();
+        const items = [];
+        for (let i = 1; i <= Number(total); i++) {
+            const listing = await contract.getListing(i);
+            if (listing.active) {
+                items.push({
+                    id: i,
+                    source: source,
+                    key: source + "-" + i,
+                    seller: listing.seller,
+                    nftContract: listing.nftContract,
+                    tokenId: listing.tokenId,
+                    price: listing.price,
+                    active: listing.active,
+                    supportFee: listing.supportFee
+                });
+            }
+        }
+        return items;
+    }
+
+    function contractForSource(source) {
+        return source === "old" ? oldMarketplaceContract : marketplaceContract;
+    }
+
+    function groupListingsByContract(items) {
+        const map = new Map();
+        items.forEach(item => {
+            const key = item.nftContract.toLowerCase();
+            if (!map.has(key)) map.set(key, []);
+            map.get(key).push(item);
+        });
+        return map;
+    }
+
+    function buildListingCardHtml(item, opts) {
+        const priceEth = ethers.formatEther(item.price);
+        const qty = opts.qty || 1;
+        const isSummary = !!opts.isCollectionSummary;
+        const actionHtml = isSummary
+            ? `<button class="btn buy-btn" onclick="openCollection('${item.nftContract}')">Open Collection</button>`
+            : (item.seller.toLowerCase() === account.toLowerCase()
+                ? `<button class="btn cancel-btn" onclick="cancelListing('${item.source}', ${item.id})">Cancel listing</button>`
+                : `<button class="btn buy-btn" onclick="buyListing('${item.source}', ${item.id})">Buy now</button>`);
+        const infoHtml = isSummary ? "" : `
+            <button class="info-toggle" onclick="toggleInfo('${item.key}')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 11v5M12 8v.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                NFT info
+            </button>
+            <div class="info-panel" id="info-panel-${item.key}">
+                <div class="info-desc" id="info-desc-${item.key}" style="display:none;"></div>
+                <div class="info-row"><span>Contract</span><span>${item.nftContract.slice(0,8)}...${item.nftContract.slice(-6)}</span></div>
+                <div class="info-row"><span>Token ID</span><span>#${item.tokenId}</span></div>
+                <div class="info-row"><span>Network</span><span>${NETWORKS[currentNet].chainName}</span></div>
+                <div class="info-row"><span>Seller</span><span id="seller-${item.key}">${item.seller.slice(0,8)}...${item.seller.slice(-6)}</span></div>
+                <div class="info-row"><span>Total supply</span><span id="info-supply-${item.key}">Loading...</span></div>
+                <a class="info-explorer-link" href="${getExplorerUrl(item.nftContract, item.tokenId) || '#'}" target="_blank" rel="noopener">View on Explorer ↗</a>
+            </div>`;
+        return `
+            <div class="listing-card">
+                <div class="listing-img-wrap">
+                    <div class="listing-img-skeleton" id="img-skel-${item.key}"></div>
+                    <img class="listing-img" id="img-${item.key}" style="display:none;" alt="NFT" />
+                    <iframe class="listing-frame" id="frame-${item.key}" style="display:none;" sandbox="allow-scripts" scrolling="no"></iframe>
+                    <div class="qty-badge">${qty}</div>
+                </div>
+                <div class="listing-body">
+                    <div class="listing-name" id="name-${item.key}" ${isSummary ? 'data-summary="1"' : ''}>${isSummary ? qty + " listed" : "#" + item.tokenId}</div>
+                    <div class="listing-contract">${item.nftContract.slice(0,6)}...${item.nftContract.slice(-4)}</div>
+                    <div class="listing-price-row">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="opacity:0.7;">
+                            <path d="M12 2L4 12l8 10 8-10-8-10z" stroke="#c9c9c9" stroke-width="1.4" fill="rgba(255,255,255,0.06)"/>
+                        </svg>
+                        <span class="price">${isSummary ? "from " + priceEth : priceEth}</span>
+                        <span class="price-symbol">${NETWORKS[currentNet].nativeCurrency.symbol}</span>
+                    </div>
+                    ${actionHtml}
+                    ${infoHtml}
+                </div>
+            </div>
+        `;
+    }
+
+    function attachCardBehaviors(item, activeNet, activeProvider, token) {
+        fetchNftMetadata(item.nftContract, item.tokenId).then(meta => {
+            const skel = document.getElementById("img-skel-" + item.key);
+            const imgEl = document.getElementById("img-" + item.key);
+            const frameEl = document.getElementById("frame-" + item.key);
+            const wrapEl = frameEl ? frameEl.closest(".listing-img-wrap") : null;
+            if (!skel) return;
+            if (meta.animationUrl) {
+                frameEl.src = meta.animationUrl;
+                frameEl.onload = () => {
+                    skel.style.display = "none";
+                    frameEl.style.display = "block";
+                    if (wrapEl) {
+                        const badge = document.createElement("div");
+                        badge.className = "live-badge";
+                        badge.innerText = "LIVE";
+                        wrapEl.appendChild(badge);
+                    }
+                };
+                frameEl.onerror = () => { skel.innerText = "🖼️"; };
+            } else if (meta.image) {
+                imgEl.src = meta.image;
+                imgEl.onload = () => { skel.style.display = "none"; imgEl.style.display = "block"; };
+                imgEl.onerror = () => { skel.innerText = "🖼️"; };
+            } else {
+                skel.innerText = "🖼️";
+            }
+            const nameEl = document.getElementById("name-" + item.key);
+            if (meta.name && nameEl && !nameEl.dataset.summary) nameEl.innerText = meta.name;
+            if (meta.description) {
+                const descEl = document.getElementById("info-desc-" + item.key);
+                if (descEl) { descEl.innerText = meta.description; descEl.style.display = "block"; }
+            }
+        });
+        fetchTotalSupply(item.nftContract).then(total => {
+            const el = document.getElementById("info-supply-" + item.key);
+            if (el) el.innerText = total || "Unknown";
+        });
+        resolveSellerName(item.seller, activeNet, activeProvider).then(domain => {
+            if (token !== loadListingsToken) return;
+            const el = document.getElementById("seller-" + item.key);
+            if (el && domain) el.innerText = domain;
+        });
+    }
+
+    function showGroupedView() {
+        document.getElementById("collection-detail-view").style.display = "none";
+        document.getElementById("browse-grid-view").style.display = "block";
+    }
+
+    function closeCollectionView() {
+        showGroupedView();
+    }
+
+    function openCollection(nftContract) {
+        const key = nftContract.toLowerCase();
+        const items = allListingItems.filter(i => i.nftContract.toLowerCase() === key);
+        const grid = document.getElementById("collection-detail-grid");
+        grid.innerHTML = "";
+        document.getElementById("collection-detail-title").innerText =
+            nftContract.slice(0, 6) + "..." + nftContract.slice(-4) + " — " + items.length + " listed";
+        items.forEach(item => {
+            const wrapper = document.createElement("div");
+            wrapper.innerHTML = buildListingCardHtml(item, { qty: 1, isCollectionSummary: false });
+            grid.appendChild(wrapper.firstElementChild);
+            attachCardBehaviors(item, currentNet, provider, loadListingsToken);
+        });
+        document.getElementById("browse-grid-view").style.display = "none";
+        document.getElementById("collection-detail-view").style.display = "block";
+    }
+
     let loadListingsToken = 0;
     async function loadListings() {
         if (!marketplaceContract) return;
@@ -1898,94 +2119,28 @@
         const gridEl = document.getElementById("listings-grid");
         gridEl.innerHTML = "";
         statusEl.innerText = "Loading listings...";
+        showGroupedView();
         try {
-            const total = await marketplaceContract.nextListingId();
-            const items = [];
-            for (let i = 1; i <= Number(total); i++) {
-                const listing = await marketplaceContract.getListing(i);
-                if (listing.active) {
-                    items.push({
-                        id: i,
-                        seller: listing.seller,
-                        nftContract: listing.nftContract,
-                        tokenId: listing.tokenId,
-                        price: listing.price,
-                        active: listing.active,
-                        supportFee: listing.supportFee
-                    });
-                }
-            }
+            const [newItems, oldItems] = await Promise.all([
+                fetchListingsFromContract(marketplaceContract, "new"),
+                fetchListingsFromContract(oldMarketplaceContract, "old")
+            ]);
+            const items = newItems.concat(oldItems);
             if (myToken !== loadListingsToken || activeNet !== currentNet) return;
+            allListingItems = items;
             if (items.length === 0) {
                 statusEl.innerText = "No active listings on this network yet.";
                 return;
             }
             statusEl.innerText = "";
-            items.forEach(item => {
-                const priceEth = ethers.formatEther(item.price);
-                const card = document.createElement("div");
-                card.className = "listing-card";
-                card.innerHTML = `
-                    <div class="listing-img-wrap">
-                        <div class="listing-img-skeleton" id="img-skel-${item.id}"></div>
-                        <img class="listing-img" id="img-${item.id}" style="display:none;" alt="NFT" />
-                        <div class="qty-badge">1</div>
-                    </div>
-                    <div class="listing-body">
-                        <div class="listing-name" id="name-${item.id}">#${item.tokenId}</div>
-                        <div class="listing-contract">${item.nftContract.slice(0,6)}...${item.nftContract.slice(-4)}</div>
-                        <div class="listing-price-row">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="opacity:0.7;">
-                                <path d="M12 2L4 12l8 10 8-10-8-10z" stroke="#c9c9c9" stroke-width="1.4" fill="rgba(255,255,255,0.06)"/>
-                            </svg>
-                            <span class="price">${priceEth}</span>
-                            <span class="price-symbol">${NETWORKS[currentNet].nativeCurrency.symbol}</span>
-                        </div>
-                        ${item.seller.toLowerCase() === account.toLowerCase()
-                            ? `<button class="btn cancel-btn" onclick="cancelListing(${item.id})">Cancel listing</button>`
-                            : `<button class="btn buy-btn" onclick="buyListing(${item.id})">Buy now</button>`}
-                        <button class="info-toggle" onclick="toggleInfo(${item.id})">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 11v5M12 8v.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                            NFT info
-                        </button>
-                        <div class="info-panel" id="info-panel-${item.id}">
-                            <div class="info-desc" id="info-desc-${item.id}" style="display:none;"></div>
-                            <div class="info-row"><span>Contract</span><span>${item.nftContract.slice(0,8)}...${item.nftContract.slice(-6)}</span></div>
-                            <div class="info-row"><span>Token ID</span><span>#${item.tokenId}</span></div>
-                            <div class="info-row"><span>Network</span><span>${NETWORKS[currentNet].chainName}</span></div>
-                            <div class="info-row"><span>Seller</span><span id="seller-${item.id}">${item.seller.slice(0,8)}...${item.seller.slice(-6)}</span></div>
-                            <div class="info-row"><span>Total supply</span><span id="info-supply-${item.id}">Loading...</span></div>
-                            <a class="info-explorer-link" href="${getExplorerUrl(item.nftContract, item.tokenId) || '#'}" target="_blank" rel="noopener">View on Explorer ↗</a>
-                        </div>
-                    </div>
-                `;
-                gridEl.appendChild(card);
-                fetchNftMetadata(item.nftContract, item.tokenId).then(meta => {
-                    const skel = document.getElementById("img-skel-" + item.id);
-                    const imgEl = document.getElementById("img-" + item.id);
-                    if (meta.image) {
-                        imgEl.src = meta.image;
-                        imgEl.onload = () => { skel.style.display = "none"; imgEl.style.display = "block"; };
-                        imgEl.onerror = () => { skel.innerText = "🖼️"; };
-                    } else {
-                        skel.innerText = "🖼️";
-                    }
-                    if (meta.name) document.getElementById("name-" + item.id).innerText = meta.name;
-                    if (meta.description) {
-                        const descEl = document.getElementById("info-desc-" + item.id);
-                        descEl.innerText = meta.description;
-                        descEl.style.display = "block";
-                    }
-                });
-                fetchTotalSupply(item.nftContract).then(total => {
-                    const el = document.getElementById("info-supply-" + item.id);
-                    if (el) el.innerText = total || "Unknown";
-                });
-                resolveSellerName(item.seller, activeNet, activeProvider).then(domain => {
-                    if (myToken !== loadListingsToken) return;
-                    const el = document.getElementById("seller-" + item.id);
-                    if (el && domain) el.innerText = domain;
-                });
+            const grouped = groupListingsByContract(items);
+            grouped.forEach(group => {
+                const representative = group[0];
+                const isSummary = group.length > 1;
+                const wrapper = document.createElement("div");
+                wrapper.innerHTML = buildListingCardHtml(representative, { qty: group.length, isCollectionSummary: isSummary });
+                gridEl.appendChild(wrapper.firstElementChild);
+                attachCardBehaviors(representative, activeNet, activeProvider, myToken);
             });
         } catch (err) {
             if (myToken !== loadListingsToken) return;
@@ -2012,14 +2167,15 @@
         }
     }
 
-    function toggleInfo(id) {
-        const panel = document.getElementById("info-panel-" + id);
+    function toggleInfo(key) {
+        const panel = document.getElementById("info-panel-" + key);
         panel.classList.toggle("open");
     }
-    async function cancelListing(listingId) {
+    async function cancelListing(source, listingId) {
         if (!confirm("Cancel this listing? Your NFT will stay in your wallet.")) return;
         try {
-            const tx = await marketplaceContract.cancelListing(listingId);
+            const contract = contractForSource(source);
+            const tx = await contract.cancelListing(listingId);
             await tx.wait();
             alert("Listing cancelled!");
             loadListings();
@@ -2027,10 +2183,11 @@
             alert(getFriendlyError(err));
         }
     }
-    async function buyListing(listingId) {
+    async function buyListing(source, listingId) {
         try {
-            const listing = await marketplaceContract.getListing(listingId);
-            const tx = await marketplaceContract.buyItem(listingId, { value: listing.price });
+            const contract = contractForSource(source);
+            const listing = await contract.getListing(listingId);
+            const tx = await contract.buyItem(listingId, { value: listing.price });
             await tx.wait();
             alert("Purchase successful!");
             loadListings();
@@ -2078,15 +2235,25 @@
                 }
 
                 tx = await marketplaceContract.listItem(contractAddr, tokenId, ethers.parseEther(price), supportFee);
+                await tx.wait();
             } else {
                 const ids = document.getElementById("sell-token-ids").value.split(",").map(s => s.trim()).filter(Boolean);
                 const price = document.getElementById("sell-price-collection").value.trim();
                 if (ids.length === 0 || !price) { alert("Fill in token IDs and price."); return; }
                 const priceWei = ethers.parseEther(price);
                 const prices = ids.map(() => priceWei);
+
+                try {
+                    await marketplaceContract.listCollection.staticCall(contractAddr, ids, prices, supportFee);
+                } catch (simErr) {
+                    console.error("SIMULATION REVERT REASON:", simErr.reason || simErr.shortMessage || simErr.info || simErr);
+                    document.getElementById("sell-status").innerText = "Simulation failed: " + (simErr.reason || simErr.shortMessage || "see console");
+                    return;
+                }
+
                 tx = await marketplaceContract.listCollection(contractAddr, ids, prices, supportFee);
+                await tx.wait();
             }
-            await tx.wait();
             document.getElementById("sell-status").innerText = "Listed successfully!";
             showTab("browse");
             loadListings();
@@ -2124,7 +2291,7 @@
             </a>
         </div>
     </footer>
-
+    </div>
     <div class="chat-launcher">
         <div class="chat-blob" id="chatBlob" onclick="chatToggle(event)">
             <span class="chat-blob-icon"><i class="fas fa-comment-dots"></i></span>
@@ -2178,12 +2345,13 @@
         }, { passive: true });
 
         function toggleMenu() {
-            document.getElementById("navlinks").classList.toggle("open");
-            document.getElementById("navOverlay").classList.toggle("open");
-            if (!document.getElementById("navlinks").classList.contains("open")) {
-                document.getElementById("toolsDropdown")?.classList.remove("open");
-            }
-        }
+    document.getElementById("navlinks").classList.toggle("open");
+    document.getElementById("navOverlay").classList.toggle("open");
+    if (!document.getElementById("navlinks").classList.contains("open")) {
+        document.getElementById("toolsDropdown")?.classList.remove("open");
+        document.getElementById("domainDropdown")?.classList.remove("open");
+    }
+}
 
         function toggleDropdown(e) {
             e.stopPropagation();
@@ -2215,10 +2383,11 @@
         }
 
         window.addEventListener("resize", function() {
-            if (window.innerWidth > 700) {
-                document.getElementById("toolsDropdown")?.classList.remove("open");
-            }
-        });
+    if (window.innerWidth > 700) {
+        document.getElementById("toolsDropdown")?.classList.remove("open");
+        document.getElementById("domainDropdown")?.classList.remove("open");
+    }
+});
 
     </script>
 

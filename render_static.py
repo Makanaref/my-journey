@@ -20,6 +20,7 @@ ROUTES = {
     "/games": "games.html",
     "/mint": "mint.html",
     "/domain": "domain.html",
+    "/deploy-contract": "deploy_contract.html",
     "/flip": "flip.html",
     "/mint-nft": "mint-nft.html",
     "/marketplace": "marketplace.html",
