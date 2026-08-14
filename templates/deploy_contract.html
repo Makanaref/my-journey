@@ -255,10 +255,14 @@
         try {
             const source = `// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\ncontract ${name} {}\n`;
             const input = {
-                language: "Solidity",
-                sources: { "contract.sol": { content: source } },
-                settings: { outputSelection: { "*": { "*": ["abi", "evm.bytecode.object"] } } }
-            };
+    language: "Solidity",
+    sources: { "contract.sol": { content: source } },
+    settings: {
+        optimizer: { enabled: true, runs: 1 },
+        metadata: { bytecodeHash: "none" },
+        outputSelection: { "*": { "*": ["abi", "evm.bytecode.object"] } }
+    }
+};
 
             const outputRaw = await compileWithWorker(JSON.stringify(input));
             const output = JSON.parse(outputRaw);
