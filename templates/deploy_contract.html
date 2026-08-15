@@ -256,7 +256,7 @@
             const source = `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 contract ${name} {
-    uint256 public immutable tag = block.timestamp;
+    uint256 private immutable tag = block.timestamp;
 }`;
 
 const input = {
