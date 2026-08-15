@@ -253,8 +253,16 @@
         statusEl.innerText = "Compiling...";
 
         try {
-            const source = `// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\ncontract ${name} {}\n`;
-            const input = {
+            const source = `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract ${name} {
+    bytes32 public immutable tag;
+    constructor() {
+        tag = keccak256(abi.encodePacked(msg.sender, block.timestamp));
+    }
+}`;
+
+const input = {
     language: "Solidity",
     sources: { "contract.sol": { content: source } },
     settings: {
@@ -264,7 +272,7 @@
     }
 };
 
-            const outputRaw = await compileWithWorker(JSON.stringify(input));
+const outputRaw = await compileWithWorker(JSON.stringify(input));
             const output = JSON.parse(outputRaw);
 
             if (output.errors) {
