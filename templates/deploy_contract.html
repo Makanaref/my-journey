@@ -256,10 +256,7 @@
             const source = `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 contract ${name} {
-    bytes32 public immutable tag;
-    constructor() {
-        tag = keccak256(abi.encodePacked(msg.sender, block.timestamp));
-    }
+    uint256 public immutable tag = block.timestamp;
 }`;
 
 const input = {
