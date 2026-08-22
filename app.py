@@ -3,6 +3,7 @@ from flask_talisman import Talisman
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_wtf import CSRFProtect
+from werkzeug.middleware.proxy_fix import ProxyFix
 import requests
 import os
 import sqlite3
@@ -26,6 +27,7 @@ def require_env(name):
     return value
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.secret_key = require_env("SECRET_KEY")
 
 csp = {
@@ -440,6 +442,7 @@ def ipfs_upload_json():
         return jsonify({"error": "IPFS upload failed"}), 502
 
 @app.route("/nft-image/<filename>")
+@limiter.limit("300 per minute")
 def serve_nft_image(filename):
     safe_name = secure_filename(filename)
     filepath = os.path.join(UPLOAD_DIR, safe_name)
@@ -478,6 +481,7 @@ def create_nft_metadata():
     return jsonify({"metadata_url": metadata_url})
 
 @app.route("/nft-metadata/<filename>")
+@limiter.limit("300 per minute")
 def serve_nft_metadata(filename):
     safe_name = secure_filename(filename)
     filepath = os.path.join(UPLOAD_DIR, "metadata", safe_name)
