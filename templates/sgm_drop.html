@@ -240,12 +240,33 @@
         opacity:0;
     }
 
-    /* ========== MAIN SITE (hidden until gate passed) ========== */
+    /* ========== MAIN SITE ========== */
     #main-site {
         display:none;
     }
     #main-site.show {
         display:block;
+    }
+
+    /* ========== SGMHUB LOGO (NEW) ========== */
+    #sgm-logo {
+        position:fixed;
+        top:24px;
+        left:28px;
+        z-index:100000;
+        font-family:'Jost','Courier New',monospace;
+        font-weight:700;
+        font-size:1.2em;
+        letter-spacing:4px;
+        text-transform:uppercase;
+        color:rgba(200, 204, 216, 0.6); /* Grey */
+        text-decoration:none;
+        cursor:pointer;
+        transition:color 0.3s ease, text-shadow 0.3s ease;
+    }
+    #sgm-logo:hover {
+        color:rgba(233,228,216,1);
+        text-shadow:0 0 12px rgba(233,228,216,0.4);
     }
 
     /* ========== FULLSCREEN NFT BACKGROUND ========== */
@@ -506,7 +527,7 @@
         font-variant-numeric:tabular-nums;
     }
 
-    /* ========== MINT PANEL (right side overlay) ========== */
+    /* ========== MINT PANEL ========== */
     #mint-panel {
         position:fixed;
         top:50%;
@@ -533,8 +554,6 @@
         background:rgba(233,162,90,0.3);
         border-radius:4px;
     }
-
-    /* ========== MINT CONTENT STYLES ========== */
     .relic-title {
         font-family:'Cormorant SC',serif;
         font-weight:600;
@@ -888,6 +907,9 @@
 </head>
 <body>
 
+    <!-- SGMHUB LOGO (NEW) -->
+    <a href="http://sgmhub.ir/" id="sgm-logo">SGMHub</a>
+
     <!-- GATE SCREEN -->
     <div id="gate-screen">
         <div class="gate-content">
@@ -911,10 +933,8 @@
         </div>
     </div>
 
-    <!-- MAIN SITE (shown after gate and lamp) -->
+    <!-- MAIN SITE -->
     <div id="main-site">
-
-        <!-- Fullscreen NFT background (from 001.html) -->
         <div id="nft-background">
             <div class="fog fog1"></div>
             <div class="fog fog2"></div>
@@ -959,7 +979,7 @@
             </div>
         </div>
 
-        <!-- MINT PANEL (right side) -->
+        <!-- MINT PANEL -->
         <div id="mint-panel">
             <h2 class="relic-title" id="relic-name">SGM Nº001</h2>
             <p class="relic-desc" id="relic-desc">Its inscription is still forming in the dark...</p>
@@ -1006,9 +1026,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
     <script>
-    /* ============================================================
-       GATE SEQUENCE LOGIC (unchanged)
-       ============================================================ */
     (function initGate() {
         const gateScreen = document.getElementById("gate-screen");
         const gateTextInner = document.getElementById("gate-text-inner");
@@ -1106,9 +1123,6 @@
         askAreYouLost();
     })();
 
-    /* ============================================================
-       ORIGINAL SITE LOGIC (unchanged, but now targets #mint-panel)
-       ============================================================ */
     function initMainSite() {
         const CONTRACT_ADDRESS = "0xcc6703B8767DBdd900F5762eBe9917aE8F4dd71C";
         const METADATA_BASE = "https://sgmhub.ir/nft-metadata/";
@@ -1361,7 +1375,6 @@
             } catch (e) {}
         }
 
-        /* ===== Background particles (from 001.html JS) ===== */
         (function initBackgroundParticles() {
             const stage = document.getElementById("nft-background");
             if (!stage) return;
