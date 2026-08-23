@@ -1,0 +1,40 @@
+{
+  "name": "SGM #170",
+  "description": "Solitary lamp swaying in a dark forest clearing, generative motion piece.",
+  "animation_url": "ipfs://bafybeievnp4lkiy2crwyvyrd7kfidtfxqxnfi2masl353ojaz57xh7et6a/170.html",
+  "image": "ipfs://bafybeiadhc5gdzctrwzcjkkgfeif64fmxcbroxmyah6ck5uobbzkgx5yg4/170.svg",
+  "attributes": [
+    {
+      "trait_type": "Palette",
+      "value": "Ember"
+    },
+    {
+      "trait_type": "Fog",
+      "value": "Dense"
+    },
+    {
+      "trait_type": "Season",
+      "value": "Autumn"
+    },
+    {
+      "trait_type": "Spiderweb",
+      "value": "Absent"
+    },
+    {
+      "trait_type": "Vines",
+      "value": "3"
+    },
+    {
+      "trait_type": "Dust Density",
+      "value": "Light"
+    },
+    {
+      "trait_type": "Sway Speed",
+      "value": "Fast"
+    },
+    {
+      "trait_type": "Rarity Tier",
+      "value": "Uncommon"
+    }
+  ]
+}

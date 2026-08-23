@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  :root{
+    --void:#050208;
+    --void2:#0a0512;
+    --bone:#c3b9d0;
+    --glow:#c99dff;
+    --glow-hot:#f2e6ff;
+    --rust:#2f1e3a;
+  }
+  html,body{ margin:0;padding:0;width:100%;height:100%;background:var(--void);overflow:hidden;font-family:Georgia,'Times New Roman',serif; }
+  .stage{ position:relative;width:100%;height:100vh;background:radial-gradient(ellipse at 46% 34%, rgba(233,223,192,0.05) 0%, rgba(4,4,4,0) 42%),linear-gradient(180deg, var(--void) 0%, var(--void2) 55%, #000 100%);overflow:hidden; }
+  .grain{ position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");opacity:0.16;mix-blend-mode:overlay;pointer-events:none;animation:grainShift 0.4s steps(2) infinite; }
+  @keyframes grainShift{ 0%{transform:translate(0,0)} 50%{transform:translate(-1%,1%)} 100%{transform:translate(1%,-1%)} }
+  .fog{ position:absolute;left:-20%;width:140%;height:60%;background:radial-gradient(ellipse at center, rgba(90,92,98,0.22) 0%, rgba(90,92,98,0) 70%);filter:blur(6px);pointer-events:none; }
+  .fog1{ bottom:-10%;height:50%;animation:drift 40s linear infinite;opacity:0.1; }
+  .fog2{ bottom:8%;height:32%;animation:drift 58s linear infinite reverse;opacity:0.05; }
+  @keyframes drift{ 0%{transform:translateX(-5%);} 50%{transform:translateX(5%);} 100%{transform:translateX(-5%);} }
+  .vignette{ position:absolute;inset:0;box-shadow:inset 0 0 20vw 5vw #000;pointer-events:none; }
+  .dust{ position:absolute;background:var(--bone);border-radius:50%;opacity:0;animation:floatUp linear infinite; }
+  @keyframes floatUp{ 0%{transform:translateY(0) translateX(0);opacity:0;} 10%{opacity:0.5;} 90%{opacity:0.25;} 100%{transform:translateY(-72vh) translateX(24px);opacity:0;} }
+  .rig{ position:absolute;top:0;left:42%;transform-origin:top center;animation-name:sway;animation-timing-function:ease-in-out;animation-iteration-count:infinite; }
+  @keyframes sway{ 0%{transform:translateX(-50%) rotate(-2.8deg);} 50%{transform:translateX(-50%) rotate(2.8deg);} 100%{transform:translateX(-50%) rotate(-2.8deg);} }
+  .chain{ width:2px;margin:0 auto;background:repeating-linear-gradient(180deg, #000 0px, #000 8px, #1c1a17 8px, #1c1a17 14px); }
+  .fixture{ position:relative;width:140px;margin:-2px auto 0 auto; }
+  .cage{ position:absolute;left:50%;top:6px;transform:translateX(-50%);width:56px;height:70px; }
+  .cage svg{ display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.9)); }
+  .bulb{ position:absolute;left:50%;top:32px;transform:translateX(-50%);width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 50% 40%, var(--glow-hot) 0%, var(--glow) 45%, #4a4630 100%);box-shadow:0 0 10px 3px var(--glow), 0 0 26px 10px rgba(233,223,192,0.22);animation:flicker 2.4s infinite; }
+  @keyframes flicker{ 0%,19%,21%,23%,80%,100%{opacity:1;} 20%{opacity:0.3;} 22%{opacity:0.82;} 55%{opacity:0.68;} 56%{opacity:1;} }
+  .beam{ position:absolute;left:50%;top:52px;transform:translateX(-50%);width:0;height:0;border-left:150px solid transparent;border-right:150px solid transparent;border-top:380px solid rgba(233,223,192,0.045);mix-blend-mode:screen;animation:flicker 2.4s infinite;pointer-events:none; }
+  .glow-pool{ position:absolute;left:50%;top:400px;transform:translateX(-50%);width:380px;height:130px;background:radial-gradient(ellipse at center, rgba(233,223,192,0.16) 0%, rgba(233,223,192,0) 70%);filter:blur(9px);animation:flicker 2.4s infinite;pointer-events:none; }
+  .rust-streak{ position:absolute;left:50%;top:0;width:6px;height:22vh;background:linear-gradient(180deg, rgba(58,47,34,0) 0%, rgba(58,47,34,0.5) 60%, rgba(58,47,34,0) 100%);transform:translateX(-50%);filter:blur(3px);opacity:0.4; }
+  .treeline{ position:absolute;bottom:0;left:0;width:100%;height:38vh;pointer-events:none; }
+  .treeline svg{ width:100%;height:100%;display:block; }
+  .treeline.back{ opacity:0.55;filter:blur(0.5px); }
+  .treeline.front{ opacity:0.9; }
+  .rig-far{ position:absolute;top:0;transform:translateX(-50%) scale(0.5);transform-origin:top center;animation:swayFar 6.5s ease-in-out infinite;opacity:0.6; }
+  @keyframes swayFar{ 0%{transform:translateX(-50%) scale(0.5) rotate(3deg);} 50%{transform:translateX(-50%) scale(0.5) rotate(-3deg);} 100%{transform:translateX(-50%) scale(0.5) rotate(3deg);} }
+  .rig-far .chain{ height:14vh; }
+  .rig-far .bulb2{ width:12px;height:12px;margin:0 auto;border-radius:50%;background:radial-gradient(circle at 50% 40%, var(--glow-hot) 0%, var(--glow) 45%, #4a4630 100%);box-shadow:0 0 8px 2px var(--glow), 0 0 16px 6px rgba(233,223,192,0.18);animation:flicker 3.4s infinite; }
+  .vine{ position:absolute;top:0;width:1px;background:linear-gradient(180deg, #000 0%, #201d18 100%);opacity:0.5;animation:sway 7s ease-in-out infinite;transform-origin:top center; }
+  .web{ position:absolute;top:-4px;left:60%;width:38px;height:30px;opacity:0.3; }
+  .leaf{ position:absolute;width:5px;height:3px;background:#5a4f3a;border-radius:50% 0 50% 0;opacity:0;animation:leafFall linear infinite; }
+  @keyframes leafFall{ 0%{transform:translateY(-5vh) translateX(0) rotate(0deg);opacity:0;} 8%{opacity:0.6;} 50%{transform:translateY(45vh) translateX(-30px) rotate(180deg);} 92%{opacity:0.5;} 100%{transform:translateY(95vh) translateX(10px) rotate(360deg);opacity:0;} }
+  .brand{ position:absolute;bottom:5%;left:50%;transform:translateX(-50%);text-align:center; }
+  .brand .mark{ color:var(--bone);font-size:22px;letter-spacing:9px;font-weight:500;opacity:0.35; }
+  .brand .mark .num{ opacity:0.85;margin-right:10px;font-variant-numeric:tabular-nums; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="fog fog1"></div>
+  <div class="fog fog2"></div>
+  <div class="treeline back"><svg viewBox="0 0 1000 300" preserveAspectRatio="none"><path d="M0,300 L0,260L21,132 L45,260 L66,96 L84,260 L100,184 L120,260 L145,92 L166,260 L185,50 L209,260 L232,250 L253,260 L279,251 L304,260 L334,118 L349,260 L365,180 L386,260 L412,125 L430,260 L458,172 L473,260 L490,182 L514,260 L529,43 L550,260 L568,219 L583,260 L602,91 L620,260 L636,221 L652,260 L678,57 L695,260 L725,134 L748,260 L764,80 L779,260 L799,254 L816,260 L843,175 L863,260 L881,157 L896,260 L911,106 L927,260 L944,212 L960,260 L987,209 L1003,260 L1000,260 L1000,300 Z" fill="#000"/></svg></div>
+  <div class="treeline front"><svg viewBox="0 0 1000 220" preserveAspectRatio="none"><path d="M0,220 L0,180L28,142 L44,180 L66,171 L90,180 L105,112 L130,180 L155,51 L175,180 L197,135 L222,180 L237,53 L256,180 L285,57 L300,180 L321,132 L341,180 L364,180 L381,180 L408,167 L431,180 L453,122 L472,180 L489,53 L506,180 L532,109 L557,180 L582,75 L604,180 L633,60 L653,180 L679,131 L699,180 L726,54 L744,180 L761,181 L785,180 L808,127 L823,180 L845,143 L865,180 L889,128 L910,180 L927,48 L950,180 L976,133 L999,180 L1016,127 L1041,180 L1000,180 L1000,220 Z" fill="#000"/></svg></div>
+  <div class="vine" style="left:61.6%; height:20.1vh; animation-delay:-0.0s;"></div>
+  <div class="vine" style="left:24.4%; height:15.2vh; animation-delay:-4.3s;"></div>
+  <div class="vine" style="left:24.3%; height:23.9vh; animation-delay:-2.6s;"></div>
+  
+  <div class="rig-far" style="left:73%;">
+    <div class="chain" style="height:14.0vh;"></div>
+    <div class="bulb2"></div>
+  </div>
+  <div class="rig" style="animation-duration:4.798596512409858s;">
+    <div class="rust-streak"></div>
+    <div class="chain" style="height:25.410352244973183vh;"></div>
+    <div class="fixture">
+      <div class="beam"></div>
+      <div class="cage">
+        <svg width="56" height="70" viewBox="0 0 56 70">
+          <ellipse cx="28" cy="8" rx="10" ry="5" fill="none" stroke="#050403" stroke-width="2"/>
+          <path d="M8 10 L8 55 M20 8 L20 60 M36 8 L36 60 M48 10 L48 55" stroke="#050403" stroke-width="2" fill="none"/>
+          <ellipse cx="28" cy="58" rx="20" ry="6" fill="none" stroke="#050403" stroke-width="2"/>
+          <ellipse cx="28" cy="34" rx="24" ry="10" fill="none" stroke="#050403" stroke-width="1.4"/>
+        </svg>
+      </div>
+      
+      <div class="bulb"></div>
+      <div class="glow-pool"></div>
+    </div>
+  </div>
+  <div class="vignette"></div>
+  <div class="grain"></div>
+  <div class="brand">
+    <div class="mark"><span class="num">048</span>SGM</div>
+  </div>
+</div>
+<script>
+(function(){
+  var stage = document.getElementById('stage');
+  var n = 59;
+  for (var i = 0; i < n; i++) {
+    var d = document.createElement('div');
+    d.className = 'dust';
+    var x = Math.random() * 100;
+    var delay = Math.random() * 22;
+    var dur = 12 + Math.random() * 20;
+    var size = 1 + Math.random() * 2.2;
+    d.style.left = x + '%';
+    d.style.bottom = '0px';
+    d.style.width = size + 'px';
+    d.style.height = size + 'px';
+    d.style.animationDuration = dur + 's';
+    d.style.animationDelay = delay + 's';
+    stage.appendChild(d);
+  }
+  var lf = 10;
+  for (var j = 0; j < lf; j++) {
+    var l = document.createElement('div');
+    l.className = 'leaf';
+    var lx = Math.random() * 100;
+    var ldelay = Math.random() * 18;
+    var ldur = 9 + Math.random() * 8;
+    l.style.left = lx + '%';
+    l.style.animationDuration = ldur + 's';
+    l.style.animationDelay = ldelay + 's';
+    stage.appendChild(l);
+  }
+})();
+</script>
+</body>
+</html>
