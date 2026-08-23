@@ -71,111 +71,125 @@
     .kicker .flame { color: #e9a25a; }
 
     .brand-title {
-        font-family: 'Cinzel', serif; font-weight: 700; font-size: 2.1em; letter-spacing: 1px;
+        font-family: 'Cinzel', serif; font-weight: 700; font-size: 2.3em; letter-spacing: 2px;
         text-align: center; color: #f2ede1;
         text-shadow: 0 0 30px rgba(255,205,140,0.18);
         margin-bottom: 4px;
     }
-    .brand-sub { text-align: center; color: rgba(232,232,236,0.45); font-size: 0.85em; margin-bottom: 26px; max-width: 380px; line-height: 1.7; }
+    .brand-sub { text-align: center; color: rgba(232,232,236,0.45); font-size: 0.85em; margin-bottom: 30px; max-width: 380px; line-height: 1.7; }
 
     .relic-frame {
-        position: relative; width: min(300px, 78vw); aspect-ratio: 1/1; margin-bottom: 26px;
-        border-radius: 6px; overflow: hidden;
+        position: relative; width: min(320px, 82vw); aspect-ratio: 1/1; margin-bottom: 28px;
+        border-radius: 10px; overflow: hidden;
         border: 1px solid rgba(233,162,90,0.28);
-        box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 30px 70px rgba(0,0,0,0.7), 0 0 60px rgba(233,162,90,0.06);
-        background: #0a0c10;
+        box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 30px 70px rgba(0,0,0,0.7), 0 0 60px rgba(233,162,90,0.08);
+        background: linear-gradient(160deg, #0e1015, #0a0c10);
     }
     .relic-frame::before {
         content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-        background: linear-gradient(160deg, rgba(255,255,255,0.05), transparent 40%);
-        border: 1px solid rgba(255,255,255,0.06); border-radius: 6px;
+        background: linear-gradient(160deg, rgba(255,255,255,0.06), transparent 40%);
+        border: 1px solid rgba(255,255,255,0.07); border-radius: 10px;
     }
-    .relic-img { width: 100%; height: 100%; object-fit: cover; display: none; }
-    .relic-frame-el { width: 100%; height: 100%; border: 0; display: none; }
+    .relic-skeleton {
+        position: absolute; inset: 0; z-index: 1;
+        display: flex; align-items: center; justify-content: center;
+        flex-direction: column; gap: 10px;
+    }
+    .relic-skeleton .spinner {
+        width: 34px; height: 34px; border-radius: 50%;
+        border: 2px solid rgba(233,162,90,0.15); border-top-color: #e9a25a;
+        animation: spin 0.9s linear infinite;
+    }
+    .relic-skeleton .msg { font-size: 0.7em; letter-spacing: 0.5px; color: rgba(232,232,236,0.35); text-align: center; padding: 0 20px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .relic-img { width: 100%; height: 100%; object-fit: cover; display: none; position: relative; z-index: 1; }
+    .relic-frame-el { width: 100%; height: 100%; border: 0; display: none; position: relative; z-index: 1; }
     .relic-tag {
-        position: absolute; bottom: 10px; left: 10px; z-index: 3;
+        position: absolute; bottom: 12px; left: 12px; z-index: 3;
         font-family: 'Cinzel', serif; font-size: 0.62em; letter-spacing: 2px; text-transform: uppercase;
-        color: #e9a25a; background: rgba(5,6,10,0.7); border: 1px solid rgba(233,162,90,0.3);
-        padding: 4px 10px; border-radius: 3px;
+        color: #e9a25a; background: rgba(5,6,10,0.75); border: 1px solid rgba(233,162,90,0.3);
+        padding: 5px 11px; border-radius: 4px; backdrop-filter: blur(4px);
     }
 
-    .relic-title { font-family: 'Cinzel', serif; font-size: 1.15em; color: #f2ede1; text-align: center; margin-bottom: 4px; }
-    .relic-desc { color: rgba(232,232,236,0.5); font-size: 0.82em; text-align: center; max-width: 340px; line-height: 1.6; margin-bottom: 26px; }
+    .relic-title { font-family: 'Cinzel', serif; font-size: 1.2em; color: #f2ede1; text-align: center; margin-bottom: 6px; letter-spacing: 0.5px; }
+    .relic-desc { color: rgba(232,232,236,0.5); font-size: 0.82em; text-align: center; max-width: 340px; line-height: 1.6; margin-bottom: 30px; }
 
     /* Countdown - carved-stone look */
-    .countdown { display: flex; gap: 10px; margin-bottom: 24px; }
+    .countdown { display: flex; gap: 12px; margin-bottom: 28px; }
     .countdown-cell {
-        width: 68px; padding: 12px 0 10px; text-align: center; border-radius: 8px;
-        background: linear-gradient(160deg, rgba(255,255,255,0.04), rgba(0,0,0,0.3));
+        width: 72px; padding: 14px 0 11px; text-align: center; border-radius: 10px;
+        background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(0,0,0,0.35));
         border: 1px solid rgba(233,162,90,0.22);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 20px rgba(0,0,0,0.4);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 10px 24px rgba(0,0,0,0.45);
     }
-    .countdown-num { font-family: 'Cinzel', serif; font-weight: 700; font-size: 1.5em; color: #f2ede1; letter-spacing: 1px; }
-    .countdown-tag { font-size: 0.58em; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(233,162,90,0.7); margin-top: 4px; }
-    .countdown-ended { font-family: 'Cinzel', serif; color: rgba(232,232,236,0.55); font-size: 0.95em; padding: 14px 24px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; }
+    .countdown-num { font-family: 'Cinzel', serif; font-weight: 700; font-size: 1.6em; color: #f2ede1; letter-spacing: 1px; }
+    .countdown-tag { font-size: 0.58em; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(233,162,90,0.7); margin-top: 5px; }
+    .countdown-ended { font-family: 'Cinzel', serif; color: rgba(232,232,236,0.55); font-size: 0.95em; padding: 14px 24px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; }
 
     /* Supply meter */
-    .supply-panel { width: min(360px, 88vw); margin-bottom: 22px; }
-    .supply-row { display: flex; justify-content: space-between; font-size: 0.72em; letter-spacing: 0.5px; color: rgba(232,232,236,0.55); margin-bottom: 8px; text-transform: uppercase; }
+    .supply-panel { width: min(380px, 90vw); margin-bottom: 26px; }
+    .supply-row { display: flex; justify-content: space-between; font-size: 0.72em; letter-spacing: 0.5px; color: rgba(232,232,236,0.55); margin-bottom: 9px; text-transform: uppercase; }
     .supply-row .n { color: #e9a25a; font-weight: 700; }
-    .supply-track { height: 5px; border-radius: 6px; background: rgba(255,255,255,0.06); overflow: hidden; }
+    .supply-track { height: 6px; border-radius: 6px; background: rgba(255,255,255,0.06); overflow: hidden; }
     .supply-fill { height: 100%; width: 0%; border-radius: 6px; background: linear-gradient(90deg, #7a4a1e, #e9a25a); transition: width 0.5s ease; box-shadow: 0 0 10px rgba(233,162,90,0.4); }
 
-    .detail-list { width: min(360px, 88vw); margin-bottom: 26px; }
-    .detail-row { display: flex; justify-content: space-between; padding: 10px 2px; font-size: 0.85em; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .detail-row span:first-child { color: rgba(232,232,236,0.45); }
+    .detail-list { width: min(380px, 90vw); margin-bottom: 30px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.015); }
+    .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; font-size: 0.85em; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row span:first-child { color: rgba(232,232,236,0.45); letter-spacing: 0.3px; }
     .detail-row .val { color: #f2ede1; font-weight: 600; font-family: 'Cinzel', serif; letter-spacing: 0.3px; }
+    .detail-row .val.free { color: #6fcf97; }
 
     .network-warn {
-        width: min(360px, 88vw); background: rgba(233,162,90,0.08); border: 1px solid rgba(233,162,90,0.3);
-        color: #e9a25a; border-radius: 8px; padding: 10px 14px; font-size: 0.78em; margin-bottom: 18px; display: none; text-align: center;
+        width: min(380px, 90vw); background: rgba(233,162,90,0.08); border: 1px solid rgba(233,162,90,0.3);
+        color: #e9a25a; border-radius: 10px; padding: 11px 14px; font-size: 0.78em; margin-bottom: 18px; display: none; text-align: center;
     }
 
     .wallet-pill {
         display: inline-flex; align-items: center; gap: 8px; margin-bottom: 18px;
         background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
-        padding: 8px 16px; border-radius: 30px; font-size: 0.8em; color: rgba(232,232,236,0.7); font-family: monospace;
+        padding: 9px 18px; border-radius: 30px; font-size: 0.8em; color: rgba(232,232,236,0.7); font-family: monospace;
     }
     .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #6fcf97; box-shadow: 0 0 6px #6fcf97; }
 
     .rite-btn {
-        width: min(320px, 84vw); padding: 16px 20px; border-radius: 10px; cursor: pointer;
+        width: min(330px, 88vw); padding: 17px 20px; border-radius: 12px; cursor: pointer;
         font-family: 'Cinzel', serif; font-weight: 600; font-size: 0.95em; letter-spacing: 1px; text-transform: uppercase;
         border: 1px solid rgba(233,162,90,0.5);
-        background: linear-gradient(160deg, #3a2412, #1c1409);
+        background: linear-gradient(160deg, #4a2e16, #1c1409);
         color: #f2c896;
-        box-shadow: 0 12px 32px rgba(233,162,90,0.14), inset 0 1px 0 rgba(255,255,255,0.06);
+        box-shadow: 0 14px 34px rgba(233,162,90,0.16), inset 0 1px 0 rgba(255,255,255,0.07);
         transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
-    .rite-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(233,162,90,0.22); background: linear-gradient(160deg, #4a2e16, #22190c); }
+    .rite-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 18px 42px rgba(233,162,90,0.24); background: linear-gradient(160deg, #5a3a1c, #22190c); }
     .rite-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
 
     .connect-btn {
-        width: min(320px, 84vw); padding: 15px 20px; border-radius: 10px; cursor: pointer;
+        width: min(330px, 88vw); padding: 16px 20px; border-radius: 12px; cursor: pointer;
         font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.9em;
         border: 1px solid rgba(126,200,227,0.35); background: rgba(126,200,227,0.06); color: #9adcf2;
         transition: all 0.2s ease;
     }
-    .connect-btn:hover { background: rgba(126,200,227,0.14); }
+    .connect-btn:hover { background: rgba(126,200,227,0.14); transform: translateY(-1px); }
 
-    .status-msg { min-height: 20px; margin-top: 16px; font-size: 0.82em; color: rgba(232,232,236,0.5); text-align: center; max-width: 320px; }
+    .status-msg { min-height: 20px; margin-top: 18px; font-size: 0.82em; color: rgba(232,232,236,0.5); text-align: center; max-width: 320px; }
     .status-msg.success { color: #6fcf97; }
     .status-msg.error { color: #e08a8a; }
 
     .claimed-box {
-        width: min(360px, 88vw); text-align: center; margin-top: 6px;
+        width: min(380px, 90vw); text-align: center; margin-top: 6px;
         background: rgba(126,200,227,0.05); border: 1px solid rgba(126,200,227,0.2);
-        border-radius: 10px; padding: 18px; color: #9adcf2; font-family: 'Cinzel', serif; font-size: 0.88em; letter-spacing: 0.3px;
+        border-radius: 12px; padding: 20px; color: #9adcf2; font-family: 'Cinzel', serif; font-size: 0.88em; letter-spacing: 0.3px;
     }
 
-    .traits-toggle { margin-top: 24px; background: none; border: none; color: rgba(233,162,90,0.75); font-size: 0.75em; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; font-family: 'Cinzel', serif; }
-    .traits-grid { display: none; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 14px; width: min(360px, 88vw); }
+    .traits-toggle { margin-top: 26px; background: none; border: none; color: rgba(233,162,90,0.75); font-size: 0.75em; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; font-family: 'Cinzel', serif; }
+    .traits-grid { display: none; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; width: min(380px, 90vw); }
     .traits-grid.show { display: grid; }
-    .trait-chip { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 8px 12px; }
+    .trait-chip { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 10px 14px; }
     .trait-chip .t { font-size: 0.6em; color: rgba(232,232,236,0.4); text-transform: uppercase; letter-spacing: 0.5px; }
-    .trait-chip .v { font-size: 0.82em; color: #e8e8ec; font-weight: 600; margin-top: 2px; font-family: 'Cinzel', serif; }
+    .trait-chip .v { font-size: 0.82em; color: #e8e8ec; font-weight: 600; margin-top: 3px; font-family: 'Cinzel', serif; }
 
-    .foot-note { margin-top: 40px; font-size: 0.68em; color: rgba(232,232,236,0.25); letter-spacing: 0.5px; text-align: center; }
+    .foot-note { margin-top: 44px; font-size: 0.68em; color: rgba(232,232,236,0.25); letter-spacing: 0.5px; text-align: center; }
 </style>
 </head>
 <body>
@@ -208,6 +222,10 @@
     <p class="brand-sub">A solitary lamp, swaying in a dark clearing. Five hundred fragments of the same forest, each one singular. Once the window closes, it does not open again.</p>
 
     <div class="relic-frame">
+        <div class="relic-skeleton" id="relic-skeleton">
+            <div class="spinner"></div>
+            <div class="msg" id="relic-skeleton-msg">Summoning the vessel...</div>
+        </div>
         <img id="relic-img" class="relic-img">
         <iframe id="relic-frame-el" class="relic-frame-el" sandbox="allow-scripts" scrolling="no"></iframe>
         <div class="relic-tag" id="relic-tag">Preview · #001</div>
@@ -223,14 +241,14 @@
     </div>
 
     <div class="supply-panel">
-        <div class="supply-row"><span>Vessels claimed</span><span class="n" id="supply-text">— / 500</span></div>
+        <div class="supply-row"><span>Claimed</span><span class="n" id="supply-text">— / 500</span></div>
         <div class="supply-track"><div class="supply-fill" id="supply-fill"></div></div>
     </div>
 
     <div class="detail-list">
-        <div class="detail-row"><span>Offering</span><span class="val" id="price-text">0.000002 ETH</span></div>
+        <div class="detail-row"><span>Price</span><span class="val free" id="price-text">FREE</span></div>
         <div class="detail-row"><span>Realm</span><span class="val">Ink</span></div>
-        <div class="detail-row"><span>Per wallet</span><span class="val">1 vessel</span></div>
+        <div class="detail-row"><span>Per wallet</span><span class="val">1 NFT</span></div>
     </div>
 
     <div class="network-warn" id="network-warn">Wrong realm connected. Switch to Ink to proceed.</div>
@@ -257,6 +275,16 @@
     const SALE_END_MS = null; // set to (unixSeconds * 1000) once setMintWindow() is called on-chain
     const FALLBACK_WINDOW_HOURS = 72;
 
+    // Multiple public gateways, tried in order, since a single gateway can
+    // return CORS errors or 403s (as happened with ipfs.io in testing).
+    const IPFS_GATEWAYS = [
+        "https://nftstorage.link/ipfs/",
+        "https://cloudflare-ipfs.com/ipfs/",
+        "https://ipfs.io/ipfs/",
+        "https://gateway.pinata.cloud/ipfs/",
+        "https://dweb.link/ipfs/"
+    ];
+
     const INK_NETWORK = {
         chainIdHex: "0x" + (57073).toString(16),
         chainName: "Ink",
@@ -280,14 +308,35 @@
 
     document.getElementById("contract-short").innerText = CONTRACT_ADDRESS.slice(0,6) + "..." + CONTRACT_ADDRESS.slice(-4);
 
-    function resolveMediaUrl(uri) {
+    function ipfsPathFromUri(uri) {
         if (!uri) return null;
-        if (uri.startsWith("ipfs://")) return "https://ipfs.io/ipfs/" + uri.slice(7);
-        return uri;
+        if (uri.startsWith("ipfs://")) return uri.slice(7);
+        // already a gateway URL - try to pull the /ipfs/<path> part out of it
+        const m = uri.match(/\/ipfs\/(.+)$/);
+        return m ? m[1] : uri;
     }
 
-    function ipfsMetaUrl(index) {
-        return resolveMediaUrl(METADATA_BASE + String(index).padStart(3, "0") + ".json");
+    // Try each gateway in turn until one responds with JSON.
+    async function fetchMetadataWithFallback(path) {
+        let lastErr = null;
+        for (const gw of IPFS_GATEWAYS) {
+            try {
+                const res = await fetch(gw + path, { cache: "no-store" });
+                if (!res.ok) throw new Error("status " + res.status);
+                const meta = await res.json();
+                return { meta, gateway: gw };
+            } catch (e) {
+                lastErr = e;
+                continue;
+            }
+        }
+        throw lastErr || new Error("all gateways failed");
+    }
+
+    function resolveMediaUrl(uri, workingGateway) {
+        if (!uri) return null;
+        if (uri.startsWith("ipfs://")) return (workingGateway || IPFS_GATEWAYS[0]) + uri.slice(7);
+        return uri;
     }
 
     function getFriendlyError(err) {
@@ -303,18 +352,32 @@
     }
 
     async function loadShowcaseMetadata() {
+        const skeleton = document.getElementById("relic-skeleton");
+        const skeletonMsg = document.getElementById("relic-skeleton-msg");
         try {
-            const res = await fetch(ipfsMetaUrl(1));
-            const meta = await res.json();
+            const path = ipfsPathFromUri(METADATA_BASE) + "1.json";
+            const { meta, gateway } = await fetchMetadataWithFallback(path);
+
             document.getElementById("relic-name").innerText = meta.name || "SGM #001";
             document.getElementById("relic-desc").innerText = meta.description || "";
 
             const img = document.getElementById("relic-img");
             const frame = document.getElementById("relic-frame-el");
-            const animUrl = resolveMediaUrl(meta.animation_url);
-            const imgUrl = resolveMediaUrl(meta.image);
-            if (animUrl) { frame.src = animUrl; frame.style.display = "block"; }
-            else if (imgUrl) { img.src = imgUrl; img.style.display = "block"; }
+            const animUrl = resolveMediaUrl(meta.animation_url, gateway);
+            const imgUrl = resolveMediaUrl(meta.image, gateway);
+
+            if (animUrl) {
+                frame.onload = () => { skeleton.style.display = "none"; };
+                frame.src = animUrl;
+                frame.style.display = "block";
+            } else if (imgUrl) {
+                img.onload = () => { skeleton.style.display = "none"; };
+                img.onerror = () => { skeletonMsg.innerText = "Preview unavailable"; };
+                img.src = imgUrl;
+                img.style.display = "block";
+            } else {
+                skeleton.style.display = "none";
+            }
 
             if (meta.attributes && meta.attributes.length) {
                 document.getElementById("traits-grid").innerHTML = meta.attributes.map(a =>
@@ -324,6 +387,8 @@
             }
         } catch (e) {
             document.getElementById("relic-desc").innerText = "The preview is obscured by fog — minting still works.";
+            skeletonMsg.innerText = "Preview unavailable";
+            setTimeout(() => { skeleton.style.display = "none"; }, 1500);
         }
     }
 
@@ -396,6 +461,10 @@
         }
     }
 
+    function formatPrice(priceWei) {
+        return priceWei === 0n ? "FREE" : ethers.formatEther(priceWei) + " ETH";
+    }
+
     async function refreshDropState() {
         const statusEl = document.getElementById("status-msg");
         try {
@@ -404,7 +473,11 @@
                 contract.mintOpen(), contract.hasMinted(account)
             ]);
 
-            document.getElementById("price-text").innerText = ethers.formatEther(price) + " ETH";
+            const priceLabel = formatPrice(price);
+            const priceEl = document.getElementById("price-text");
+            priceEl.innerText = priceLabel;
+            priceEl.classList.toggle("free", price === 0n);
+
             document.getElementById("supply-text").innerText = minted.toString() + " / " + max.toString();
             document.getElementById("supply-fill").style.width = Math.min(100, (Number(minted)/Number(max))*100) + "%";
 
@@ -420,7 +493,7 @@
                 mintBtn.style.display = "inline-block"; mintBtn.disabled = true; mintBtn.innerText = "All Vessels Claimed";
             } else {
                 mintBtn.style.display = "inline-block"; mintBtn.disabled = false;
-                mintBtn.innerText = "Claim for " + ethers.formatEther(price) + " ETH";
+                mintBtn.innerText = price === 0n ? "Claim for Free" : "Claim for " + priceLabel;
             }
         } catch (err) {
             statusEl.innerText = "Could not read the drop's current state.";
@@ -458,7 +531,10 @@
             const [price, minted, max] = await Promise.all([
                 readContract.mintPrice(), readContract.totalMinted(), readContract.maxSupply()
             ]);
-            document.getElementById("price-text").innerText = ethers.formatEther(price) + " ETH";
+            const priceLabel = formatPrice(price);
+            const priceEl = document.getElementById("price-text");
+            priceEl.innerText = priceLabel;
+            priceEl.classList.toggle("free", price === 0n);
             document.getElementById("supply-text").innerText = minted.toString() + " / " + max.toString();
             document.getElementById("supply-fill").style.width = Math.min(100, (Number(minted)/Number(max))*100) + "%";
         } catch (e) {}
