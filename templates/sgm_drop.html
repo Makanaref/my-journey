@@ -1,949 +1,1492 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#040507">
-<title>SGM — The Rite of 500</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@500;600;700&family=Cormorant:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-    :root{
-        --void:#040507;
-        --char:#0b0d12;
-        --bone:#e9e4d8;
-        --bone-dim:rgba(233,228,216,0.55);
-        --ember:#c17a3d;
-        --ember-bright:#e9a25a;
-        --moss:#5b7d6b;
-        --moss-bright:#7ea88f;
-        --blood:#8a3a3a;
-        --line:rgba(233,228,216,0.12);
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { height: 100%; overflow-x: hidden; }
-    @media (prefers-reduced-motion: reduce) {
-        *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
-    }
-    body {
-        font-family: 'Jost', sans-serif;
-        background: var(--void);
-        color: var(--bone);
-        min-height: 100vh; min-height: 100dvh;
-        position: relative;
-        cursor: default;
-    }
-    ::selection { background: var(--ember); color: #1a0f05; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#040507">
+    <title>SGM — The Rite of 500</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@500;600;700&family=Cormorant:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --void: #040507;
+            --char: #0b0d12;
+            --bone: #e9e4d8;
+            --bone-dim: rgba(233, 228, 216, 0.55);
+            --ember: #c17a3d;
+            --ember-bright: #e9a25a;
+            --moss: #5b7d6b;
+            --moss-bright: #7ea88f;
+            --blood: #8a3a3a;
+            --line: rgba(233, 228, 216, 0.12);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        html,
+        body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+            }
+        }
+        body {
+            font-family: 'Jost', sans-serif;
+            background: var(--void);
+            color: var(--bone);
+            min-height: 100vh;
+            min-height: 100dvh;
+            position: relative;
+            cursor: default;
+        }
+        ::selection {
+            background: var(--ember);
+            color: #1a0f05;
+        }
 
-    /* ============================================================
-       GATE / MATRIX INTRO SEQUENCE (new)
-       ============================================================ */
-    #gate-screen {
-        position: fixed; inset: 0; z-index: 9999;
-        background: #000000;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        gap: 34px; padding: 24px; text-align: center;
-        font-family: 'Jost', monospace, sans-serif;
-    }
-    #gate-screen.hidden { display: none; }
+        /* ============================================================
+           GATE / MATRIX INTRO SEQUENCE (unchanged)
+           ============================================================ */
+        #gate-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #000000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 34px;
+            padding: 24px;
+            text-align: center;
+            font-family: 'Jost', monospace, sans-serif;
+        }
+        #gate-screen.hidden {
+            display: none;
+        }
+        .gate-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+        .gate-text {
+            font-family: 'Jost', 'Courier New', monospace;
+            font-weight: 700;
+            font-size: clamp(1.4em, 6vw, 2.4em);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #ffffff;
+            text-shadow: 0 0 14px rgba(255, 255, 255, 0.35), 0 0 30px rgba(255, 255, 255, 0.15);
+            min-height: 1.4em;
+        }
+        .gate-text .cursor {
+            display: inline-block;
+            width: 0.5em;
+            margin-left: 2px;
+            border-right: 2px solid #ffffff;
+            animation: blinkCursor 0.9s steps(1) infinite;
+        }
+        @keyframes blinkCursor {
+            50% {
+                border-color: transparent;
+            }
+        }
+        .gate-choices {
+            display: flex;
+            gap: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        .gate-choices.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .gate-btn {
+            padding: 15px 46px;
+            cursor: pointer;
+            font-family: 'Cormorant SC', serif;
+            font-weight: 600;
+            font-size: 1.05em;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            background: rgba(233, 228, 216, 0.03);
+            color: rgba(233, 228, 216, 0.8);
+            border: 1px solid rgba(233, 228, 216, 0.22);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .gate-btn:hover {
+            background: rgba(233, 228, 216, 0.1);
+            border-color: rgba(233, 228, 216, 0.5);
+            box-shadow: 0 0 22px rgba(233, 228, 216, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            transform: translateY(-2px);
+            color: #ffffff;
+        }
+        .gate-btn.deny {
+            color: rgba(233, 228, 216, 0.42);
+            border-color: rgba(233, 228, 216, 0.14);
+            background: rgba(233, 228, 216, 0.015);
+        }
+        .gate-btn.deny:hover {
+            background: rgba(233, 228, 216, 0.07);
+            border-color: rgba(233, 228, 216, 0.35);
+            box-shadow: 0 0 18px rgba(233, 228, 216, 0.1);
+            color: rgba(233, 228, 216, 0.9);
+        }
 
-    .gate-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 30px; }
+        /* ---- Lamp-flicker transition screen (unchanged) ---- */
+        #cooking-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            background: #000000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 28px;
+            overflow: hidden;
+        }
+        #cooking-screen.show {
+            display: flex;
+        }
+        .loader-lamp {
+            position: relative;
+            width: min(420px, 82vw);
+            height: min(560px, 80vh);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        .loader-lamp .lamp-wire2 {
+            width: 1px;
+            height: 110px;
+            background: linear-gradient(180deg, rgba(233, 228, 216, 0.28), rgba(233, 228, 216, 0.04));
+            margin: 0 auto;
+        }
+        .loader-lamp .lamp-fixture {
+            width: 30px;
+            height: 18px;
+            border-radius: 4px 4px 11px 11px;
+            background: linear-gradient(180deg, #3a3530, #17140f);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 3px 8px rgba(0, 0, 0, 0.6);
+            margin-top: -1px;
+        }
+        .loader-lamp .lamp-glow2 {
+            width: 100%;
+            height: 100%;
+            margin-top: -2px;
+            background: radial-gradient(ellipse 48% 100% at 50% 0%, rgba(233, 162, 90, 0.34) 0%, rgba(233, 162, 90, 0.17) 20%, rgba(233, 162, 90, 0.08) 40%, rgba(233, 162, 90, 0.03) 62%, transparent 82%);
+            filter: blur(3px);
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        .loader-lamp .lamp-core {
+            position: absolute;
+            top: 128px;
+            left: 50%;
+            transform: translate(-50%, 0);
+            width: 23px;
+            height: 33px;
+            border-radius: 50% 50% 45% 45%;
+            background: radial-gradient(circle at 50% 35%, #fff3d8, #e9a25a 55%, #8a4f1e 100%);
+            box-shadow: 0 0 0 rgba(233, 162, 90, 0);
+            opacity: 0.12;
+            transition: opacity 0.15s ease, box-shadow 0.15s ease;
+        }
+        .loader-lamp .lamp-pool {
+            position: absolute;
+            bottom: 6%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 260px;
+            height: 62px;
+            background: radial-gradient(ellipse 50% 100% at 50% 50%, rgba(233, 162, 90, 0.24), transparent 75%);
+            filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .loader-lamp .lamp-hint {
+            position: absolute;
+            top: 182px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Cormorant', serif;
+            font-style: italic;
+            font-size: 0.85em;
+            color: rgba(233, 228, 216, 0.35);
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            opacity: 1;
+            transition: opacity 0.6s ease;
+        }
+        .loader-lamp.lit .lamp-glow2 {
+            opacity: 1;
+        }
+        .loader-lamp.lit .lamp-core {
+            opacity: 1;
+            box-shadow: 0 0 26px 9px rgba(233, 162, 90, 0.55);
+        }
+        .loader-lamp.settled .lamp-core {
+            box-shadow: 0 0 34px 12px rgba(233, 162, 90, 0.72);
+        }
+        .loader-lamp.settled .lamp-pool {
+            opacity: 1;
+        }
+        .loader-lamp.settled .lamp-hint {
+            opacity: 0;
+        }
 
-    .gate-text {
-        font-family: 'Jost', 'Courier New', monospace; font-weight: 700;
-        font-size: clamp(1.4em, 6vw, 2.4em); letter-spacing: 3px; text-transform: uppercase;
-        color: #ffffff;
-        text-shadow: 0 0 14px rgba(255,255,255,0.35), 0 0 30px rgba(255,255,255,0.15);
-        min-height: 1.4em;
-    }
-    .gate-text .cursor {
-        display: inline-block; width: 0.5em; margin-left: 2px;
-        border-right: 2px solid #ffffff;
-        animation: blinkCursor 0.9s steps(1) infinite;
-    }
-    @keyframes blinkCursor { 50% { border-color: transparent; } }
+        #main-site {
+            display: none;
+        }
+        #main-site.show {
+            display: block;
+        }
 
-    .gate-choices {
-        display: flex; gap: 20px; opacity: 0; pointer-events: none;
-        transition: opacity 0.5s ease;
-    }
-    .gate-choices.show { opacity: 1; pointer-events: auto; }
+        /* ---------- Atmospheric background (unchanged) ---------- */
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .bg-gradient {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background: radial-gradient(ellipse 55% 38% at 50% 74%, rgba(126, 168, 143, 0.09) 0%, transparent 62%), radial-gradient(ellipse 90% 55% at 50% 102%, rgba(0, 0, 0, 0.7) 0%, transparent 68%), linear-gradient(180deg, #040507 0%, #080a0e 42%, #0a0d11 100%);
+        }
+        .vignette {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            box-shadow: inset 0 0 220px 90px rgba(0, 0, 0, 0.8);
+        }
+        .grain {
+            position: fixed;
+            inset: 0;
+            z-index: 3;
+            pointer-events: none;
+            opacity: 0.045;
+            mix-blend-mode: overlay;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        .lamp-rig {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 4;
+            pointer-events: none;
+        }
+        .lamp-wire {
+            width: 1px;
+            height: 120px;
+            background: linear-gradient(180deg, rgba(233, 228, 216, 0.18), rgba(233, 228, 216, 0.02));
+            margin: 0 auto;
+            transform-origin: top center;
+            animation: sway 6s ease-in-out infinite;
+        }
+        .lamp-bulb-wrap {
+            transform-origin: top center;
+            animation: sway 6s ease-in-out infinite;
+        }
+        .lamp-glow {
+            width: 280px;
+            height: 440px;
+            margin: -2px auto 0;
+            background: radial-gradient(ellipse 50% 100% at 50% 0%, rgba(233, 162, 90, 0.16) 0%, rgba(233, 162, 90, 0.08) 25%, rgba(233, 162, 90, 0.03) 50%, transparent 78%);
+            filter: blur(2px);
+            animation: flicker 4.3s ease-in-out infinite;
+        }
+        .lamp-bulb {
+            width: 12px;
+            height: 18px;
+            margin: -440px auto 0;
+            border-radius: 50% 50% 45% 45%;
+            background: radial-gradient(circle at 50% 35%, #fff3d8, #e9a25a 55%, #8a4f1e 100%);
+            box-shadow: 0 0 20px 7px rgba(233, 162, 90, 0.5);
+            animation: flicker 4.3s ease-in-out infinite;
+            position: relative;
+            top: 120px;
+        }
+        @keyframes sway {
+            0%,
+            100% {
+                transform: translateX(-50%) rotate(-1.8deg);
+            }
+            50% {
+                transform: translateX(-50%) rotate(1.8deg);
+            }
+        }
+        @keyframes flicker {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            4% {
+                opacity: 0.8;
+            }
+            8% {
+                opacity: 1;
+            }
+            45% {
+                opacity: 1;
+            }
+            46% {
+                opacity: 0.55;
+            }
+            48% {
+                opacity: 1;
+            }
+            72% {
+                opacity: 0.88;
+            }
+            74% {
+                opacity: 1;
+            }
+        }
 
-    .gate-btn {
-        padding: 15px 46px; cursor: pointer;
-        font-family: 'Cormorant SC', serif; font-weight: 600; font-size: 1.05em; letter-spacing: 3px; text-transform: uppercase;
-        background: rgba(233,228,216,0.03);
-        color: rgba(233,228,216,0.8);
-        border: 1px solid rgba(233,228,216,0.22);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-    }
-    .gate-btn:hover {
-        background: rgba(233,228,216,0.1);
-        border-color: rgba(233,228,216,0.5);
-        box-shadow: 0 0 22px rgba(233,228,216,0.14), inset 0 1px 0 rgba(255,255,255,0.06);
-        transform: translateY(-2px);
-        color: #ffffff;
-    }
-    .gate-btn.deny {
-        color: rgba(233,228,216,0.42);
-        border-color: rgba(233,228,216,0.14);
-        background: rgba(233,228,216,0.015);
-    }
-    .gate-btn.deny:hover {
-        background: rgba(233,228,216,0.07);
-        border-color: rgba(233,228,216,0.35);
-        box-shadow: 0 0 18px rgba(233,228,216,0.1);
-        color: rgba(233,228,216,0.9);
-    }
+        /* ---------- Content ---------- */
+        .stage {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 44px 20px 70px;
+        }
 
-    /* ---- Lamp-flicker transition screen (replaces the old gif loader) ---- */
-    #cooking-screen {
-        position: fixed; inset: 0; z-index: 9998;
-        background: #000000;
-        display: none; flex-direction: column; align-items: center; justify-content: center;
-        gap: 28px;
-        overflow: hidden;
-    }
-    #cooking-screen.show { display: flex; }
+        /* ---- Signature element: engraved sigil ring around the relic ---- */
+        .relic-wrap {
+            position: relative;
+            width: min(700px, 92vw);
+            /* expanded from 320px */
+            margin-top: 20px;
+            margin-bottom: 8px;
+            perspective: 900px;
+        }
+        .sigil-ring {
+            position: absolute;
+            inset: -34px;
+            z-index: 1;
+            pointer-events: none;
+            animation: rotateRing 60s linear infinite;
+        }
+        .sigil-ring.reverse {
+            animation-duration: 90s;
+            animation-direction: reverse;
+            inset: -52px;
+            opacity: 0.55;
+        }
+        @keyframes rotateRing {
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
-    .loader-lamp {
-        position: relative;
-        width: min(420px, 82vw);
-        height: min(560px, 80vh);
-        display: flex; flex-direction: column; align-items: center;
-        cursor: pointer;
-    }
-    .loader-lamp .lamp-wire2 {
-        width: 1px; height: 110px;
-        background: linear-gradient(180deg, rgba(233,228,216,0.28), rgba(233,228,216,0.04));
-        margin: 0 auto;
-    }
-    .loader-lamp .lamp-fixture {
-        width: 30px; height: 18px;
-        border-radius: 4px 4px 11px 11px;
-        background: linear-gradient(180deg, #3a3530, #17140f);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 3px 8px rgba(0,0,0,0.6);
-        margin-top: -1px;
-    }
+        .relic-frame {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1;
+            z-index: 2;
+            transition: transform 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .relic-skeleton {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .relic-skeleton .rune-spin {
+            width: 38px;
+            height: 38px;
+            opacity: 0.8;
+            animation: rotateRing 2.2s linear infinite;
+        }
+        .relic-skeleton .msg {
+            font-family: 'Cormorant', serif;
+            font-style: italic;
+            font-size: 0.85em;
+            color: rgba(233, 228, 216, 0.35);
+            text-align: center;
+            padding: 0 24px;
+        }
+        .relic-img {
+            max-width: 92%;
+            max-height: 92%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            display: none;
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 20px 46px rgba(0, 0, 0, 0.65));
+            -webkit-mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, black 58%, transparent 94%);
+            mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, black 58%, transparent 94%);
+        }
+        .relic-frame-el {
+            max-width: 92%;
+            max-height: 92%;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: none;
+            position: relative;
+            z-index: 2;
+            background: transparent;
+        }
 
-    .loader-lamp .lamp-glow2 {
-        width: 100%; height: 100%; margin-top: -2px;
-        background: radial-gradient(ellipse 48% 100% at 50% 0%,
-            rgba(233,162,90,0.34) 0%,
-            rgba(233,162,90,0.17) 20%,
-            rgba(233,162,90,0.08) 40%,
-            rgba(233,162,90,0.03) 62%,
-            transparent 82%);
-        filter: blur(3px);
-        opacity: 0;
-        transition: opacity 0.15s ease;
-    }
-    .loader-lamp .lamp-core {
-        position: absolute; top: 128px; left: 50%; transform: translate(-50%, 0);
-        width: 23px; height: 33px; border-radius: 50% 50% 45% 45%;
-        background: radial-gradient(circle at 50% 35%, #fff3d8, #e9a25a 55%, #8a4f1e 100%);
-        box-shadow: 0 0 0 rgba(233,162,90,0);
-        opacity: 0.12;
-        transition: opacity 0.15s ease, box-shadow 0.15s ease;
-    }
-    .loader-lamp .lamp-pool {
-        position: absolute; bottom: 6%; left: 50%; transform: translateX(-50%);
-        width: 260px; height: 62px;
-        background: radial-gradient(ellipse 50% 100% at 50% 50%, rgba(233,162,90,0.24), transparent 75%);
-        filter: blur(5px);
-        opacity: 0;
-        transition: opacity 0.5s ease;
-    }
-    .loader-lamp .lamp-hint {
-        position: absolute; top: 182px; left: 50%; transform: translateX(-50%);
-        font-family: 'Cormorant', serif; font-style: italic; font-size: 0.85em;
-        color: rgba(233,228,216,0.35); letter-spacing: 0.5px; white-space: nowrap;
-        opacity: 1; transition: opacity 0.6s ease;
-    }
+        /* ============================================================
+           MINT OVERLAY — positioned on top of the relic
+           ============================================================ */
+        .mint-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            width: min(460px, 82%);
+            background: rgba(4, 5, 7, 0.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(233, 162, 90, 0.3);
+            border-radius: 14px;
+            padding: 30px 28px 26px;
+            box-shadow:
+                0 24px 70px rgba(0, 0, 0, 0.75),
+                inset 0 1px 0 rgba(233, 228, 216, 0.08);
+            max-height: 92%;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(233, 162, 90, 0.4) transparent;
+        }
+        .mint-overlay::-webkit-scrollbar {
+            width: 4px;
+        }
+        .mint-overlay::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .mint-overlay::-webkit-scrollbar-thumb {
+            background: rgba(233, 162, 90, 0.3);
+            border-radius: 4px;
+        }
 
-    .loader-lamp.lit .lamp-glow2 { opacity: 1; }
-    .loader-lamp.lit .lamp-core { opacity: 1; box-shadow: 0 0 26px 9px rgba(233,162,90,0.55); }
-    .loader-lamp.settled .lamp-core { box-shadow: 0 0 34px 12px rgba(233,162,90,0.72); }
-    .loader-lamp.settled .lamp-pool { opacity: 1; }
-    .loader-lamp.settled .lamp-hint { opacity: 0; }
+        /* Adjust element margins inside the overlay */
+        .mint-overlay .relic-title {
+            margin-top: 0;
+        }
+        .mint-overlay .relic-desc {
+            margin-bottom: 20px;
+        }
+        .mint-overlay .ink-divider {
+            margin-bottom: 22px;
+        }
+        .mint-overlay .countdown-label {
+            margin-bottom: 12px;
+        }
+        .mint-overlay .countdown {
+            margin-bottom: 22px;
+        }
+        .mint-overlay .supply-panel {
+            margin-bottom: 14px;
+        }
+        .mint-overlay .detail-list {
+            margin: 18px 0 18px;
+        }
+        .mint-overlay .network-warn {
+            margin-bottom: 14px;
+        }
+        .mint-overlay .wallet-pill {
+            margin-bottom: 14px;
+        }
+        .mint-overlay .rite-btn {
+            margin-top: 4px;
+        }
+        .mint-overlay .status-msg {
+            margin-top: 16px;
+        }
+        .mint-overlay .foot-note {
+            margin-top: 28px;
+        }
 
-    #main-site { display: none; }
-    #main-site.show { display: block; }
-
-    /* ---------- Atmospheric background ---------- */
-    #bg-canvas { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; }
-
-    .bg-gradient {
-        position: fixed; inset: 0; z-index: 1; pointer-events: none;
-        background:
-            radial-gradient(ellipse 55% 38% at 50% 74%, rgba(126,168,143,0.09) 0%, transparent 62%),
-            radial-gradient(ellipse 90% 55% at 50% 102%, rgba(0,0,0,0.7) 0%, transparent 68%),
-            linear-gradient(180deg, #040507 0%, #080a0e 42%, #0a0d11 100%);
-    }
-    .vignette { position: fixed; inset: 0; z-index: 2; pointer-events: none; box-shadow: inset 0 0 220px 90px rgba(0,0,0,0.8); }
-    .grain { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0.045; mix-blend-mode: overlay;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    }
-
-    .lamp-rig { position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 4; pointer-events: none; }
-    .lamp-wire { width: 1px; height: 120px; background: linear-gradient(180deg, rgba(233,228,216,0.18), rgba(233,228,216,0.02)); margin: 0 auto; transform-origin: top center; animation: sway 6s ease-in-out infinite; }
-    .lamp-bulb-wrap { transform-origin: top center; animation: sway 6s ease-in-out infinite; }
-    .lamp-glow {
-        width: 280px; height: 440px; margin: -2px auto 0;
-        background: radial-gradient(ellipse 50% 100% at 50% 0%, rgba(233,162,90,0.16) 0%, rgba(233,162,90,0.08) 25%, rgba(233,162,90,0.03) 50%, transparent 78%);
-        filter: blur(2px); animation: flicker 4.3s ease-in-out infinite;
-    }
-    .lamp-bulb {
-        width: 12px; height: 18px; margin: -440px auto 0; border-radius: 50% 50% 45% 45%;
-        background: radial-gradient(circle at 50% 35%, #fff3d8, #e9a25a 55%, #8a4f1e 100%);
-        box-shadow: 0 0 20px 7px rgba(233,162,90,0.5);
-        animation: flicker 4.3s ease-in-out infinite;
-        position: relative; top: 120px;
-    }
-    @keyframes sway { 0%,100% { transform: translateX(-50%) rotate(-1.8deg); } 50% { transform: translateX(-50%) rotate(1.8deg); } }
-    @keyframes flicker {
-        0%, 100% { opacity: 1; } 4% { opacity: 0.8; } 8% { opacity: 1; }
-        45% { opacity: 1; } 46% { opacity: 0.55; } 48% { opacity: 1; }
-        72% { opacity: 0.88; } 74% { opacity: 1; }
-    }
-
-    /* ---------- Content ---------- */
-    .stage { position: relative; z-index: 10; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; padding: 44px 20px 70px; }
-
-    /* ---- Signature element: engraved sigil ring around the relic ---- */
-    .relic-wrap { position: relative; width: min(320px, 80vw); margin-top: 20px; margin-bottom: 8px; perspective: 900px; }
-    .sigil-ring {
-        position: absolute; inset: -34px; z-index: 1; pointer-events: none;
-        animation: rotateRing 60s linear infinite;
-    }
-    .sigil-ring.reverse { animation-duration: 90s; animation-direction: reverse; inset: -52px; opacity: 0.55; }
-    @keyframes rotateRing { to { transform: rotate(360deg); } }
-
-    .relic-frame {
-        position: relative; width: 100%; aspect-ratio: 1/1; z-index: 2;
-        transition: transform 0.5s ease;
-        display: flex; align-items: center; justify-content: center;
-    }
-    .relic-skeleton { position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
-    .relic-skeleton .rune-spin { width: 38px; height: 38px; opacity: 0.8; animation: rotateRing 2.2s linear infinite; }
-    .relic-skeleton .msg { font-family: 'Cormorant', serif; font-style: italic; font-size: 0.85em; color: rgba(233,228,216,0.35); text-align: center; padding: 0 24px; }
-    /* The vessel sits at its own natural size (never stretched or cropped
-       to fill a box) and its edges dissolve into the background via a
-       soft mask, so it reads as an object resting in the dark rather than
-       a photo pinned inside a frame. */
-    .relic-img {
-        max-width: 88%; max-height: 88%; width: auto; height: auto;
-        object-fit: contain; display: none; position: relative; z-index: 2;
-        filter: drop-shadow(0 20px 46px rgba(0,0,0,0.65));
-        -webkit-mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, black 58%, transparent 94%);
-        mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, black 58%, transparent 94%);
-    }
-    .relic-frame-el {
-        max-width: 88%; max-height: 88%; width: 100%; height: 100%;
-        border: 0; display: none; position: relative; z-index: 2; background: transparent;
-    }
-
-    .relic-title { font-family: 'Cormorant SC', serif; font-weight: 600; font-size: 1.5em; letter-spacing: 2px; color: var(--bone); text-align: center; margin-top: 44px; margin-bottom: 8px; }
-    .relic-desc { font-family: 'Cormorant', serif; font-style: italic; color: var(--bone-dim); font-size: 1.02em; text-align: center; max-width: 360px; line-height: 1.7; margin-bottom: 36px; }
-
-    /* Ink-bleed divider */
-    .ink-divider { width: 200px; height: 14px; margin-bottom: 34px; opacity: 0.5; }
-
-    /* Countdown - carved rune stones */
-    .countdown-label { font-size: 0.6em; letter-spacing: 4px; text-transform: uppercase; color: var(--moss-bright); margin-bottom: 14px; text-align: center; }
-    .countdown { display: flex; gap: 3px; margin-bottom: 40px; position: relative; }
-    .countdown-cell { position: relative; width: 74px; padding: 16px 0 12px; text-align: center; }
-    .countdown-cell::before {
-        content: ''; position: absolute; inset: 0; border: 1px solid rgba(233,162,90,0.2);
-        background: linear-gradient(160deg, rgba(233,228,216,0.03), rgba(0,0,0,0.4));
-        box-shadow: inset 0 1px 0 rgba(233,228,216,0.05), 0 12px 28px rgba(0,0,0,0.5);
-    }
-    .countdown-cell:not(:last-child)::after {
-        content: '·'; position: absolute; right: -8px; top: 50%; transform: translateY(-70%);
-        color: rgba(233,162,90,0.4); font-size: 1.4em; z-index: 2;
-    }
-    .countdown-num { position: relative; z-index: 1; font-family: 'Cormorant SC', serif; font-weight: 600; font-size: 1.85em; color: var(--bone); letter-spacing: 1px; }
-    .countdown-tag { position: relative; z-index: 1; font-size: 0.56em; letter-spacing: 2px; text-transform: uppercase; color: rgba(233,162,90,0.75); margin-top: 6px; }
-    .countdown-ended { font-family: 'Cormorant SC', serif; color: var(--bone-dim); font-size: 1.1em; letter-spacing: 1px; padding: 16px 28px; border: 1px solid var(--line); }
-
-    /* Supply meter styled as a filling vessel line */
-    .supply-panel { width: min(380px, 90vw); margin-bottom: 8px; }
-    .supply-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.66em; letter-spacing: 2px; color: rgba(233,228,216,0.45); margin-bottom: 10px; text-transform: uppercase; }
-    .supply-row .n { color: var(--ember-bright); font-family: 'Cormorant SC', serif; font-size: 1.3em; letter-spacing: 1px; }
-    .supply-track { height: 2px; background: rgba(233,228,216,0.08); position: relative; overflow: visible; }
-    .supply-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--moss), var(--ember-bright)); transition: width 0.6s ease; position: relative; }
-    .supply-fill::after { content: ''; position: absolute; right: -2px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--ember-bright); box-shadow: 0 0 8px var(--ember-bright); }
-
-    .detail-list { width: min(380px, 90vw); margin: 34px 0 34px; }
-    .detail-row { display: flex; justify-content: space-between; align-items: baseline; padding: 15px 2px; border-bottom: 1px solid var(--line); }
-    .detail-row:last-child { border-bottom: none; }
-    .detail-row span:first-child { color: rgba(233,228,216,0.4); font-size: 0.68em; letter-spacing: 2.5px; text-transform: uppercase; }
-    .detail-row .val { color: var(--bone); font-weight: 500; font-family: 'Cormorant SC', serif; font-size: 1.15em; letter-spacing: 0.5px; }
-    .detail-row .val.free { color: var(--moss-bright); }
-
-    .network-warn {
-        width: min(380px, 90vw); background: rgba(138,58,58,0.1); border: 1px solid rgba(138,58,58,0.4);
-        color: #d38a8a; padding: 12px 16px; font-size: 0.8em; margin-bottom: 20px; display: none; text-align: center;
-        font-family: 'Cormorant', serif; font-style: italic;
-    }
-
-    .wallet-pill {
-        display: inline-flex; align-items: center; gap: 9px; margin-bottom: 20px;
-        background: rgba(233,228,216,0.02); border: 1px solid var(--line);
-        padding: 10px 20px; font-size: 0.8em; color: rgba(233,228,216,0.75); font-family: 'Cormorant', serif; letter-spacing: 0.5px;
-    }
-    .live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--moss-bright); box-shadow: 0 0 7px var(--moss-bright); animation: pulseDot 2s ease-in-out infinite; }
-    @keyframes pulseDot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-
-    .rite-btn {
-        width: min(330px, 88vw); padding: 19px 20px; cursor: pointer; position: relative; overflow: hidden;
-        font-family: 'Cormorant SC', serif; font-weight: 600; font-size: 1.08em; letter-spacing: 3px; text-transform: uppercase;
-        border: 1px solid rgba(233,162,90,0.55);
-        background: linear-gradient(160deg, #3d2611, #150e06);
-        color: #f2c896;
-        box-shadow: 0 16px 38px rgba(233,162,90,0.14), inset 0 1px 0 rgba(233,228,216,0.06);
-        transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
-    }
-    .rite-btn::before {
-        content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 30%, rgba(233,162,90,0.18) 50%, transparent 70%);
-        transform: translateX(-100%); transition: transform 0.7s ease;
-    }
-    .rite-btn:hover:not(:disabled)::before { transform: translateX(100%); }
-    .rite-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 20px 46px rgba(233,162,90,0.22); }
-    .rite-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
-
-    .connect-btn {
-        width: min(330px, 88vw); padding: 17px 20px; cursor: pointer;
-        font-family: 'Jost', sans-serif; font-weight: 500; font-size: 0.85em; letter-spacing: 1.5px; text-transform: uppercase;
-        border: 1px solid rgba(126,168,143,0.4); background: rgba(126,168,143,0.05); color: var(--moss-bright);
-        transition: all 0.25s ease;
-    }
-    .connect-btn:hover { background: rgba(126,168,143,0.12); transform: translateY(-1px); }
-
-    .status-msg { min-height: 20px; margin-top: 20px; font-family: 'Cormorant', serif; font-style: italic; font-size: 0.95em; color: rgba(233,228,216,0.5); text-align: center; max-width: 320px; }
-    .status-msg.success { color: var(--moss-bright); }
-    .status-msg.error { color: #d38a8a; }
-
-    .claimed-box {
-        width: min(380px, 90vw); text-align: center; margin-top: 6px;
-        background: rgba(126,168,143,0.04); border: 1px solid rgba(126,168,143,0.25);
-        padding: 22px; color: var(--moss-bright); font-family: 'Cormorant SC', serif; font-size: 0.95em; letter-spacing: 0.5px;
-    }
-
-    .traits-toggle { margin-top: 30px; background: none; border: none; color: rgba(233,162,90,0.75); font-size: 0.68em; letter-spacing: 2.5px; text-transform: uppercase; cursor: pointer; font-family: 'Jost', sans-serif; padding-bottom: 3px; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
-    .traits-toggle:hover { border-color: rgba(233,162,90,0.5); }
-    .traits-grid { display: none; grid-template-columns: repeat(2, 1fr); gap: 1px; margin-top: 18px; width: min(380px, 90vw); background: var(--line); }
-    .traits-grid.show { display: grid; }
-    .trait-chip { background: var(--void); padding: 14px 16px; }
-    .trait-chip .t { font-size: 0.58em; color: rgba(233,228,216,0.35); text-transform: uppercase; letter-spacing: 1.5px; }
-    .trait-chip .v { font-size: 0.95em; color: var(--bone); font-weight: 500; margin-top: 4px; font-family: 'Cormorant SC', serif; letter-spacing: 0.5px; }
-
-    .foot-note { margin-top: 50px; font-size: 0.65em; color: rgba(233,228,216,0.22); letter-spacing: 1px; text-align: center; font-family: 'Jost', sans-serif; }
-    .foot-note span { color: rgba(233,162,90,0.4); }
-</style>
+        /* ---- Original content (now inside overlay) ---- */
+        .relic-title {
+            font-family: 'Cormorant SC', serif;
+            font-weight: 600;
+            font-size: 1.5em;
+            letter-spacing: 2px;
+            color: var(--bone);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .relic-desc {
+            font-family: 'Cormorant', serif;
+            font-style: italic;
+            color: var(--bone-dim);
+            font-size: 1.02em;
+            text-align: center;
+            max-width: 360px;
+            line-height: 1.7;
+        }
+        .ink-divider {
+            width: 200px;
+            height: 14px;
+            opacity: 0.5;
+        }
+        .countdown-label {
+            font-size: 0.6em;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--moss-bright);
+            text-align: center;
+        }
+        .countdown {
+            display: flex;
+            gap: 3px;
+            position: relative;
+        }
+        .countdown-cell {
+            position: relative;
+            width: 74px;
+            padding: 16px 0 12px;
+            text-align: center;
+        }
+        .countdown-cell::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(233, 162, 90, 0.2);
+            background: linear-gradient(160deg, rgba(233, 228, 216, 0.03), rgba(0, 0, 0, 0.4));
+            box-shadow: inset 0 1px 0 rgba(233, 228, 216, 0.05), 0 12px 28px rgba(0, 0, 0, 0.5);
+        }
+        .countdown-cell:not(:last-child)::after {
+            content: '·';
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-70%);
+            color: rgba(233, 162, 90, 0.4);
+            font-size: 1.4em;
+            z-index: 2;
+        }
+        .countdown-num {
+            position: relative;
+            z-index: 1;
+            font-family: 'Cormorant SC', serif;
+            font-weight: 600;
+            font-size: 1.85em;
+            color: var(--bone);
+            letter-spacing: 1px;
+        }
+        .countdown-tag {
+            position: relative;
+            z-index: 1;
+            font-size: 0.56em;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(233, 162, 90, 0.75);
+            margin-top: 6px;
+        }
+        .countdown-ended {
+            font-family: 'Cormorant SC', serif;
+            color: var(--bone-dim);
+            font-size: 1.1em;
+            letter-spacing: 1px;
+            padding: 16px 28px;
+            border: 1px solid var(--line);
+        }
+        .supply-panel {
+            width: 100%;
+        }
+        .supply-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 0.66em;
+            letter-spacing: 2px;
+            color: rgba(233, 228, 216, 0.45);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .supply-row .n {
+            color: var(--ember-bright);
+            font-family: 'Cormorant SC', serif;
+            font-size: 1.3em;
+            letter-spacing: 1px;
+        }
+        .supply-track {
+            height: 2px;
+            background: rgba(233, 228, 216, 0.08);
+            position: relative;
+            overflow: visible;
+        }
+        .supply-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--moss), var(--ember-bright));
+            transition: width 0.6s ease;
+            position: relative;
+        }
+        .supply-fill::after {
+            content: '';
+            position: absolute;
+            right: -2px;
+            top: -3px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--ember-bright);
+            box-shadow: 0 0 8px var(--ember-bright);
+        }
+        .detail-list {
+            width: 100%;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 15px 2px;
+            border-bottom: 1px solid var(--line);
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-row span:first-child {
+            color: rgba(233, 228, 216, 0.4);
+            font-size: 0.68em;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+        }
+        .detail-row .val {
+            color: var(--bone);
+            font-weight: 500;
+            font-family: 'Cormorant SC', serif;
+            font-size: 1.15em;
+            letter-spacing: 0.5px;
+        }
+        .detail-row .val.free {
+            color: var(--moss-bright);
+        }
+        .network-warn {
+            width: 100%;
+            background: rgba(138, 58, 58, 0.1);
+            border: 1px solid rgba(138, 58, 58, 0.4);
+            color: #d38a8a;
+            padding: 12px 16px;
+            font-size: 0.8em;
+            display: none;
+            text-align: center;
+            font-family: 'Cormorant', serif;
+            font-style: italic;
+        }
+        .wallet-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            background: rgba(233, 228, 216, 0.02);
+            border: 1px solid var(--line);
+            padding: 10px 20px;
+            font-size: 0.8em;
+            color: rgba(233, 228, 216, 0.75);
+            font-family: 'Cormorant', serif;
+            letter-spacing: 0.5px;
+            width: 100%;
+            justify-content: center;
+        }
+        .live-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--moss-bright);
+            box-shadow: 0 0 7px var(--moss-bright);
+            animation: pulseDot 2s ease-in-out infinite;
+        }
+        @keyframes pulseDot {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.4;
+            }
+        }
+        .rite-btn {
+            width: 100%;
+            padding: 19px 20px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Cormorant SC', serif;
+            font-weight: 600;
+            font-size: 1.08em;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border: 1px solid rgba(233, 162, 90, 0.55);
+            background: linear-gradient(160deg, #3d2611, #150e06);
+            color: #f2c896;
+            box-shadow: 0 16px 38px rgba(233, 162, 90, 0.14), inset 0 1px 0 rgba(233, 228, 216, 0.06);
+            transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+        }
+        .rite-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 30%, rgba(233, 162, 90, 0.18) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.7s ease;
+        }
+        .rite-btn:hover:not(:disabled)::before {
+            transform: translateX(100%);
+        }
+        .rite-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 46px rgba(233, 162, 90, 0.22);
+        }
+        .rite-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .connect-btn {
+            width: 100%;
+            padding: 17px 20px;
+            cursor: pointer;
+            font-family: 'Jost', sans-serif;
+            font-weight: 500;
+            font-size: 0.85em;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border: 1px solid rgba(126, 168, 143, 0.4);
+            background: rgba(126, 168, 143, 0.05);
+            color: var(--moss-bright);
+            transition: all 0.25s ease;
+        }
+        .connect-btn:hover {
+            background: rgba(126, 168, 143, 0.12);
+            transform: translateY(-1px);
+        }
+        .status-msg {
+            min-height: 20px;
+            font-family: 'Cormorant', serif;
+            font-style: italic;
+            font-size: 0.95em;
+            color: rgba(233, 228, 216, 0.5);
+            text-align: center;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+        .status-msg.success {
+            color: var(--moss-bright);
+        }
+        .status-msg.error {
+            color: #d38a8a;
+        }
+        .claimed-box {
+            width: 100%;
+            text-align: center;
+            background: rgba(126, 168, 143, 0.04);
+            border: 1px solid rgba(126, 168, 143, 0.25);
+            padding: 22px;
+            color: var(--moss-bright);
+            font-family: 'Cormorant SC', serif;
+            font-size: 0.95em;
+            letter-spacing: 0.5px;
+        }
+        .traits-toggle {
+            margin-top: 20px;
+            background: none;
+            border: none;
+            color: rgba(233, 162, 90, 0.75);
+            font-size: 0.68em;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: 'Jost', sans-serif;
+            padding-bottom: 3px;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .traits-toggle:hover {
+            border-color: rgba(233, 162, 90, 0.5);
+        }
+        .traits-grid {
+            display: none;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1px;
+            margin-top: 12px;
+            width: 100%;
+            background: var(--line);
+        }
+        .traits-grid.show {
+            display: grid;
+        }
+        .trait-chip {
+            background: var(--void);
+            padding: 14px 16px;
+        }
+        .trait-chip .t {
+            font-size: 0.58em;
+            color: rgba(233, 228, 216, 0.35);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        .trait-chip .v {
+            font-size: 0.95em;
+            color: var(--bone);
+            font-weight: 500;
+            margin-top: 4px;
+            font-family: 'Cormorant SC', serif;
+            letter-spacing: 0.5px;
+        }
+        .foot-note {
+            font-size: 0.65em;
+            color: rgba(233, 228, 216, 0.22);
+            letter-spacing: 1px;
+            text-align: center;
+            font-family: 'Jost', sans-serif;
+        }
+        .foot-note span {
+            color: rgba(233, 162, 90, 0.4);
+        }
+    </style>
 </head>
 <body>
 
-<!-- ============================================================
-     GATE / MATRIX INTRO (new)
-     ============================================================ -->
-<div id="gate-screen">
-    <div class="gate-content">
-        <div class="gate-text" id="gate-text"><span id="gate-text-inner"></span><span class="cursor"></span></div>
-        <div class="gate-choices" id="gate-choices">
-            <button class="gate-btn" id="gate-yes">Yes</button>
-            <button class="gate-btn deny" id="gate-no">No</button>
-        </div>
-    </div>
-</div>
-
-<!-- ============================================================
-     COOKING / TRANSITION SCREEN (new)
-     ============================================================ -->
-<div id="cooking-screen">
-    <div class="loader-lamp" id="loaderLamp">
-        <div class="lamp-wire2"></div>
-        <div class="lamp-fixture"></div>
-        <div class="lamp-glow2"></div>
-        <div class="lamp-core"></div>
-        <div class="lamp-pool"></div>
-        <span class="lamp-hint">hover the lamp</span>
-    </div>
-</div>
-
-<!-- ============================================================
-     MAIN SITE (original content, now gated behind the intro)
-     ============================================================ -->
-<div id="main-site">
-
-<canvas id="bg-canvas"></canvas>
-<div class="bg-gradient"></div>
-<div class="vignette"></div>
-<div class="grain"></div>
-
-<div class="lamp-rig">
-    <div class="lamp-wire"></div>
-    <div class="lamp-bulb-wrap">
-        <div class="lamp-glow"></div>
-        <div class="lamp-bulb"></div>
-    </div>
-</div>
-
-<div class="stage">
-    <div class="relic-wrap">
-        <svg class="sigil-ring" viewBox="0 0 400 400">
-            <defs>
-                <path id="ringPath" d="M 200,200 m -170,0 a 170,170 0 1,1 340,0 a 170,170 0 1,1 -340,0"/>
-            </defs>
-            <circle cx="200" cy="200" r="188" fill="none" stroke="rgba(233,162,90,0.22)" stroke-width="0.5"/>
-            <circle cx="200" cy="200" r="170" fill="none" stroke="rgba(233,162,90,0.35)" stroke-width="1" stroke-dasharray="1 7"/>
-            <text font-family="Cormorant SC, serif" font-size="12" letter-spacing="6" fill="rgba(233,162,90,0.55)">
-                <textPath href="#ringPath" startOffset="0%">SGM · THE RITE OF FIVE HUNDRED · SGM · THE RITE OF FIVE HUNDRED · </textPath>
-            </text>
-        </svg>
-        <svg class="sigil-ring reverse" viewBox="0 0 400 400">
-            <circle cx="200" cy="200" r="196" fill="none" stroke="rgba(126,168,143,0.25)" stroke-width="0.5" stroke-dasharray="0.5 5"/>
-            <g stroke="rgba(126,168,143,0.3)" stroke-width="0.6">
-                <line x1="200" y1="4" x2="200" y2="16"/>
-                <line x1="200" y1="384" x2="200" y2="396"/>
-                <line x1="4" y1="200" x2="16" y2="200"/>
-                <line x1="384" y1="200" x2="396" y2="200"/>
-            </g>
-        </svg>
-        <div class="relic-frame" id="relic-frame">
-            <div class="relic-skeleton" id="relic-skeleton">
-                <svg class="rune-spin" viewBox="0 0 40 40" fill="none">
-                    <circle cx="20" cy="20" r="16" stroke="rgba(233,162,90,0.2)" stroke-width="1.5"/>
-                    <path d="M20 4 A16 16 0 0 1 36 20" stroke="#e9a25a" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-                <div class="msg" id="relic-skeleton-msg">Summoning the vessel from the fog...</div>
+    <!-- ============================================================
+         GATE / MATRIX INTRO (unchanged)
+         ============================================================ -->
+    <div id="gate-screen">
+        <div class="gate-content">
+            <div class="gate-text" id="gate-text"><span id="gate-text-inner"></span><span class="cursor"></span></div>
+            <div class="gate-choices" id="gate-choices">
+                <button class="gate-btn" id="gate-yes">Yes</button>
+                <button class="gate-btn deny" id="gate-no">No</button>
             </div>
-            <img id="relic-img" class="relic-img">
-            <iframe id="relic-frame-el" class="relic-frame-el" sandbox="allow-scripts" scrolling="no"></iframe>
         </div>
     </div>
 
-    <h2 class="relic-title" id="relic-name">SGM Nº001</h2>
-    <p class="relic-desc" id="relic-desc">Its inscription is still forming in the dark...</p>
-
-    <svg class="ink-divider" viewBox="0 0 200 14">
-        <path d="M0,7 Q30,2 60,7 T120,7 T200,7" stroke="#e9a25a" stroke-width="0.8" fill="none" opacity="0.6"/>
-        <circle cx="100" cy="7" r="2" fill="#e9a25a"/>
-    </svg>
-
-    <div class="countdown-label">The gate closes in</div>
-    <div class="countdown" id="countdown">
-        <div class="countdown-cell"><div class="countdown-num" id="cd-h">--</div><div class="countdown-tag">Hours</div></div>
-        <div class="countdown-cell"><div class="countdown-num" id="cd-m">--</div><div class="countdown-tag">Min</div></div>
-        <div class="countdown-cell"><div class="countdown-num" id="cd-s">--</div><div class="countdown-tag">Sec</div></div>
+    <!-- ============================================================
+         COOKING / TRANSITION SCREEN (unchanged)
+         ============================================================ -->
+    <div id="cooking-screen">
+        <div class="loader-lamp" id="loaderLamp">
+            <div class="lamp-wire2"></div>
+            <div class="lamp-fixture"></div>
+            <div class="lamp-glow2"></div>
+            <div class="lamp-core"></div>
+            <div class="lamp-pool"></div>
+            <span class="lamp-hint">hover the lamp</span>
+        </div>
     </div>
 
-    <div class="supply-panel">
-        <div class="supply-row"><span>Claimed from the forest</span><span class="n" id="supply-text">— / 500</span></div>
-        <div class="supply-track"><div class="supply-fill" id="supply-fill"></div></div>
-    </div>
+    <!-- ============================================================
+         MAIN SITE (mint content overlaid on NFT)
+         ============================================================ -->
+    <div id="main-site">
 
-    <div class="detail-list">
-        <div class="detail-row"><span>Price</span><span class="val free" id="price-text">FREE</span></div>
-        <div class="detail-row"><span>Realm</span><span class="val">Ink</span></div>
-        <div class="detail-row"><span>Bound per wallet</span><span class="val">1 NFT</span></div>
-    </div>
+        <canvas id="bg-canvas"></canvas>
+        <div class="bg-gradient"></div>
+        <div class="vignette"></div>
+        <div class="grain"></div>
 
-    <div class="network-warn" id="network-warn">Wrong realm connected — turn toward Ink to proceed.</div>
+        <div class="lamp-rig">
+            <div class="lamp-wire"></div>
+            <div class="lamp-bulb-wrap">
+                <div class="lamp-glow"></div>
+                <div class="lamp-bulb"></div>
+            </div>
+        </div>
 
-    <div id="connect-wrap"><button class="connect-btn" onclick="connectWallet()">Connect Wallet</button></div>
-    <div id="wallet-wrap" style="display:none;"><span class="wallet-pill"><span class="live-dot"></span><span id="wallet-addr"></span></span></div>
+        <div class="stage">
+            <div class="relic-wrap">
+                <svg class="sigil-ring" viewBox="0 0 400 400">
+                    <defs>
+                        <path id="ringPath" d="M 200,200 m -170,0 a 170,170 0 1,1 340,0 a 170,170 0 1,1 -340,0"/>
+                    </defs>
+                    <circle cx="200" cy="200" r="188" fill="none" stroke="rgba(233,162,90,0.22)" stroke-width="0.5"/>
+                    <circle cx="200" cy="200" r="170" fill="none" stroke="rgba(233,162,90,0.35)" stroke-width="1" stroke-dasharray="1 7"/>
+                    <text font-family="Cormorant SC, serif" font-size="12" letter-spacing="6" fill="rgba(233,162,90,0.55)">
+                        <textPath href="#ringPath" startOffset="0%">SGM · THE RITE OF FIVE HUNDRED · SGM · THE RITE OF FIVE HUNDRED · </textPath>
+                    </text>
+                </svg>
+                <svg class="sigil-ring reverse" viewBox="0 0 400 400">
+                    <circle cx="200" cy="200" r="196" fill="none" stroke="rgba(126,168,143,0.25)" stroke-width="0.5" stroke-dasharray="0.5 5"/>
+                    <g stroke="rgba(126,168,143,0.3)" stroke-width="0.6">
+                        <line x1="200" y1="4" x2="200" y2="16"/>
+                        <line x1="200" y1="384" x2="200" y2="396"/>
+                        <line x1="4" y1="200" x2="16" y2="200"/>
+                        <line x1="384" y1="200" x2="396" y2="200"/>
+                    </g>
+                </svg>
+                <div class="relic-frame" id="relic-frame">
+                    <div class="relic-skeleton" id="relic-skeleton">
+                        <svg class="rune-spin" viewBox="0 0 40 40" fill="none">
+                            <circle cx="20" cy="20" r="16" stroke="rgba(233,162,90,0.2)" stroke-width="1.5"/>
+                            <path d="M20 4 A16 16 0 0 1 36 20" stroke="#e9a25a" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <div class="msg" id="relic-skeleton-msg">Summoning the vessel from the fog...</div>
+                    </div>
+                    <img id="relic-img" class="relic-img">
+                    <iframe id="relic-frame-el" class="relic-frame-el" sandbox="allow-scripts" scrolling="no"></iframe>
+                </div>
 
-    <button class="rite-btn" id="mint-btn" style="display:none;" onclick="doMint()">Claim Your Vessel</button>
-    <div class="claimed-box" id="claimed-box" style="display:none;">Your vessel has already been claimed from this realm — one per wallet, forever.</div>
+                <!-- ============================================================
+                     MINT OVERLAY — all mint content now sits ON the NFT
+                     ============================================================ -->
+                <div class="mint-overlay">
+                    <h2 class="relic-title" id="relic-name">SGM Nº001</h2>
+                    <p class="relic-desc" id="relic-desc">Its inscription is still forming in the dark...</p>
 
-    <p class="status-msg" id="status-msg"></p>
+                    <svg class="ink-divider" viewBox="0 0 200 14">
+                        <path d="M0,7 Q30,2 60,7 T120,7 T200,7" stroke="#e9a25a" stroke-width="0.8" fill="none" opacity="0.6"/>
+                        <circle cx="100" cy="7" r="2" fill="#e9a25a"/>
+                    </svg>
 
-    <button class="traits-toggle" id="traits-toggle" style="display:none;" onclick="toggleTraits()">Reveal Traits</button>
-    <div class="traits-grid" id="traits-grid"></div>
+                    <div class="countdown-label">The gate closes in</div>
+                    <div class="countdown" id="countdown">
+                        <div class="countdown-cell"><div class="countdown-num" id="cd-h">--</div><div class="countdown-tag">Hours</div></div>
+                        <div class="countdown-cell"><div class="countdown-num" id="cd-m">--</div><div class="countdown-tag">Min</div></div>
+                        <div class="countdown-cell"><div class="countdown-num" id="cd-s">--</div><div class="countdown-tag">Sec</div></div>
+                    </div>
 
-    <p class="foot-note">Contract <span id="contract-short"></span> — Powered by SGM Hub</p>
-</div>
+                    <div class="supply-panel">
+                        <div class="supply-row"><span>Claimed from the forest</span><span class="n" id="supply-text">— / 500</span></div>
+                        <div class="supply-track"><div class="supply-fill" id="supply-fill"></div></div>
+                    </div>
 
-</div><!-- /#main-site -->
+                    <div class="detail-list">
+                        <div class="detail-row"><span>Price</span><span class="val free" id="price-text">FREE</span></div>
+                        <div class="detail-row"><span>Realm</span><span class="val">Ink</span></div>
+                        <div class="detail-row"><span>Bound per wallet</span><span class="val">1 NFT</span></div>
+                    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
-<script>
-    /* ============================================================
-       GATE SEQUENCE LOGIC (new) — matrix intro, community check,
-       cooking transition, then reveal of the main site.
-       ============================================================ */
-    (function initGate() {
-        const gateScreen = document.getElementById("gate-screen");
-        const gateTextInner = document.getElementById("gate-text-inner");
-        const gateChoices = document.getElementById("gate-choices");
-        const yesBtn = document.getElementById("gate-yes");
-        const noBtn = document.getElementById("gate-no");
-        const cookingScreen = document.getElementById("cooking-screen");
-        const mainSite = document.getElementById("main-site");
+                    <div class="network-warn" id="network-warn">Wrong realm connected — turn toward Ink to proceed.</div>
 
-        function typeText(text, onDone) {
-            gateTextInner.textContent = "";
-            gateChoices.classList.remove("show");
-            let i = 0;
-            const speed = 110;
-            (function step() {
-                if (i < text.length) {
-                    gateTextInner.textContent += text.charAt(i);
-                    i++;
-                    setTimeout(step, speed);
-                } else if (onDone) {
-                    onDone();
-                }
-            })();
-        }
+                    <div id="connect-wrap"><button class="connect-btn" onclick="connectWallet()">Connect Wallet</button></div>
+                    <div id="wallet-wrap" style="display:none;"><span class="wallet-pill"><span class="live-dot"></span><span id="wallet-addr"></span></span></div>
 
-        function askAreYouLost() {
-            typeText("ARE YOU LOST?", () => {
-                gateChoices.classList.add("show");
-                yesBtn.onclick = askCommunity;
-                noBtn.onclick = denyAccess;
-            });
-        }
+                    <button class="rite-btn" id="mint-btn" style="display:none;" onclick="doMint()">Claim Your Vessel</button>
+                    <div class="claimed-box" id="claimed-box" style="display:none;">Your vessel has already been claimed from this realm — one per wallet, forever.</div>
 
-        function denyAccess() {
-            gateChoices.classList.remove("show");
-            typeText("You are Not one of us");
-            // Sequence intentionally stops here — user must refresh to try again.
-        }
+                    <p class="status-msg" id="status-msg"></p>
 
-        function askCommunity() {
-            typeText("Are You From Community?", () => {
-                gateChoices.classList.add("show");
-                yesBtn.onclick = proceedToSite;
-                noBtn.onclick = proceedToSite;
-            });
-        }
+                    <button class="traits-toggle" id="traits-toggle" style="display:none;" onclick="toggleTraits()">Reveal Traits</button>
+                    <div class="traits-grid" id="traits-grid"></div>
 
-        function proceedToSite() {
-            gateChoices.classList.remove("show");
-            gateScreen.classList.add("hidden");
-            cookingScreen.classList.add("show");
-            armLamp();
-        }
+                    <p class="foot-note">Contract <span id="contract-short"></span> — Powered by SGM Hub</p>
+                </div>
+            </div>
+        </div>
 
-        /* ---- Hover-triggered lamp flicker sequence ----
-           The lamp does nothing until the user hovers it. On the first
-           hover it flickers on/off three times, with a growing pause
-           between each flicker, then settles into a steady light —
-           only then does the main site get revealed. */
-        function armLamp() {
-            const lamp = document.getElementById("loaderLamp");
-            let started = false;
+    </div><!-- /#main-site -->
 
-            function runSequence() {
-                if (started) return;
-                started = true;
-                lamp.removeEventListener("mouseenter", runSequence);
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js">
+    </script>
+    <script>
+        /* ============================================================
+           GATE SEQUENCE LOGIC (unchanged)
+           ============================================================ */
+        (function initGate() {
+            const gateScreen = document.getElementById("gate-screen");
+            const gateTextInner = document.getElementById("gate-text-inner");
+            const gateChoices = document.getElementById("gate-choices");
+            const yesBtn = document.getElementById("gate-yes");
+            const noBtn = document.getElementById("gate-no");
+            const cookingScreen = document.getElementById("cooking-screen");
+            const mainSite = document.getElementById("main-site");
 
-                const steps = [
-                    { on: true,  at: 0    }, // flicker 1 on
-                    { on: false, at: 220  }, // flicker 1 off
-                    { on: true,  at: 780  }, // flicker 2 on   (gap 560ms)
-                    { on: false, at: 1000 }, // flicker 2 off
-                    { on: true,  at: 1750 }, // flicker 3 on   (gap 750ms)
-                    { on: false, at: 1980 }, // flicker 3 off
-                    { on: true,  at: 2750 }  // settles on, stays lit (gap 770ms)
-                ];
-
-                steps.forEach(step => {
-                    setTimeout(() => {
-                        lamp.classList.toggle("lit", step.on);
-                    }, step.at);
-                });
-
-                const settleAt = steps[steps.length - 1].at;
-                setTimeout(() => {
-                    lamp.classList.add("settled");
-                }, settleAt + 250);
-
-                setTimeout(() => {
-                    cookingScreen.classList.remove("show");
-                    mainSite.classList.add("show");
-                    if (typeof initMainSite === "function") initMainSite();
-                }, settleAt + 1400);
-            }
-
-            lamp.addEventListener("mouseenter", runSequence);
-            // Touch devices have no hover — a tap arms it the same way.
-            lamp.addEventListener("touchstart", runSequence, { passive: true });
-        }
-
-        askAreYouLost();
-    })();
-
-    /* ============================================================
-       ORIGINAL SITE LOGIC (unchanged) — now wrapped so it only
-       starts running once the gate has been passed.
-       ============================================================ */
-    function initMainSite() {
-    /* ---------------- Drop configuration ---------------- */
-    const CONTRACT_ADDRESS = "0xcc6703B8767DBdd900F5762eBe9917aE8F4dd71C";
-    const METADATA_BASE = "https://sgmhub.ir/nft-metadata/";
-    const SALE_END_MS = null; // set to (unixSeconds * 1000) once setMintWindow() is called on-chain
-    const FALLBACK_WINDOW_HOURS = 72;
-
-    // Multiple public gateways, tried in order, since a single gateway can
-    // return CORS errors or 403s (as happened with ipfs.io in testing).
-    const IPFS_GATEWAYS = [
-        "https://nftstorage.link/ipfs/",
-        "https://cloudflare-ipfs.com/ipfs/",
-        "https://gateway.pinata.cloud/ipfs/",
-        "https://dweb.link/ipfs/",
-        "https://ipfs.io/ipfs/"
-    ];
-
-    const INK_NETWORK = {
-        chainIdHex: "0x" + (57073).toString(16),
-        chainName: "Ink",
-        rpcUrls: ["https://rpc-gel.inkonchain.com"],
-        nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-        blockExplorerUrls: ["https://explorer.inkonchain.com"]
-    };
-
-    const CONTRACT_ABI = [
-        "function mint() external payable",
-        "function mintPrice() public view returns (uint256)",
-        "function totalMinted() public view returns (uint256)",
-        "function maxSupply() public view returns (uint256)",
-        "function mintOpen() public view returns (bool)",
-        "function hasMinted(address) public view returns (bool)"
-    ];
-
-    let provider, signer, account, contract;
-    let saleEndMs = SALE_END_MS || (Date.now() + FALLBACK_WINDOW_HOURS * 3600 * 1000);
-    let countdownTimer = null;
-
-    document.getElementById("contract-short").innerText = CONTRACT_ADDRESS.slice(0,6) + "..." + CONTRACT_ADDRESS.slice(-4);
-
-    function ipfsPathFromUri(uri) {
-        if (!uri) return null;
-        if (uri.startsWith("ipfs://")) return uri.slice(7);
-        const m = uri.match(/\/ipfs\/(.+)$/);
-        return m ? m[1] : uri;
-    }
-
-    async function fetchMetadataWithFallback(path) {
-        let lastErr = null;
-        for (const gw of IPFS_GATEWAYS) {
-            try {
-                const res = await fetch(gw + path, { cache: "no-store" });
-                if (!res.ok) throw new Error("status " + res.status);
-                const meta = await res.json();
-                return { meta, gateway: gw };
-            } catch (e) { lastErr = e; continue; }
-        }
-        throw lastErr || new Error("all gateways failed");
-    }
-
-    function resolveMediaUrl(uri, workingGateway) {
-        if (!uri) return null;
-        if (uri.startsWith("ipfs://")) return (workingGateway || IPFS_GATEWAYS[0]) + uri.slice(7);
-        return uri;
-    }
-
-    function getFriendlyError(err) {
-        const raw = ((err && (err.reason || err.message)) || "").toString().toLowerCase();
-        if (raw.includes("already known") || raw.includes("nonce too low")) return "This transaction was already submitted. Please wait.";
-        if (raw.includes("insufficient funds")) return "Insufficient balance to complete this transaction.";
-        if (raw.includes("user rejected") || raw.includes("user denied") || raw.includes("action_rejected")) return "Transaction was rejected.";
-        if (raw.includes("gas required exceeds") || raw.includes("out of gas")) return "Estimated gas cost is too high. Please try again.";
-        if (raw.includes("execution reverted")) return "Transaction was reverted by the contract.";
-        if (raw.includes("max fee per gas") || raw.includes("maxfeepergas")) return "Gas fee too low. Please increase the gas fee in MetaMask (select at least Low).";
-        if (raw.includes("network") || raw.includes("timeout")) return "Network connection issue. Please try again.";
-        return "Something went wrong. Please try again.";
-    }
-
-    async function loadShowcaseMetadata() {
-        const skeleton = document.getElementById("relic-skeleton");
-        const skeletonMsg = document.getElementById("relic-skeleton-msg");
-        try {
-            let meta, gateway;
-if (METADATA_BASE.startsWith("http://") || METADATA_BASE.startsWith("https://")) {
-    // Self-hosted metadata — fetch directly, no IPFS gateway needed
-    const res = await fetch(METADATA_BASE + "001.json", { cache: "no-store" });
-    if (!res.ok) throw new Error("status " + res.status);
-    meta = await res.json();
-    gateway = METADATA_BASE; // used later for resolving image/animation URLs
-} else {
-    const path = ipfsPathFromUri(METADATA_BASE) + "001.json";
-    const result = await fetchMetadataWithFallback(path);
-    meta = result.meta;
-    gateway = result.gateway;
-}
-
-            document.getElementById("relic-name").innerText = meta.name || "SGM Nº001";
-            document.getElementById("relic-desc").innerText = meta.description || "";
-
-            const img = document.getElementById("relic-img");
-            const frame = document.getElementById("relic-frame-el");
-            const animUrl = resolveMediaUrl(meta.animation_url, gateway);
-            const imgUrl = resolveMediaUrl(meta.image, gateway);
-
-            // Self-hosted animation_url (served from /nft-animation/<file>
-            // on our own domain) is now allowed by frame-src 'self' and
-            // isn't subject to Pinata's public-gateway HTML restriction,
-            // so it's safe to prefer it again when present.
-            if (animUrl) {
-                frame.onload = () => { skeleton.style.display = "none"; };
-                frame.onerror = () => { skeletonMsg.innerText = "The fog will not lift — the fragment resists preview."; };
-                frame.src = animUrl; frame.style.display = "block";
-                // iframe onerror doesn't reliably fire for blocked/refused
-                // frames, so time out the skeleton after a few seconds.
-                setTimeout(() => {
-                    if (skeleton.style.display !== "none") {
-                        skeletonMsg.innerText = "The fog will not lift — the fragment resists preview.";
+            function typeText(text, onDone) {
+                gateTextInner.textContent = "";
+                gateChoices.classList.remove("show");
+                let i = 0;
+                const speed = 110;
+                (function step() {
+                    if (i < text.length) {
+                        gateTextInner.textContent += text.charAt(i);
+                        i++;
+                        setTimeout(step, speed);
+                    } else if (onDone) {
+                        onDone();
                     }
-                }, 6000);
-            } else if (imgUrl) {
-                img.onload = () => { skeleton.style.display = "none"; };
-                img.onerror = () => { skeletonMsg.innerText = "The fog will not lift — the fragment resists preview."; };
-                img.src = imgUrl; img.style.display = "block";
-            } else {
-                skeleton.style.display = "none";
+                })();
             }
 
-            if (meta.attributes && meta.attributes.length) {
-                document.getElementById("traits-grid").innerHTML = meta.attributes.map(a =>
-                    `<div class="trait-chip"><div class="t">${a.trait_type}</div><div class="v">${a.value}</div></div>`
-                ).join("");
-                document.getElementById("traits-toggle").style.display = "inline-block";
+            function askAreYouLost() {
+                typeText("ARE YOU LOST?", () => {
+                    gateChoices.classList.add("show");
+                    yesBtn.onclick = askCommunity;
+                    noBtn.onclick = denyAccess;
+                });
             }
-        } catch (e) {
-            document.getElementById("relic-desc").innerText = "The fog will not lift tonight — minting still works regardless.";
-            skeletonMsg.innerText = "Preview unavailable — the metadata could not be reached.";
-        }
-    }
 
-    window.toggleTraits = function() {
-        const grid = document.getElementById("traits-grid");
-        const btn = document.getElementById("traits-toggle");
-        const showing = grid.classList.toggle("show");
-        btn.innerText = showing ? "Hide Traits" : "Reveal Traits";
-    }
-
-    function startCountdown() {
-        function tick() {
-            const remaining = saleEndMs - Date.now();
-            if (remaining <= 0) {
-                document.getElementById("countdown").innerHTML = '<div class="countdown-ended">The rite has ended</div>';
-                clearInterval(countdownTimer);
-                return;
+            function denyAccess() {
+                gateChoices.classList.remove("show");
+                typeText("You are Not one of us");
             }
-            const h = Math.floor(remaining / 3600000);
-            const m = Math.floor((remaining % 3600000) / 60000);
-            const s = Math.floor((remaining % 60000) / 1000);
-            document.getElementById("cd-h").innerText = String(h).padStart(2, "0");
-            document.getElementById("cd-m").innerText = String(m).padStart(2, "0");
-            document.getElementById("cd-s").innerText = String(s).padStart(2, "0");
-        }
-        tick();
-        countdownTimer = setInterval(tick, 1000);
-    }
 
-    async function getTxOverrides() {
-        const gasPriceHex = await provider.send("eth_gasPrice", []);
-        const networkGasPrice = BigInt(gasPriceHex);
-        const gasPrice = networkGasPrice + (networkGasPrice * 20n / 100n);
-        return { gasPrice };
-    }
-
-    window.connectWallet = async function() {
-        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-        try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-
-            document.getElementById("connect-wrap").style.display = "none";
-            document.getElementById("wallet-wrap").style.display = "block";
-            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
-
-            await ensureNetwork();
-            contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-            await refreshDropState();
-        } catch (err) {
-            alert("Connection failed: " + err.message);
-        }
-    }
-
-    async function ensureNetwork() {
-        const net = await provider.getNetwork();
-        const currentChainIdHex = "0x" + net.chainId.toString(16);
-        if (currentChainIdHex.toLowerCase() !== INK_NETWORK.chainIdHex.toLowerCase()) {
-            document.getElementById("network-warn").style.display = "block";
-            try {
-                await window.ethereum.request({ method: "wallet_addEthereumChain", params: [INK_NETWORK] });
-                provider = new ethers.BrowserProvider(window.ethereum);
-                signer = await provider.getSigner();
-                document.getElementById("network-warn").style.display = "none";
-            } catch (e) {}
-        } else {
-            document.getElementById("network-warn").style.display = "none";
-        }
-    }
-
-    function formatPrice(priceWei) {
-        // Always display as FREE in the UI, regardless of the actual on-chain
-        // price — the real value is still used under the hood for the tx.
-        return "FREE";
-    }
-
-    async function refreshDropState() {
-        const statusEl = document.getElementById("status-msg");
-        try {
-            const [price, minted, max, isOpen, alreadyMinted] = await Promise.all([
-                contract.mintPrice(), contract.totalMinted(), contract.maxSupply(),
-                contract.mintOpen(), contract.hasMinted(account)
-            ]);
-
-            const priceLabel = formatPrice(price);
-            const priceEl = document.getElementById("price-text");
-            priceEl.innerText = priceLabel;
-            priceEl.classList.add("free");
-
-            document.getElementById("supply-text").innerText = minted.toString() + " / " + max.toString();
-            document.getElementById("supply-fill").style.width = Math.min(100, (Number(minted)/Number(max))*100) + "%";
-
-            const mintBtn = document.getElementById("mint-btn");
-            const claimedBox = document.getElementById("claimed-box");
-
-            if (alreadyMinted) {
-                mintBtn.style.display = "none";
-                claimedBox.style.display = "block";
-            } else if (!isOpen) {
-                mintBtn.style.display = "inline-block"; mintBtn.disabled = true; mintBtn.innerText = "Rite Not Yet Opened";
-            } else if (Number(minted) >= Number(max)) {
-                mintBtn.style.display = "inline-block"; mintBtn.disabled = true; mintBtn.innerText = "All Vessels Claimed";
-            } else {
-                mintBtn.style.display = "inline-block"; mintBtn.disabled = false;
-                mintBtn.innerText = "Claim for Free";
+            function askCommunity() {
+                typeText("Are You From Community?", () => {
+                    gateChoices.classList.add("show");
+                    yesBtn.onclick = proceedToSite;
+                    noBtn.onclick = proceedToSite;
+                });
             }
-        } catch (err) {
-            statusEl.innerText = "Could not read the drop's current state.";
-            statusEl.className = "status-msg error";
+
+            function proceedToSite() {
+                gateChoices.classList.remove("show");
+                gateScreen.classList.add("hidden");
+                cookingScreen.classList.add("show");
+                armLamp();
+            }
+
+            function armLamp() {
+                const lamp = document.getElementById("loaderLamp");
+                let started = false;
+
+                function runSequence() {
+                    if (started) return;
+                    started = true;
+                    lamp.removeEventListener("mouseenter", runSequence);
+
+                    const steps = [
+                        { on: true, at: 0 },
+                        { on: false, at: 220 },
+                        { on: true, at: 780 },
+                        { on: false, at: 1000 },
+                        { on: true, at: 1750 },
+                        { on: false, at: 1980 },
+                        { on: true, at: 2750 }
+                    ];
+
+                    steps.forEach(step => {
+                        setTimeout(() => {
+                            lamp.classList.toggle("lit", step.on);
+                        }, step.at);
+                    });
+
+                    const settleAt = steps[steps.length - 1].at;
+                    setTimeout(() => {
+                        lamp.classList.add("settled");
+                    }, settleAt + 250);
+
+                    setTimeout(() => {
+                        cookingScreen.classList.remove("show");
+                        mainSite.classList.add("show");
+                        if (typeof initMainSite === "function") initMainSite();
+                    }, settleAt + 1400);
+                }
+
+                lamp.addEventListener("mouseenter", runSequence);
+                lamp.addEventListener("touchstart", runSequence, { passive: true });
+            }
+
+            askAreYouLost();
+        })();
+
+        /* ============================================================
+           ORIGINAL SITE LOGIC (unchanged)
+           ============================================================ */
+        function initMainSite() {
+            const CONTRACT_ADDRESS = "0xcc6703B8767DBdd900F5762eBe9917aE8F4dd71C";
+            const METADATA_BASE = "https://sgmhub.ir/nft-metadata/";
+            const SALE_END_MS = null;
+            const FALLBACK_WINDOW_HOURS = 72;
+
+            const IPFS_GATEWAYS = [
+                "https://nftstorage.link/ipfs/",
+                "https://cloudflare-ipfs.com/ipfs/",
+                "https://gateway.pinata.cloud/ipfs/",
+                "https://dweb.link/ipfs/",
+                "https://ipfs.io/ipfs/"
+            ];
+
+            const INK_NETWORK = {
+                chainIdHex: "0x" + (57073).toString(16),
+                chainName: "Ink",
+                rpcUrls: ["https://rpc-gel.inkonchain.com"],
+                nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+                blockExplorerUrls: ["https://explorer.inkonchain.com"]
+            };
+
+            const CONTRACT_ABI = [
+                "function mint() external payable",
+                "function mintPrice() public view returns (uint256)",
+                "function totalMinted() public view returns (uint256)",
+                "function maxSupply() public view returns (uint256)",
+                "function mintOpen() public view returns (bool)",
+                "function hasMinted(address) public view returns (bool)"
+            ];
+
+            let provider, signer, account, contract;
+            let saleEndMs = SALE_END_MS || (Date.now() + FALLBACK_WINDOW_HOURS * 3600 * 1000);
+            let countdownTimer = null;
+
+            document.getElementById("contract-short").innerText = CONTRACT_ADDRESS.slice(0, 6) + "..." + CONTRACT_ADDRESS
+                .slice(-4);
+
+            function ipfsPathFromUri(uri) {
+                if (!uri) return null;
+                if (uri.startsWith("ipfs://")) return uri.slice(7);
+                const m = uri.match(/\/ipfs\/(.+)$/);
+                return m ? m[1] : uri;
+            }
+
+            async function fetchMetadataWithFallback(path) {
+                let lastErr = null;
+                for (const gw of IPFS_GATEWAYS) {
+                    try {
+                        const res = await fetch(gw + path, { cache: "no-store" });
+                        if (!res.ok) throw new Error("status " + res.status);
+                        const meta = await res.json();
+                        return { meta, gateway: gw };
+                    } catch (e) { lastErr = e;
+                        continue; }
+                }
+                throw lastErr || new Error("all gateways failed");
+            }
+
+            function resolveMediaUrl(uri, workingGateway) {
+                if (!uri) return null;
+                if (uri.startsWith("ipfs://")) return (workingGateway || IPFS_GATEWAYS[0]) + uri.slice(7);
+                return uri;
+            }
+
+            function getFriendlyError(err) {
+                const raw = ((err && (err.reason || err.message)) || "").toString().toLowerCase();
+                if (raw.includes("already known") || raw.includes("nonce too low")) return "This transaction was already submitted. Please wait.";
+                if (raw.includes("insufficient funds")) return "Insufficient balance to complete this transaction.";
+                if (raw.includes("user rejected") || raw.includes("user denied") || raw.includes("action_rejected")) return "Transaction was rejected.";
+                if (raw.includes("gas required exceeds") || raw.includes("out of gas")) return "Estimated gas cost is too high. Please try again.";
+                if (raw.includes("execution reverted")) return "Transaction was reverted by the contract.";
+                if (raw.includes("max fee per gas") || raw.includes("maxfeepergas")) return "Gas fee too low. Please increase the gas fee in MetaMask (select at least Low).";
+                if (raw.includes("network") || raw.includes("timeout")) return "Network connection issue. Please try again.";
+                return "Something went wrong. Please try again.";
+            }
+
+            async function loadShowcaseMetadata() {
+                const skeleton = document.getElementById("relic-skeleton");
+                const skeletonMsg = document.getElementById("relic-skeleton-msg");
+                try {
+                    let meta, gateway;
+                    if (METADATA_BASE.startsWith("http://") || METADATA_BASE.startsWith("https://")) {
+                        const res = await fetch(METADATA_BASE + "001.json", { cache: "no-store" });
+                        if (!res.ok) throw new Error("status " + res.status);
+                        meta = await res.json();
+                        gateway = METADATA_BASE;
+                    } else {
+                        const path = ipfsPathFromUri(METADATA_BASE) + "001.json";
+                        const result = await fetchMetadataWithFallback(path);
+                        meta = result.meta;
+                        gateway = result.gateway;
+                    }
+
+                    document.getElementById("relic-name").innerText = meta.name || "SGM Nº001";
+                    document.getElementById("relic-desc").innerText = meta.description || "";
+
+                    const img = document.getElementById("relic-img");
+                    const frame = document.getElementById("relic-frame-el");
+                    const animUrl = resolveMediaUrl(meta.animation_url, gateway);
+                    const imgUrl = resolveMediaUrl(meta.image, gateway);
+
+                    if (animUrl) {
+                        frame.onload = () => { skeleton.style.display = "none"; };
+                        frame.onerror = () => { skeletonMsg.innerText = "The fog will not lift — the fragment resists preview."; };
+                        frame.src = animUrl;
+                        frame.style.display = "block";
+                        setTimeout(() => {
+                            if (skeleton.style.display !== "none") {
+                                skeletonMsg.innerText = "The fog will not lift — the fragment resists preview.";
+                            }
+                        }, 6000);
+                    } else if (imgUrl) {
+                        img.onload = () => { skeleton.style.display = "none"; };
+                        img.onerror = () => { skeletonMsg.innerText = "The fog will not lift — the fragment resists preview."; };
+                        img.src = imgUrl;
+                        img.style.display = "block";
+                    } else {
+                        skeleton.style.display = "none";
+                    }
+
+                    if (meta.attributes && meta.attributes.length) {
+                        document.getElementById("traits-grid").innerHTML = meta.attributes.map(a =>
+                            `<div class="trait-chip"><div class="t">${a.trait_type}</div><div class="v">${a.value}</div></div>`
+                        ).join("");
+                        document.getElementById("traits-toggle").style.display = "inline-block";
+                    }
+                } catch (e) {
+                    document.getElementById("relic-desc").innerText = "The fog will not lift tonight — minting still works regardless.";
+                    skeletonMsg.innerText = "Preview unavailable — the metadata could not be reached.";
+                }
+            }
+
+            window.toggleTraits = function() {
+                const grid = document.getElementById("traits-grid");
+                const btn = document.getElementById("traits-toggle");
+                const showing = grid.classList.toggle("show");
+                btn.innerText = showing ? "Hide Traits" : "Reveal Traits";
+            }
+
+            function startCountdown() {
+                function tick() {
+                    const remaining = saleEndMs - Date.now();
+                    if (remaining <= 0) {
+                        document.getElementById("countdown").innerHTML = '<div class="countdown-ended">The rite has ended</div>';
+                        clearInterval(countdownTimer);
+                        return;
+                    }
+                    const h = Math.floor(remaining / 3600000);
+                    const m = Math.floor((remaining % 3600000) / 60000);
+                    const s = Math.floor((remaining % 60000) / 1000);
+                    document.getElementById("cd-h").innerText = String(h).padStart(2, "0");
+                    document.getElementById("cd-m").innerText = String(m).padStart(2, "0");
+                    document.getElementById("cd-s").innerText = String(s).padStart(2, "0");
+                }
+                tick();
+                countdownTimer = setInterval(tick, 1000);
+            }
+
+            async function getTxOverrides() {
+                const gasPriceHex = await provider.send("eth_gasPrice", []);
+                const networkGasPrice = BigInt(gasPriceHex);
+                const gasPrice = networkGasPrice + (networkGasPrice * 20n / 100n);
+                return { gasPrice };
+            }
+
+            window.connectWallet = async function() {
+                if (!window.ethereum) { alert("Please install MetaMask!"); return; }
+                try {
+                    provider = new ethers.BrowserProvider(window.ethereum);
+                    await provider.send("eth_requestAccounts", []);
+                    signer = await provider.getSigner();
+                    account = await signer.getAddress();
+
+                    document.getElementById("connect-wrap").style.display = "none";
+                    document.getElementById("wallet-wrap").style.display = "block";
+                    document.getElementById("wallet-addr").innerText = account.slice(0, 6) + "..." + account.slice(-4);
+
+                    await ensureNetwork();
+                    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                    await refreshDropState();
+                } catch (err) {
+                    alert("Connection failed: " + err.message);
+                }
+            }
+
+            async function ensureNetwork() {
+                const net = await provider.getNetwork();
+                const currentChainIdHex = "0x" + net.chainId.toString(16);
+                if (currentChainIdHex.toLowerCase() !== INK_NETWORK.chainIdHex.toLowerCase()) {
+                    document.getElementById("network-warn").style.display = "block";
+                    try {
+                        await window.ethereum.request({ method: "wallet_addEthereumChain", params: [INK_NETWORK] });
+                        provider = new ethers.BrowserProvider(window.ethereum);
+                        signer = await provider.getSigner();
+                        document.getElementById("network-warn").style.display = "none";
+                    } catch (e) {}
+                } else {
+                    document.getElementById("network-warn").style.display = "none";
+                }
+            }
+
+            function formatPrice(priceWei) {
+                return "FREE";
+            }
+
+            async function refreshDropState() {
+                const statusEl = document.getElementById("status-msg");
+                try {
+                    const [price, minted, max, isOpen, alreadyMinted] = await Promise.all([
+                        contract.mintPrice(), contract.totalMinted(), contract.maxSupply(),
+                        contract.mintOpen(), contract.hasMinted(account)
+                    ]);
+
+                    const priceLabel = formatPrice(price);
+                    const priceEl = document.getElementById("price-text");
+                    priceEl.innerText = priceLabel;
+                    priceEl.classList.add("free");
+
+                    document.getElementById("supply-text").innerText = minted.toString() + " / " + max.toString();
+                    document.getElementById("supply-fill").style.width = Math.min(100, (Number(minted) / Number(max)) * 100) + "%";
+
+                    const mintBtn = document.getElementById("mint-btn");
+                    const claimedBox = document.getElementById("claimed-box");
+
+                    if (alreadyMinted) {
+                        mintBtn.style.display = "none";
+                        claimedBox.style.display = "block";
+                    } else if (!isOpen) {
+                        mintBtn.style.display = "inline-block";
+                        mintBtn.disabled = true;
+                        mintBtn.innerText = "Rite Not Yet Opened";
+                    } else if (Number(minted) >= Number(max)) {
+                        mintBtn.style.display = "inline-block";
+                        mintBtn.disabled = true;
+                        mintBtn.innerText = "All Vessels Claimed";
+                    } else {
+                        mintBtn.style.display = "inline-block";
+                        mintBtn.disabled = false;
+                        mintBtn.innerText = "Claim for Free";
+                    }
+                } catch (err) {
+                    statusEl.innerText = "Could not read the drop's current state.";
+                    statusEl.className = "status-msg error";
+                }
+            }
+
+            window.doMint = async function() {
+                const btn = document.getElementById("mint-btn");
+                const statusEl = document.getElementById("status-msg");
+                btn.disabled = true;
+                statusEl.className = "status-msg";
+                statusEl.innerText = "Sending your offering into the dark...";
+                try {
+                    const price = await contract.mintPrice();
+                    const overrides = await getTxOverrides();
+                    overrides.value = price;
+                    const tx = await contract.mint(overrides);
+                    statusEl.innerText = "Awaiting confirmation...";
+                    await tx.wait();
+                    statusEl.innerText = "Vessel claimed. Welcome to the forest.";
+                    statusEl.className = "status-msg success";
+                    await refreshDropState();
+                } catch (err) {
+                    statusEl.innerText = getFriendlyError(err);
+                    statusEl.className = "status-msg error";
+                    btn.disabled = false;
+                }
+            }
+
+            async function loadPublicDropState() {
+                try {
+                    const readProvider = new ethers.JsonRpcProvider(INK_NETWORK.rpcUrls[0]);
+                    const readContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, readProvider);
+                    const [price, minted, max] = await Promise.all([
+                        readContract.mintPrice(), readContract.totalMinted(), readContract.maxSupply()
+                    ]);
+                    const priceLabel = formatPrice(price);
+                    const priceEl = document.getElementById("price-text");
+                    priceEl.innerText = priceLabel;
+                    priceEl.classList.add("free");
+                    document.getElementById("supply-text").innerText = minted.toString() + " / " + max.toString();
+                    document.getElementById("supply-fill").style.width = Math.min(100, (Number(minted) / Number(max)) * 100) + "%";
+                } catch (e) {}
+            }
+
+            (function initTilt() {
+                const wrap = document.querySelector(".relic-wrap");
+                const frame = document.getElementById("relic-frame");
+                if (!wrap || !frame) return;
+                wrap.addEventListener("mousemove", (e) => {
+                    const r = wrap.getBoundingClientRect();
+                    const px = (e.clientX - r.left) / r.width - 0.5;
+                    const py = (e.clientY - r.top) / r.height - 0.5;
+                    frame.style.transform = `rotateY(${px * 8}deg) rotateX(${-py * 8}deg)`;
+                });
+                wrap.addEventListener("mouseleave", () => { frame.style.transform = "rotateY(0) rotateX(0)"; });
+            })();
+
+            (function initBackground() {
+                const canvas = document.getElementById("bg-canvas");
+                const ctx = canvas.getContext("2d");
+                let w, h, particles = [],
+                    fogBlobs = [];
+
+                function resize() { w = canvas.width = window.innerWidth;
+                    h = canvas.height = window.innerHeight; }
+                window.addEventListener("resize", resize);
+                resize();
+
+                for (let i = 0; i < 30; i++) {
+                    particles.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        r: Math.random() * 1.6 + 0.4,
+                        vy: -(Math.random() * 0.25 + 0.05),
+                        vx: (Math.random() - 0.5) * 0.15,
+                        a: Math.random() * 0.5 + 0.2,
+                        flick: Math.random() * Math.PI * 2
+                    });
+                }
+                for (let i = 0; i < 5; i++) {
+                    fogBlobs.push({
+                        x: Math.random() * w,
+                        y: h * (0.55 + Math.random() * 0.4),
+                        r: 220 + Math.random() * 220,
+                        vx: (Math.random() - 0.5) * 0.08,
+                        a: 0.05 + Math.random() * 0.05
+                    });
+                }
+
+                function draw() {
+                    ctx.clearRect(0, 0, w, h);
+                    fogBlobs.forEach(f => {
+                        f.x += f.vx;
+                        if (f.x < -f.r) f.x = w + f.r;
+                        if (f.x > w + f.r) f.x = -f.r;
+                        const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
+                        grad.addColorStop(0, `rgba(120,140,130,${f.a})`);
+                        grad.addColorStop(1, "rgba(120,140,130,0)");
+                        ctx.fillStyle = grad;
+                        ctx.beginPath();
+                        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                    particles.forEach(p => {
+                        p.y += p.vy;
+                        p.x += p.vx;
+                        p.flick += 0.04;
+                        if (p.y < -10) { p.y = h + 10;
+                            p.x = Math.random() * w; }
+                        const flicker = (Math.sin(p.flick) + 1) / 2;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(233,162,90,${p.a * flicker})`;
+                        ctx.shadowColor = "rgba(233,162,90,0.8)";
+                        ctx.shadowBlur = 6;
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                    });
+                    requestAnimationFrame(draw);
+                }
+                draw();
+            })();
+
+            loadShowcaseMetadata();
+            loadPublicDropState();
+            startCountdown();
         }
-    }
-
-    window.doMint = async function() {
-        const btn = document.getElementById("mint-btn");
-        const statusEl = document.getElementById("status-msg");
-        btn.disabled = true;
-        statusEl.className = "status-msg";
-        statusEl.innerText = "Sending your offering into the dark...";
-        try {
-            const price = await contract.mintPrice();
-            const overrides = await getTxOverrides();
-            overrides.value = price;
-            const tx = await contract.mint(overrides);
-            statusEl.innerText = "Awaiting confirmation...";
-            await tx.wait();
-            statusEl.innerText = "Vessel claimed. Welcome to the forest.";
-            statusEl.className = "status-msg success";
-            await refreshDropState();
-        } catch (err) {
-            statusEl.innerText = getFriendlyError(err);
-            statusEl.className = "status-msg error";
-            btn.disabled = false;
-        }
-    }
-
-    async function loadPublicDropState() {
-        try {
-            const readProvider = new ethers.JsonRpcProvider(INK_NETWORK.rpcUrls[0]);
-            const readContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, readProvider);
-            const [price, minted, max] = await Promise.all([
-                readContract.mintPrice(), readContract.totalMinted(), readContract.maxSupply()
-            ]);
-            const priceLabel = formatPrice(price);
-            const priceEl = document.getElementById("price-text");
-            priceEl.innerText = priceLabel;
-            priceEl.classList.add("free");
-            document.getElementById("supply-text").innerText = minted.toString() + " / " + max.toString();
-            document.getElementById("supply-fill").style.width = Math.min(100, (Number(minted)/Number(max))*100) + "%";
-        } catch (e) {}
-    }
-
-    /* ---- Subtle 3D tilt on the relic frame following the pointer ---- */
-    (function initTilt() {
-        const wrap = document.querySelector(".relic-wrap");
-        const frame = document.getElementById("relic-frame");
-        if (!wrap || !frame) return;
-        wrap.addEventListener("mousemove", (e) => {
-            const r = wrap.getBoundingClientRect();
-            const px = (e.clientX - r.left) / r.width - 0.5;
-            const py = (e.clientY - r.top) / r.height - 0.5;
-            frame.style.transform = `rotateY(${px * 8}deg) rotateX(${-py * 8}deg)`;
-        });
-        wrap.addEventListener("mouseleave", () => { frame.style.transform = "rotateY(0) rotateX(0)"; });
-    })();
-
-    /* ---------------- Fog + firefly particle background ---------------- */
-    (function initBackground() {
-        const canvas = document.getElementById("bg-canvas");
-        const ctx = canvas.getContext("2d");
-        let w, h, particles = [], fogBlobs = [];
-
-        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
-        window.addEventListener("resize", resize);
-        resize();
-
-        for (let i = 0; i < 30; i++) {
-            particles.push({
-                x: Math.random() * w, y: Math.random() * h,
-                r: Math.random() * 1.6 + 0.4,
-                vy: -(Math.random() * 0.25 + 0.05),
-                vx: (Math.random() - 0.5) * 0.15,
-                a: Math.random() * 0.5 + 0.2,
-                flick: Math.random() * Math.PI * 2
-            });
-        }
-        for (let i = 0; i < 5; i++) {
-            fogBlobs.push({
-                x: Math.random() * w, y: h * (0.55 + Math.random() * 0.4),
-                r: 220 + Math.random() * 220,
-                vx: (Math.random() - 0.5) * 0.08,
-                a: 0.05 + Math.random() * 0.05
-            });
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, w, h);
-            fogBlobs.forEach(f => {
-                f.x += f.vx;
-                if (f.x < -f.r) f.x = w + f.r;
-                if (f.x > w + f.r) f.x = -f.r;
-                const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
-                grad.addColorStop(0, `rgba(120,140,130,${f.a})`);
-                grad.addColorStop(1, "rgba(120,140,130,0)");
-                ctx.fillStyle = grad;
-                ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
-            });
-            particles.forEach(p => {
-                p.y += p.vy; p.x += p.vx; p.flick += 0.04;
-                if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
-                const flicker = (Math.sin(p.flick) + 1) / 2;
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(233,162,90,${p.a * flicker})`;
-                ctx.shadowColor = "rgba(233,162,90,0.8)"; ctx.shadowBlur = 6;
-                ctx.fill(); ctx.shadowBlur = 0;
-            });
-            requestAnimationFrame(draw);
-        }
-        draw();
-    })();
-
-        loadShowcaseMetadata();
-        loadPublicDropState();
-        startCountdown();
-    } // end initMainSite
-</script>
+    </script>
 </body>
 </html>
