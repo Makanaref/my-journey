@@ -274,6 +274,9 @@ def flip():
 @app.route("/mint-nft")
 def mint_nft():
     return render_template("mint_nft.html")
+@app.route("/sgm-drop")
+def sgm_drop():
+    return render_template("sgm_drop.html")
 @app.route("/marketplace")
 def marketplace():
     return render_template("marketplace.html")
