@@ -38,11 +38,7 @@ csp = {
     'img-src': ["'self'", "data:", "https:"],
     'font-src': ["'self'", "https:", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
     'connect-src': ["'self'", "https:"],
-    'frame-src': [
-        "https://transferto.xyz", "https://li.fi", "https://jumper.exchange",
-        "https://gateway.pinata.cloud", "https://nftstorage.link",
-        "https://cloudflare-ipfs.com", "https://dweb.link", "https://ipfs.io"
-    ],
+    'frame-src': ["'self'", "https://transferto.xyz", "https://li.fi", "https://jumper.exchange"],
 }
 Talisman(app, content_security_policy=csp, force_https=False)
 
@@ -365,9 +361,13 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(os.path.join(UPLOAD_DIR, "metadata"), exist_ok=True)
 
 ALLOWED_IMAGE_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
+ALLOWED_ANIMATION_EXT = {"html", "htm"}
 
 def allowed_image(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXT
+
+def allowed_animation(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_ANIMATION_EXT
 
 @app.route("/api/nft/upload-image", methods=["POST"])
 @csrf.exempt
@@ -395,6 +395,39 @@ def upload_nft_image():
     scheme = "https"
     image_url = f"{scheme}://{request.host}/nft-image/{unique_name}"
     return jsonify({"image_url": image_url})
+
+@app.route("/api/nft/upload-animation", methods=["POST"])
+@csrf.exempt
+@limiter.limit("20 per hour")
+def upload_nft_animation():
+    if "animation" not in request.files:
+        return jsonify({"error": "No animation file provided"}), 400
+    file = request.files["animation"]
+    if file.filename == "" or not allowed_animation(file.filename):
+        return jsonify({"error": "Invalid animation file"}), 400
+
+    unique_name = f"{uuid.uuid4().hex}.html"
+    filepath = os.path.join(UPLOAD_DIR, unique_name)
+    file.save(filepath)
+
+    scheme = "https"
+    animation_url = f"{scheme}://{request.host}/nft-animation/{unique_name}"
+    return jsonify({"animation_url": animation_url})
+
+@app.route("/nft-animation/<filename>")
+@limiter.limit("300 per minute")
+def serve_nft_animation(filename):
+    safe_name = secure_filename(filename)
+    filepath = os.path.join(UPLOAD_DIR, safe_name)
+    if not os.path.isfile(filepath):
+        abort(404)
+    from flask import Response
+    with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+        html_content = f.read()
+    response = Response(html_content, mimetype="text/html")
+    response.headers["Content-Security-Policy"] = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; frame-ancestors 'self'"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    return response
 
 @app.route("/b20")
 def b20():
@@ -466,10 +499,13 @@ def create_nft_metadata():
     name = (data.get("name") or "").strip()
     description = (data.get("description") or "").strip()
     image_url = (data.get("image_url") or "").strip()
+    animation_url = (data.get("animation_url") or "").strip()
 
     if not name or not image_url:
         return jsonify({"error": "Name and image are required"}), 400
     if len(name) > 100 or len(description) > 1000:
+        return jsonify({"error": "Input too long"}), 400
+    if len(animation_url) > 2000:
         return jsonify({"error": "Input too long"}), 400
 
     metadata = {
@@ -477,6 +513,8 @@ def create_nft_metadata():
         "description": description,
         "image": image_url
     }
+    if animation_url:
+        metadata["animation_url"] = animation_url
 
     unique_name = f"{uuid.uuid4().hex}.json"
     filepath = os.path.join(UPLOAD_DIR, "metadata", unique_name)
