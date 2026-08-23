@@ -69,106 +69,104 @@
     .gate-choices.show { opacity: 1; pointer-events: auto; }
 
     .gate-btn {
-        padding: 14px 40px; cursor: pointer;
+        padding: 15px 46px; cursor: pointer;
         font-family: 'Cormorant SC', serif; font-weight: 600; font-size: 1.05em; letter-spacing: 3px; text-transform: uppercase;
-        background: transparent; color: var(--moss-bright);
-        border: 1px solid rgba(126,168,143,0.5);
-        transition: all 0.25s ease;
+        background: rgba(233,228,216,0.03);
+        color: rgba(233,228,216,0.8);
+        border: 1px solid rgba(233,228,216,0.22);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
     }
-    .gate-btn:hover { background: rgba(126,168,143,0.12); box-shadow: 0 0 18px rgba(126,168,143,0.3); transform: translateY(-2px); }
-    .gate-btn.deny { border-color: rgba(138,58,58,0.5); color: #d38a8a; }
-    .gate-btn.deny:hover { background: rgba(138,58,58,0.12); box-shadow: 0 0 18px rgba(138,58,58,0.3); }
+    .gate-btn:hover {
+        background: rgba(233,228,216,0.1);
+        border-color: rgba(233,228,216,0.5);
+        box-shadow: 0 0 22px rgba(233,228,216,0.14), inset 0 1px 0 rgba(255,255,255,0.06);
+        transform: translateY(-2px);
+        color: #ffffff;
+    }
+    .gate-btn.deny {
+        color: rgba(233,228,216,0.42);
+        border-color: rgba(233,228,216,0.14);
+        background: rgba(233,228,216,0.015);
+    }
+    .gate-btn.deny:hover {
+        background: rgba(233,228,216,0.07);
+        border-color: rgba(233,228,216,0.35);
+        box-shadow: 0 0 18px rgba(233,228,216,0.1);
+        color: rgba(233,228,216,0.9);
+    }
 
     /* ---- Lamp-flicker transition screen (replaces the old gif loader) ---- */
     #cooking-screen {
         position: fixed; inset: 0; z-index: 9998;
         background: #000000;
         display: none; flex-direction: column; align-items: center; justify-content: center;
-        gap: 0;
+        gap: 28px;
         overflow: hidden;
     }
     #cooking-screen.show { display: flex; }
 
     .loader-lamp {
         position: relative;
-        width: min(320px, 70vw);
-        height: min(460px, 78vh);
+        width: min(420px, 82vw);
+        height: min(560px, 80vh);
         display: flex; flex-direction: column; align-items: center;
+        cursor: pointer;
     }
     .loader-lamp .lamp-wire2 {
-        width: 1px; height: 90px;
+        width: 1px; height: 110px;
         background: linear-gradient(180deg, rgba(233,228,216,0.28), rgba(233,228,216,0.04));
         margin: 0 auto;
     }
     .loader-lamp .lamp-fixture {
-        width: 20px; height: 12px;
-        border-radius: 3px 3px 8px 8px;
+        width: 30px; height: 18px;
+        border-radius: 4px 4px 11px 11px;
         background: linear-gradient(180deg, #3a3530, #17140f);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 6px rgba(0,0,0,0.6);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 3px 8px rgba(0,0,0,0.6);
         margin-top: -1px;
     }
 
     .loader-lamp .lamp-glow2 {
         width: 100%; height: 100%; margin-top: -2px;
-        background: radial-gradient(ellipse 46% 100% at 50% 0%,
-            rgba(233,162,90,0.32) 0%,
-            rgba(233,162,90,0.16) 20%,
-            rgba(233,162,90,0.07) 40%,
-            rgba(233,162,90,0.025) 62%,
+        background: radial-gradient(ellipse 48% 100% at 50% 0%,
+            rgba(233,162,90,0.34) 0%,
+            rgba(233,162,90,0.17) 20%,
+            rgba(233,162,90,0.08) 40%,
+            rgba(233,162,90,0.03) 62%,
             transparent 82%);
         filter: blur(3px);
         opacity: 0;
+        transition: opacity 0.15s ease;
     }
     .loader-lamp .lamp-core {
-        position: absolute; top: 100px; left: 50%; transform: translate(-50%, 0);
-        width: 15px; height: 22px; border-radius: 50% 50% 45% 45%;
+        position: absolute; top: 128px; left: 50%; transform: translate(-50%, 0);
+        width: 23px; height: 33px; border-radius: 50% 50% 45% 45%;
         background: radial-gradient(circle at 50% 35%, #fff3d8, #e9a25a 55%, #8a4f1e 100%);
         box-shadow: 0 0 0 rgba(233,162,90,0);
-        opacity: 0.15;
+        opacity: 0.12;
+        transition: opacity 0.15s ease, box-shadow 0.15s ease;
     }
     .loader-lamp .lamp-pool {
         position: absolute; bottom: 6%; left: 50%; transform: translateX(-50%);
-        width: 190px; height: 46px;
-        background: radial-gradient(ellipse 50% 100% at 50% 50%, rgba(233,162,90,0.22), transparent 75%);
-        filter: blur(4px);
+        width: 260px; height: 62px;
+        background: radial-gradient(ellipse 50% 100% at 50% 50%, rgba(233,162,90,0.24), transparent 75%);
+        filter: blur(5px);
         opacity: 0;
+        transition: opacity 0.5s ease;
+    }
+    .loader-lamp .lamp-hint {
+        position: absolute; top: 182px; left: 50%; transform: translateX(-50%);
+        font-family: 'Cormorant', serif; font-style: italic; font-size: 0.85em;
+        color: rgba(233,228,216,0.35); letter-spacing: 0.5px; white-space: nowrap;
+        opacity: 1; transition: opacity 0.6s ease;
     }
 
-    #cooking-screen.ignite .lamp-glow2 { animation: lampIgnite 3.1s cubic-bezier(0.4,0,0.2,1) forwards; }
-    #cooking-screen.ignite .lamp-core { animation: lampIgniteCore 3.1s cubic-bezier(0.4,0,0.2,1) forwards; }
-    #cooking-screen.ignite .lamp-pool { animation: lampIgnitePool 3.1s cubic-bezier(0.4,0,0.2,1) forwards; }
-
-    @keyframes lampIgnite {
-        0%   { opacity: 0; }
-        4%   { opacity: 0.85; }   /* flicker 1 on */
-        8%   { opacity: 0.06; }   /* flicker 1 off */
-        13%  { opacity: 0.85; }
-        24%  { opacity: 0.85; }
-        28%  { opacity: 0.05; }   /* flicker 2 off */
-        33%  { opacity: 0.85; }
-        46%  { opacity: 0.85; }
-        50%  { opacity: 0.04; }   /* flicker 3 off */
-        56%  { opacity: 1; }      /* settles on, fully lit */
-        100% { opacity: 1; }
-    }
-    @keyframes lampIgniteCore {
-        0%   { opacity: 0.15; box-shadow: 0 0 0 rgba(233,162,90,0); }
-        4%   { opacity: 1; box-shadow: 0 0 22px 8px rgba(233,162,90,0.55); }
-        8%   { opacity: 0.15; box-shadow: 0 0 0 rgba(233,162,90,0); }
-        13%  { opacity: 1; box-shadow: 0 0 22px 8px rgba(233,162,90,0.55); }
-        24%  { opacity: 1; box-shadow: 0 0 22px 8px rgba(233,162,90,0.55); }
-        28%  { opacity: 0.12; box-shadow: 0 0 0 rgba(233,162,90,0); }
-        33%  { opacity: 1; box-shadow: 0 0 22px 8px rgba(233,162,90,0.55); }
-        46%  { opacity: 1; box-shadow: 0 0 22px 8px rgba(233,162,90,0.55); }
-        50%  { opacity: 0.1; box-shadow: 0 0 0 rgba(233,162,90,0); }
-        56%  { opacity: 1; box-shadow: 0 0 28px 10px rgba(233,162,90,0.7); }
-        100% { opacity: 1; box-shadow: 0 0 28px 10px rgba(233,162,90,0.7); }
-    }
-    @keyframes lampIgnitePool {
-        0%, 50% { opacity: 0; }
-        56% { opacity: 1; }
-        100% { opacity: 1; }
-    }
+    .loader-lamp.lit .lamp-glow2 { opacity: 1; }
+    .loader-lamp.lit .lamp-core { opacity: 1; box-shadow: 0 0 26px 9px rgba(233,162,90,0.55); }
+    .loader-lamp.settled .lamp-core { box-shadow: 0 0 34px 12px rgba(233,162,90,0.72); }
+    .loader-lamp.settled .lamp-pool { opacity: 1; }
+    .loader-lamp.settled .lamp-hint { opacity: 0; }
 
     #main-site { display: none; }
     #main-site.show { display: block; }
@@ -390,12 +388,13 @@
      COOKING / TRANSITION SCREEN (new)
      ============================================================ -->
 <div id="cooking-screen">
-    <div class="loader-lamp">
+    <div class="loader-lamp" id="loaderLamp">
         <div class="lamp-wire2"></div>
         <div class="lamp-fixture"></div>
         <div class="lamp-glow2"></div>
         <div class="lamp-core"></div>
         <div class="lamp-pool"></div>
+        <span class="lamp-hint">hover the lamp</span>
     </div>
 </div>
 
@@ -557,18 +556,54 @@
             gateChoices.classList.remove("show");
             gateScreen.classList.add("hidden");
             cookingScreen.classList.add("show");
-            // Trigger the lamp flicker-ignite sequence; the main site is
-            // revealed right after the third flicker settles into steady light.
-            requestAnimationFrame(() => {
-                cookingScreen.classList.add("ignite");
-            });
-            setTimeout(() => {
-                cookingScreen.classList.remove("show");
-                cookingScreen.classList.remove("ignite");
-                mainSite.classList.add("show");
-                // Kick off the main site's own init once it becomes visible.
-                if (typeof initMainSite === "function") initMainSite();
-            }, 3400);
+            armLamp();
+        }
+
+        /* ---- Hover-triggered lamp flicker sequence ----
+           The lamp does nothing until the user hovers it. On the first
+           hover it flickers on/off three times, with a growing pause
+           between each flicker, then settles into a steady light —
+           only then does the main site get revealed. */
+        function armLamp() {
+            const lamp = document.getElementById("loaderLamp");
+            let started = false;
+
+            function runSequence() {
+                if (started) return;
+                started = true;
+                lamp.removeEventListener("mouseenter", runSequence);
+
+                const steps = [
+                    { on: true,  at: 0    }, // flicker 1 on
+                    { on: false, at: 220  }, // flicker 1 off
+                    { on: true,  at: 780  }, // flicker 2 on   (gap 560ms)
+                    { on: false, at: 1000 }, // flicker 2 off
+                    { on: true,  at: 1750 }, // flicker 3 on   (gap 750ms)
+                    { on: false, at: 1980 }, // flicker 3 off
+                    { on: true,  at: 2750 }  // settles on, stays lit (gap 770ms)
+                ];
+
+                steps.forEach(step => {
+                    setTimeout(() => {
+                        lamp.classList.toggle("lit", step.on);
+                    }, step.at);
+                });
+
+                const settleAt = steps[steps.length - 1].at;
+                setTimeout(() => {
+                    lamp.classList.add("settled");
+                }, settleAt + 250);
+
+                setTimeout(() => {
+                    cookingScreen.classList.remove("show");
+                    mainSite.classList.add("show");
+                    if (typeof initMainSite === "function") initMainSite();
+                }, settleAt + 1400);
+            }
+
+            lamp.addEventListener("mouseenter", runSequence);
+            // Touch devices have no hover — a tap arms it the same way.
+            lamp.addEventListener("touchstart", runSequence, { passive: true });
         }
 
         askAreYouLost();
