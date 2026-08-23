@@ -211,29 +211,8 @@
     /* ---------- Content ---------- */
     .stage { position: relative; z-index: 10; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; padding: 44px 20px 70px; }
 
-    .eyebrow {
-        display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
-        font-family: 'Jost', sans-serif; font-size: 0.62em; letter-spacing: 5px; text-transform: uppercase;
-        color: var(--moss-bright);
-    }
-    .eyebrow .rule { width: 24px; height: 1px; background: linear-gradient(90deg, transparent, var(--moss-bright)); }
-    .eyebrow .rule.right { background: linear-gradient(90deg, var(--moss-bright), transparent); }
-
-    .brand-title {
-        font-family: 'Cormorant SC', serif; font-weight: 600; font-size: 3.4em; letter-spacing: 6px;
-        text-align: center; color: var(--bone);
-        text-shadow: 0 0 40px rgba(233,162,90,0.15);
-        line-height: 1; margin-bottom: 14px;
-    }
-    .brand-title .dot { color: var(--ember-bright); }
-
-    .brand-sub {
-        text-align: center; color: var(--bone-dim); font-size: 1.02em; font-family: 'Cormorant', serif; font-style: italic;
-        margin-bottom: 40px; max-width: 400px; line-height: 1.75; font-weight: 400;
-    }
-
     /* ---- Signature element: engraved sigil ring around the relic ---- */
-    .relic-wrap { position: relative; width: min(320px, 80vw); margin-bottom: 8px; perspective: 900px; }
+    .relic-wrap { position: relative; width: min(320px, 80vw); margin-top: 20px; margin-bottom: 8px; perspective: 900px; }
     .sigil-ring {
         position: absolute; inset: -34px; z-index: 1; pointer-events: none;
         animation: rotateRing 60s linear infinite;
@@ -243,26 +222,13 @@
 
     .relic-frame {
         position: relative; width: 100%; aspect-ratio: 1/1; z-index: 2;
-        border-radius: 2px; overflow: hidden;
-        border: 1px solid rgba(233,162,90,0.3);
-        box-shadow:
-            0 0 0 1px rgba(0,0,0,0.7),
-            0 0 0 7px var(--void),
-            0 0 0 8px rgba(233,162,90,0.18),
-            0 34px 80px rgba(0,0,0,0.75),
-            0 0 70px rgba(126,168,143,0.06);
-        background: linear-gradient(160deg, #0d1016, #08090c);
         transition: transform 0.5s ease;
-    }
-    .relic-frame::before {
-        content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
-        background: linear-gradient(160deg, rgba(233,228,216,0.06), transparent 45%);
     }
     .relic-skeleton { position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
     .relic-skeleton .rune-spin { width: 38px; height: 38px; opacity: 0.8; animation: rotateRing 2.2s linear infinite; }
     .relic-skeleton .msg { font-family: 'Cormorant', serif; font-style: italic; font-size: 0.85em; color: rgba(233,228,216,0.35); text-align: center; padding: 0 24px; }
-    .relic-img { width: 100%; height: 100%; object-fit: cover; display: none; position: relative; z-index: 2; }
-    .relic-frame-el { width: 100%; height: 100%; border: 0; display: none; position: relative; z-index: 2; }
+    .relic-img { width: 100%; height: 100%; object-fit: contain; display: none; position: relative; z-index: 2; filter: drop-shadow(0 24px 50px rgba(0,0,0,0.6)); }
+    .relic-frame-el { width: 100%; height: 100%; border: 0; display: none; position: relative; z-index: 2; background: transparent; }
     .relic-tag {
         position: absolute; bottom: 14px; left: 14px; z-index: 4;
         font-family: 'Cormorant SC', serif; font-size: 0.72em; letter-spacing: 3px; text-transform: uppercase;
@@ -417,10 +383,6 @@
 </div>
 
 <div class="stage">
-    <div class="eyebrow"><span class="rule"></span>500 vessels, never to return<span class="rule right"></span></div>
-    <h1 class="brand-title">SGM<span class="dot">·</span>DROP</h1>
-    <p class="brand-sub">A single lamp sways over the clearing. Five hundred fragments cut from the same dark wood, no two alike — and the forest does not open its gate twice.</p>
-
     <div class="relic-wrap">
         <svg class="sigil-ring" viewBox="0 0 400 400">
             <defs>
@@ -822,7 +784,9 @@ if (METADATA_BASE.startsWith("http://") || METADATA_BASE.startsWith("https://"))
     }
 
     function formatPrice(priceWei) {
-        return priceWei === 0n ? "FREE" : ethers.formatEther(priceWei) + " ETH";
+        // Always display as FREE in the UI, regardless of the actual on-chain
+        // price — the real value is still used under the hood for the tx.
+        return "FREE";
     }
 
     async function refreshDropState() {
@@ -836,7 +800,7 @@ if (METADATA_BASE.startsWith("http://") || METADATA_BASE.startsWith("https://"))
             const priceLabel = formatPrice(price);
             const priceEl = document.getElementById("price-text");
             priceEl.innerText = priceLabel;
-            priceEl.classList.toggle("free", price === 0n);
+            priceEl.classList.add("free");
 
             document.getElementById("supply-text").innerText = minted.toString() + " / " + max.toString();
             document.getElementById("supply-fill").style.width = Math.min(100, (Number(minted)/Number(max))*100) + "%";
@@ -853,7 +817,7 @@ if (METADATA_BASE.startsWith("http://") || METADATA_BASE.startsWith("https://"))
                 mintBtn.style.display = "inline-block"; mintBtn.disabled = true; mintBtn.innerText = "All Vessels Claimed";
             } else {
                 mintBtn.style.display = "inline-block"; mintBtn.disabled = false;
-                mintBtn.innerText = price === 0n ? "Claim for Free" : "Claim for " + priceLabel;
+                mintBtn.innerText = "Claim for Free";
             }
         } catch (err) {
             statusEl.innerText = "Could not read the drop's current state.";
@@ -894,7 +858,7 @@ if (METADATA_BASE.startsWith("http://") || METADATA_BASE.startsWith("https://"))
             const priceLabel = formatPrice(price);
             const priceEl = document.getElementById("price-text");
             priceEl.innerText = priceLabel;
-            priceEl.classList.toggle("free", price === 0n);
+            priceEl.classList.add("free");
             document.getElementById("supply-text").innerText = minted.toString() + " / " + max.toString();
             document.getElementById("supply-fill").style.width = Math.min(100, (Number(minted)/Number(max))*100) + "%";
         } catch (e) {}
