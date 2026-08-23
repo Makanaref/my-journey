@@ -3,19 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#05060a">
-<title>SGM Drop — 500 Only</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#040507">
+<title>SGM — The Rite of 500</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@500;600;700&family=Cormorant:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
+    :root{
+        --void:#040507;
+        --char:#0b0d12;
+        --bone:#e9e4d8;
+        --bone-dim:rgba(233,228,216,0.55);
+        --ember:#c17a3d;
+        --ember-bright:#e9a25a;
+        --moss:#5b7d6b;
+        --moss-bright:#7ea88f;
+        --blood:#8a3a3a;
+        --line:rgba(233,228,216,0.12);
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body { height: 100%; overflow-x: hidden; }
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+    }
     body {
-        font-family: 'Inter', sans-serif;
-        background: #05060a;
-        color: #e8e8ec;
+        font-family: 'Jost', sans-serif;
+        background: var(--void);
+        color: var(--bone);
         min-height: 100vh; min-height: 100dvh;
         position: relative;
+        cursor: default;
     }
+    ::selection { background: var(--ember); color: #1a0f05; }
 
     /* ---------- Atmospheric background ---------- */
     #bg-canvas { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; }
@@ -23,173 +40,196 @@
     .bg-gradient {
         position: fixed; inset: 0; z-index: 1; pointer-events: none;
         background:
-            radial-gradient(ellipse 60% 40% at 50% 78%, rgba(126,200,227,0.10) 0%, transparent 60%),
-            radial-gradient(ellipse 100% 60% at 50% 100%, rgba(0,0,0,0.6) 0%, transparent 70%),
-            linear-gradient(180deg, #05060a 0%, #0a0e14 40%, #0d1319 100%);
+            radial-gradient(ellipse 55% 38% at 50% 74%, rgba(126,168,143,0.09) 0%, transparent 62%),
+            radial-gradient(ellipse 90% 55% at 50% 102%, rgba(0,0,0,0.7) 0%, transparent 68%),
+            linear-gradient(180deg, #040507 0%, #080a0e 42%, #0a0d11 100%);
     }
-
-    .vignette { position: fixed; inset: 0; z-index: 2; pointer-events: none; box-shadow: inset 0 0 200px 80px rgba(0,0,0,0.75); }
-
-    .grain { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0.035; mix-blend-mode: overlay;
+    .vignette { position: fixed; inset: 0; z-index: 2; pointer-events: none; box-shadow: inset 0 0 220px 90px rgba(0,0,0,0.8); }
+    .grain { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0.045; mix-blend-mode: overlay;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }
 
-    /* Swaying lamp */
     .lamp-rig { position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 4; pointer-events: none; }
-    .lamp-wire { width: 1px; height: 130px; background: linear-gradient(180deg, rgba(255,255,255,0.15), rgba(255,255,255,0.02)); margin: 0 auto; transform-origin: top center; animation: sway 5.5s ease-in-out infinite; }
-    .lamp-bulb-wrap { transform-origin: top center; animation: sway 5.5s ease-in-out infinite; }
+    .lamp-wire { width: 1px; height: 120px; background: linear-gradient(180deg, rgba(233,228,216,0.18), rgba(233,228,216,0.02)); margin: 0 auto; transform-origin: top center; animation: sway 6s ease-in-out infinite; }
+    .lamp-bulb-wrap { transform-origin: top center; animation: sway 6s ease-in-out infinite; }
     .lamp-glow {
-        width: 260px; height: 420px; margin: -2px auto 0;
-        background: radial-gradient(ellipse 50% 100% at 50% 0%, rgba(255,225,170,0.20) 0%, rgba(255,205,140,0.11) 25%, rgba(255,190,120,0.05) 50%, transparent 78%);
-        filter: blur(2px);
-        animation: flicker 4s ease-in-out infinite;
+        width: 280px; height: 440px; margin: -2px auto 0;
+        background: radial-gradient(ellipse 50% 100% at 50% 0%, rgba(233,162,90,0.16) 0%, rgba(233,162,90,0.08) 25%, rgba(233,162,90,0.03) 50%, transparent 78%);
+        filter: blur(2px); animation: flicker 4.3s ease-in-out infinite;
     }
     .lamp-bulb {
-        width: 14px; height: 20px; margin: -420px auto 0; border-radius: 50% 50% 45% 45%;
-        background: radial-gradient(circle at 50% 35%, #fff6e0, #ffcf7d 55%, #b5762a 100%);
-        box-shadow: 0 0 18px 6px rgba(255,205,120,0.55);
-        animation: flicker 4s ease-in-out infinite;
-        position: relative; top: 130px;
+        width: 12px; height: 18px; margin: -440px auto 0; border-radius: 50% 50% 45% 45%;
+        background: radial-gradient(circle at 50% 35%, #fff3d8, #e9a25a 55%, #8a4f1e 100%);
+        box-shadow: 0 0 20px 7px rgba(233,162,90,0.5);
+        animation: flicker 4.3s ease-in-out infinite;
+        position: relative; top: 120px;
     }
-    @keyframes sway { 0%,100% { transform: translateX(-50%) rotate(-2.2deg); } 50% { transform: translateX(-50%) rotate(2.2deg); } }
+    @keyframes sway { 0%,100% { transform: translateX(-50%) rotate(-1.8deg); } 50% { transform: translateX(-50%) rotate(1.8deg); } }
     @keyframes flicker {
-        0%, 100% { opacity: 1; }
-        4% { opacity: 0.82; } 8% { opacity: 1; } 45% { opacity: 1; } 46% { opacity: 0.6; } 48% { opacity: 1; }
-        72% { opacity: 0.9; } 74% { opacity: 1; }
+        0%, 100% { opacity: 1; } 4% { opacity: 0.8; } 8% { opacity: 1; }
+        45% { opacity: 1; } 46% { opacity: 0.55; } 48% { opacity: 1; }
+        72% { opacity: 0.88; } 74% { opacity: 1; }
     }
-
-    /* Spiderweb corner accent */
-    .web-corner { position: fixed; top: 0; right: 0; width: 140px; height: 140px; z-index: 4; opacity: 0.16; pointer-events: none; }
 
     /* ---------- Content ---------- */
-    .stage { position: relative; z-index: 10; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; padding: 36px 20px 60px; }
+    .stage { position: relative; z-index: 10; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; padding: 44px 20px 70px; }
 
-    .kicker {
-        font-family: 'Cinzel', serif; font-size: 0.68em; letter-spacing: 4px; text-transform: uppercase;
-        color: rgba(126,200,227,0.75); margin-bottom: 8px; text-align: center;
+    .eyebrow {
+        display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
+        font-family: 'Jost', sans-serif; font-size: 0.62em; letter-spacing: 5px; text-transform: uppercase;
+        color: var(--moss-bright);
     }
-    .kicker .flame { color: #e9a25a; }
+    .eyebrow .rule { width: 24px; height: 1px; background: linear-gradient(90deg, transparent, var(--moss-bright)); }
+    .eyebrow .rule.right { background: linear-gradient(90deg, var(--moss-bright), transparent); }
 
     .brand-title {
-        font-family: 'Cinzel', serif; font-weight: 700; font-size: 2.3em; letter-spacing: 2px;
-        text-align: center; color: #f2ede1;
-        text-shadow: 0 0 30px rgba(255,205,140,0.18);
-        margin-bottom: 4px;
+        font-family: 'Cormorant SC', serif; font-weight: 600; font-size: 3.4em; letter-spacing: 6px;
+        text-align: center; color: var(--bone);
+        text-shadow: 0 0 40px rgba(233,162,90,0.15);
+        line-height: 1; margin-bottom: 14px;
     }
-    .brand-sub { text-align: center; color: rgba(232,232,236,0.45); font-size: 0.85em; margin-bottom: 30px; max-width: 380px; line-height: 1.7; }
+    .brand-title .dot { color: var(--ember-bright); }
+
+    .brand-sub {
+        text-align: center; color: var(--bone-dim); font-size: 1.02em; font-family: 'Cormorant', serif; font-style: italic;
+        margin-bottom: 40px; max-width: 400px; line-height: 1.75; font-weight: 400;
+    }
+
+    /* ---- Signature element: engraved sigil ring around the relic ---- */
+    .relic-wrap { position: relative; width: min(320px, 80vw); margin-bottom: 8px; perspective: 900px; }
+    .sigil-ring {
+        position: absolute; inset: -34px; z-index: 1; pointer-events: none;
+        animation: rotateRing 60s linear infinite;
+    }
+    .sigil-ring.reverse { animation-duration: 90s; animation-direction: reverse; inset: -52px; opacity: 0.55; }
+    @keyframes rotateRing { to { transform: rotate(360deg); } }
 
     .relic-frame {
-        position: relative; width: min(320px, 82vw); aspect-ratio: 1/1; margin-bottom: 28px;
-        border-radius: 10px; overflow: hidden;
-        border: 1px solid rgba(233,162,90,0.28);
-        box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 30px 70px rgba(0,0,0,0.7), 0 0 60px rgba(233,162,90,0.08);
-        background: linear-gradient(160deg, #0e1015, #0a0c10);
+        position: relative; width: 100%; aspect-ratio: 1/1; z-index: 2;
+        border-radius: 2px; overflow: hidden;
+        border: 1px solid rgba(233,162,90,0.3);
+        box-shadow:
+            0 0 0 1px rgba(0,0,0,0.7),
+            0 0 0 7px var(--void),
+            0 0 0 8px rgba(233,162,90,0.18),
+            0 34px 80px rgba(0,0,0,0.75),
+            0 0 70px rgba(126,168,143,0.06);
+        background: linear-gradient(160deg, #0d1016, #08090c);
+        transition: transform 0.5s ease;
     }
     .relic-frame::before {
-        content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-        background: linear-gradient(160deg, rgba(255,255,255,0.06), transparent 40%);
-        border: 1px solid rgba(255,255,255,0.07); border-radius: 10px;
+        content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+        background: linear-gradient(160deg, rgba(233,228,216,0.06), transparent 45%);
     }
-    .relic-skeleton {
-        position: absolute; inset: 0; z-index: 1;
-        display: flex; align-items: center; justify-content: center;
-        flex-direction: column; gap: 10px;
-    }
-    .relic-skeleton .spinner {
-        width: 34px; height: 34px; border-radius: 50%;
-        border: 2px solid rgba(233,162,90,0.15); border-top-color: #e9a25a;
-        animation: spin 0.9s linear infinite;
-    }
-    .relic-skeleton .msg { font-size: 0.7em; letter-spacing: 0.5px; color: rgba(232,232,236,0.35); text-align: center; padding: 0 20px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .relic-img { width: 100%; height: 100%; object-fit: cover; display: none; position: relative; z-index: 1; }
-    .relic-frame-el { width: 100%; height: 100%; border: 0; display: none; position: relative; z-index: 1; }
+    .relic-skeleton { position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+    .relic-skeleton .rune-spin { width: 38px; height: 38px; opacity: 0.8; animation: rotateRing 2.2s linear infinite; }
+    .relic-skeleton .msg { font-family: 'Cormorant', serif; font-style: italic; font-size: 0.85em; color: rgba(233,228,216,0.35); text-align: center; padding: 0 24px; }
+    .relic-img { width: 100%; height: 100%; object-fit: cover; display: none; position: relative; z-index: 2; }
+    .relic-frame-el { width: 100%; height: 100%; border: 0; display: none; position: relative; z-index: 2; }
     .relic-tag {
-        position: absolute; bottom: 12px; left: 12px; z-index: 3;
-        font-family: 'Cinzel', serif; font-size: 0.62em; letter-spacing: 2px; text-transform: uppercase;
-        color: #e9a25a; background: rgba(5,6,10,0.75); border: 1px solid rgba(233,162,90,0.3);
-        padding: 5px 11px; border-radius: 4px; backdrop-filter: blur(4px);
+        position: absolute; bottom: 14px; left: 14px; z-index: 4;
+        font-family: 'Cormorant SC', serif; font-size: 0.72em; letter-spacing: 3px; text-transform: uppercase;
+        color: var(--ember-bright); background: rgba(4,5,7,0.8); border: 1px solid rgba(233,162,90,0.35);
+        padding: 5px 12px;
     }
 
-    .relic-title { font-family: 'Cinzel', serif; font-size: 1.2em; color: #f2ede1; text-align: center; margin-bottom: 6px; letter-spacing: 0.5px; }
-    .relic-desc { color: rgba(232,232,236,0.5); font-size: 0.82em; text-align: center; max-width: 340px; line-height: 1.6; margin-bottom: 30px; }
+    .relic-title { font-family: 'Cormorant SC', serif; font-weight: 600; font-size: 1.5em; letter-spacing: 2px; color: var(--bone); text-align: center; margin-top: 44px; margin-bottom: 8px; }
+    .relic-desc { font-family: 'Cormorant', serif; font-style: italic; color: var(--bone-dim); font-size: 1.02em; text-align: center; max-width: 360px; line-height: 1.7; margin-bottom: 36px; }
 
-    /* Countdown - carved-stone look */
-    .countdown { display: flex; gap: 12px; margin-bottom: 28px; }
-    .countdown-cell {
-        width: 72px; padding: 14px 0 11px; text-align: center; border-radius: 10px;
-        background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(0,0,0,0.35));
-        border: 1px solid rgba(233,162,90,0.22);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 10px 24px rgba(0,0,0,0.45);
+    /* Ink-bleed divider */
+    .ink-divider { width: 200px; height: 14px; margin-bottom: 34px; opacity: 0.5; }
+
+    /* Countdown - carved rune stones */
+    .countdown-label { font-size: 0.6em; letter-spacing: 4px; text-transform: uppercase; color: var(--moss-bright); margin-bottom: 14px; text-align: center; }
+    .countdown { display: flex; gap: 3px; margin-bottom: 40px; position: relative; }
+    .countdown-cell { position: relative; width: 74px; padding: 16px 0 12px; text-align: center; }
+    .countdown-cell::before {
+        content: ''; position: absolute; inset: 0; border: 1px solid rgba(233,162,90,0.2);
+        background: linear-gradient(160deg, rgba(233,228,216,0.03), rgba(0,0,0,0.4));
+        box-shadow: inset 0 1px 0 rgba(233,228,216,0.05), 0 12px 28px rgba(0,0,0,0.5);
     }
-    .countdown-num { font-family: 'Cinzel', serif; font-weight: 700; font-size: 1.6em; color: #f2ede1; letter-spacing: 1px; }
-    .countdown-tag { font-size: 0.58em; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(233,162,90,0.7); margin-top: 5px; }
-    .countdown-ended { font-family: 'Cinzel', serif; color: rgba(232,232,236,0.55); font-size: 0.95em; padding: 14px 24px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; }
+    .countdown-cell:not(:last-child)::after {
+        content: '·'; position: absolute; right: -8px; top: 50%; transform: translateY(-70%);
+        color: rgba(233,162,90,0.4); font-size: 1.4em; z-index: 2;
+    }
+    .countdown-num { position: relative; z-index: 1; font-family: 'Cormorant SC', serif; font-weight: 600; font-size: 1.85em; color: var(--bone); letter-spacing: 1px; }
+    .countdown-tag { position: relative; z-index: 1; font-size: 0.56em; letter-spacing: 2px; text-transform: uppercase; color: rgba(233,162,90,0.75); margin-top: 6px; }
+    .countdown-ended { font-family: 'Cormorant SC', serif; color: var(--bone-dim); font-size: 1.1em; letter-spacing: 1px; padding: 16px 28px; border: 1px solid var(--line); }
 
-    /* Supply meter */
-    .supply-panel { width: min(380px, 90vw); margin-bottom: 26px; }
-    .supply-row { display: flex; justify-content: space-between; font-size: 0.72em; letter-spacing: 0.5px; color: rgba(232,232,236,0.55); margin-bottom: 9px; text-transform: uppercase; }
-    .supply-row .n { color: #e9a25a; font-weight: 700; }
-    .supply-track { height: 6px; border-radius: 6px; background: rgba(255,255,255,0.06); overflow: hidden; }
-    .supply-fill { height: 100%; width: 0%; border-radius: 6px; background: linear-gradient(90deg, #7a4a1e, #e9a25a); transition: width 0.5s ease; box-shadow: 0 0 10px rgba(233,162,90,0.4); }
+    /* Supply meter styled as a filling vessel line */
+    .supply-panel { width: min(380px, 90vw); margin-bottom: 8px; }
+    .supply-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.66em; letter-spacing: 2px; color: rgba(233,228,216,0.45); margin-bottom: 10px; text-transform: uppercase; }
+    .supply-row .n { color: var(--ember-bright); font-family: 'Cormorant SC', serif; font-size: 1.3em; letter-spacing: 1px; }
+    .supply-track { height: 2px; background: rgba(233,228,216,0.08); position: relative; overflow: visible; }
+    .supply-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--moss), var(--ember-bright)); transition: width 0.6s ease; position: relative; }
+    .supply-fill::after { content: ''; position: absolute; right: -2px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--ember-bright); box-shadow: 0 0 8px var(--ember-bright); }
 
-    .detail-list { width: min(380px, 90vw); margin-bottom: 30px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.015); }
-    .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; font-size: 0.85em; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .detail-list { width: min(380px, 90vw); margin: 34px 0 34px; }
+    .detail-row { display: flex; justify-content: space-between; align-items: baseline; padding: 15px 2px; border-bottom: 1px solid var(--line); }
     .detail-row:last-child { border-bottom: none; }
-    .detail-row span:first-child { color: rgba(232,232,236,0.45); letter-spacing: 0.3px; }
-    .detail-row .val { color: #f2ede1; font-weight: 600; font-family: 'Cinzel', serif; letter-spacing: 0.3px; }
-    .detail-row .val.free { color: #6fcf97; }
+    .detail-row span:first-child { color: rgba(233,228,216,0.4); font-size: 0.68em; letter-spacing: 2.5px; text-transform: uppercase; }
+    .detail-row .val { color: var(--bone); font-weight: 500; font-family: 'Cormorant SC', serif; font-size: 1.15em; letter-spacing: 0.5px; }
+    .detail-row .val.free { color: var(--moss-bright); }
 
     .network-warn {
-        width: min(380px, 90vw); background: rgba(233,162,90,0.08); border: 1px solid rgba(233,162,90,0.3);
-        color: #e9a25a; border-radius: 10px; padding: 11px 14px; font-size: 0.78em; margin-bottom: 18px; display: none; text-align: center;
+        width: min(380px, 90vw); background: rgba(138,58,58,0.1); border: 1px solid rgba(138,58,58,0.4);
+        color: #d38a8a; padding: 12px 16px; font-size: 0.8em; margin-bottom: 20px; display: none; text-align: center;
+        font-family: 'Cormorant', serif; font-style: italic;
     }
 
     .wallet-pill {
-        display: inline-flex; align-items: center; gap: 8px; margin-bottom: 18px;
-        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
-        padding: 9px 18px; border-radius: 30px; font-size: 0.8em; color: rgba(232,232,236,0.7); font-family: monospace;
+        display: inline-flex; align-items: center; gap: 9px; margin-bottom: 20px;
+        background: rgba(233,228,216,0.02); border: 1px solid var(--line);
+        padding: 10px 20px; font-size: 0.8em; color: rgba(233,228,216,0.75); font-family: 'Cormorant', serif; letter-spacing: 0.5px;
     }
-    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #6fcf97; box-shadow: 0 0 6px #6fcf97; }
+    .live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--moss-bright); box-shadow: 0 0 7px var(--moss-bright); animation: pulseDot 2s ease-in-out infinite; }
+    @keyframes pulseDot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
 
     .rite-btn {
-        width: min(330px, 88vw); padding: 17px 20px; border-radius: 12px; cursor: pointer;
-        font-family: 'Cinzel', serif; font-weight: 600; font-size: 0.95em; letter-spacing: 1px; text-transform: uppercase;
-        border: 1px solid rgba(233,162,90,0.5);
-        background: linear-gradient(160deg, #4a2e16, #1c1409);
+        width: min(330px, 88vw); padding: 19px 20px; cursor: pointer; position: relative; overflow: hidden;
+        font-family: 'Cormorant SC', serif; font-weight: 600; font-size: 1.08em; letter-spacing: 3px; text-transform: uppercase;
+        border: 1px solid rgba(233,162,90,0.55);
+        background: linear-gradient(160deg, #3d2611, #150e06);
         color: #f2c896;
-        box-shadow: 0 14px 34px rgba(233,162,90,0.16), inset 0 1px 0 rgba(255,255,255,0.07);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        box-shadow: 0 16px 38px rgba(233,162,90,0.14), inset 0 1px 0 rgba(233,228,216,0.06);
+        transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
     }
-    .rite-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 18px 42px rgba(233,162,90,0.24); background: linear-gradient(160deg, #5a3a1c, #22190c); }
-    .rite-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+    .rite-btn::before {
+        content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 30%, rgba(233,162,90,0.18) 50%, transparent 70%);
+        transform: translateX(-100%); transition: transform 0.7s ease;
+    }
+    .rite-btn:hover:not(:disabled)::before { transform: translateX(100%); }
+    .rite-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 20px 46px rgba(233,162,90,0.22); }
+    .rite-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
 
     .connect-btn {
-        width: min(330px, 88vw); padding: 16px 20px; border-radius: 12px; cursor: pointer;
-        font-family: 'Inter', sans-serif; font-weight: 700; font-size: 0.9em;
-        border: 1px solid rgba(126,200,227,0.35); background: rgba(126,200,227,0.06); color: #9adcf2;
-        transition: all 0.2s ease;
+        width: min(330px, 88vw); padding: 17px 20px; cursor: pointer;
+        font-family: 'Jost', sans-serif; font-weight: 500; font-size: 0.85em; letter-spacing: 1.5px; text-transform: uppercase;
+        border: 1px solid rgba(126,168,143,0.4); background: rgba(126,168,143,0.05); color: var(--moss-bright);
+        transition: all 0.25s ease;
     }
-    .connect-btn:hover { background: rgba(126,200,227,0.14); transform: translateY(-1px); }
+    .connect-btn:hover { background: rgba(126,168,143,0.12); transform: translateY(-1px); }
 
-    .status-msg { min-height: 20px; margin-top: 18px; font-size: 0.82em; color: rgba(232,232,236,0.5); text-align: center; max-width: 320px; }
-    .status-msg.success { color: #6fcf97; }
-    .status-msg.error { color: #e08a8a; }
+    .status-msg { min-height: 20px; margin-top: 20px; font-family: 'Cormorant', serif; font-style: italic; font-size: 0.95em; color: rgba(233,228,216,0.5); text-align: center; max-width: 320px; }
+    .status-msg.success { color: var(--moss-bright); }
+    .status-msg.error { color: #d38a8a; }
 
     .claimed-box {
         width: min(380px, 90vw); text-align: center; margin-top: 6px;
-        background: rgba(126,200,227,0.05); border: 1px solid rgba(126,200,227,0.2);
-        border-radius: 12px; padding: 20px; color: #9adcf2; font-family: 'Cinzel', serif; font-size: 0.88em; letter-spacing: 0.3px;
+        background: rgba(126,168,143,0.04); border: 1px solid rgba(126,168,143,0.25);
+        padding: 22px; color: var(--moss-bright); font-family: 'Cormorant SC', serif; font-size: 0.95em; letter-spacing: 0.5px;
     }
 
-    .traits-toggle { margin-top: 26px; background: none; border: none; color: rgba(233,162,90,0.75); font-size: 0.75em; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; font-family: 'Cinzel', serif; }
-    .traits-grid { display: none; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; width: min(380px, 90vw); }
+    .traits-toggle { margin-top: 30px; background: none; border: none; color: rgba(233,162,90,0.75); font-size: 0.68em; letter-spacing: 2.5px; text-transform: uppercase; cursor: pointer; font-family: 'Jost', sans-serif; padding-bottom: 3px; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+    .traits-toggle:hover { border-color: rgba(233,162,90,0.5); }
+    .traits-grid { display: none; grid-template-columns: repeat(2, 1fr); gap: 1px; margin-top: 18px; width: min(380px, 90vw); background: var(--line); }
     .traits-grid.show { display: grid; }
-    .trait-chip { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 10px 14px; }
-    .trait-chip .t { font-size: 0.6em; color: rgba(232,232,236,0.4); text-transform: uppercase; letter-spacing: 0.5px; }
-    .trait-chip .v { font-size: 0.82em; color: #e8e8ec; font-weight: 600; margin-top: 3px; font-family: 'Cinzel', serif; }
+    .trait-chip { background: var(--void); padding: 14px 16px; }
+    .trait-chip .t { font-size: 0.58em; color: rgba(233,228,216,0.35); text-transform: uppercase; letter-spacing: 1.5px; }
+    .trait-chip .v { font-size: 0.95em; color: var(--bone); font-weight: 500; margin-top: 4px; font-family: 'Cormorant SC', serif; letter-spacing: 0.5px; }
 
-    .foot-note { margin-top: 44px; font-size: 0.68em; color: rgba(232,232,236,0.25); letter-spacing: 0.5px; text-align: center; }
+    .foot-note { margin-top: 50px; font-size: 0.65em; color: rgba(233,228,216,0.22); letter-spacing: 1px; text-align: center; font-family: 'Jost', sans-serif; }
+    .foot-note span { color: rgba(233,162,90,0.4); }
 </style>
 </head>
 <body>
@@ -207,33 +247,54 @@
     </div>
 </div>
 
-<svg class="web-corner" viewBox="0 0 140 140" fill="none">
-    <g stroke="#cfd8dc" stroke-width="0.6">
-        <path d="M140 0L0 140"/><path d="M140 30L30 140"/><path d="M140 60L60 140"/><path d="M140 90L90 140"/>
-        <path d="M140 0Q100 40 100 100Q100 40 140 0"/>
-        <path d="M140 0Q60 60 60 140Q60 60 140 0"/>
-        <path d="M140 0Q20 90 20 140"/>
-    </g>
-</svg>
-
 <div class="stage">
-    <div class="kicker"><span class="flame">◆</span> Limited Rite &nbsp;·&nbsp; 500 Vessels Only <span class="flame">◆</span></div>
-    <h1 class="brand-title">SGM DROP</h1>
-    <p class="brand-sub">A solitary lamp, swaying in a dark clearing. Five hundred fragments of the same forest, each one singular. Once the window closes, it does not open again.</p>
+    <div class="eyebrow"><span class="rule"></span>500 vessels, never to return<span class="rule right"></span></div>
+    <h1 class="brand-title">SGM<span class="dot">·</span>DROP</h1>
+    <p class="brand-sub">A single lamp sways over the clearing. Five hundred fragments cut from the same dark wood, no two alike — and the forest does not open its gate twice.</p>
 
-    <div class="relic-frame">
-        <div class="relic-skeleton" id="relic-skeleton">
-            <div class="spinner"></div>
-            <div class="msg" id="relic-skeleton-msg">Summoning the vessel...</div>
+    <div class="relic-wrap">
+        <svg class="sigil-ring" viewBox="0 0 400 400">
+            <defs>
+                <path id="ringPath" d="M 200,200 m -170,0 a 170,170 0 1,1 340,0 a 170,170 0 1,1 -340,0"/>
+            </defs>
+            <circle cx="200" cy="200" r="188" fill="none" stroke="rgba(233,162,90,0.22)" stroke-width="0.5"/>
+            <circle cx="200" cy="200" r="170" fill="none" stroke="rgba(233,162,90,0.35)" stroke-width="1" stroke-dasharray="1 7"/>
+            <text font-family="Cormorant SC, serif" font-size="12" letter-spacing="6" fill="rgba(233,162,90,0.55)">
+                <textPath href="#ringPath" startOffset="0%">SGM · THE RITE OF FIVE HUNDRED · SGM · THE RITE OF FIVE HUNDRED · </textPath>
+            </text>
+        </svg>
+        <svg class="sigil-ring reverse" viewBox="0 0 400 400">
+            <circle cx="200" cy="200" r="196" fill="none" stroke="rgba(126,168,143,0.25)" stroke-width="0.5" stroke-dasharray="0.5 5"/>
+            <g stroke="rgba(126,168,143,0.3)" stroke-width="0.6">
+                <line x1="200" y1="4" x2="200" y2="16"/>
+                <line x1="200" y1="384" x2="200" y2="396"/>
+                <line x1="4" y1="200" x2="16" y2="200"/>
+                <line x1="384" y1="200" x2="396" y2="200"/>
+            </g>
+        </svg>
+        <div class="relic-frame" id="relic-frame">
+            <div class="relic-skeleton" id="relic-skeleton">
+                <svg class="rune-spin" viewBox="0 0 40 40" fill="none">
+                    <circle cx="20" cy="20" r="16" stroke="rgba(233,162,90,0.2)" stroke-width="1.5"/>
+                    <path d="M20 4 A16 16 0 0 1 36 20" stroke="#e9a25a" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <div class="msg" id="relic-skeleton-msg">Summoning the vessel from the fog...</div>
+            </div>
+            <img id="relic-img" class="relic-img">
+            <iframe id="relic-frame-el" class="relic-frame-el" sandbox="allow-scripts" scrolling="no"></iframe>
+            <div class="relic-tag" id="relic-tag">Fragment · Nº001</div>
         </div>
-        <img id="relic-img" class="relic-img">
-        <iframe id="relic-frame-el" class="relic-frame-el" sandbox="allow-scripts" scrolling="no"></iframe>
-        <div class="relic-tag" id="relic-tag">Preview · #001</div>
     </div>
 
-    <h2 class="relic-title" id="relic-name">SGM #001</h2>
-    <p class="relic-desc" id="relic-desc">Loading the vessel's inscription...</p>
+    <h2 class="relic-title" id="relic-name">SGM Nº001</h2>
+    <p class="relic-desc" id="relic-desc">Its inscription is still forming in the dark...</p>
 
+    <svg class="ink-divider" viewBox="0 0 200 14">
+        <path d="M0,7 Q30,2 60,7 T120,7 T200,7" stroke="#e9a25a" stroke-width="0.8" fill="none" opacity="0.6"/>
+        <circle cx="100" cy="7" r="2" fill="#e9a25a"/>
+    </svg>
+
+    <div class="countdown-label">The gate closes in</div>
     <div class="countdown" id="countdown">
         <div class="countdown-cell"><div class="countdown-num" id="cd-h">--</div><div class="countdown-tag">Hours</div></div>
         <div class="countdown-cell"><div class="countdown-num" id="cd-m">--</div><div class="countdown-tag">Min</div></div>
@@ -241,30 +302,30 @@
     </div>
 
     <div class="supply-panel">
-        <div class="supply-row"><span>Claimed</span><span class="n" id="supply-text">— / 500</span></div>
+        <div class="supply-row"><span>Claimed from the forest</span><span class="n" id="supply-text">— / 500</span></div>
         <div class="supply-track"><div class="supply-fill" id="supply-fill"></div></div>
     </div>
 
     <div class="detail-list">
         <div class="detail-row"><span>Price</span><span class="val free" id="price-text">FREE</span></div>
         <div class="detail-row"><span>Realm</span><span class="val">Ink</span></div>
-        <div class="detail-row"><span>Per wallet</span><span class="val">1 NFT</span></div>
+        <div class="detail-row"><span>Bound per wallet</span><span class="val">1 NFT</span></div>
     </div>
 
-    <div class="network-warn" id="network-warn">Wrong realm connected. Switch to Ink to proceed.</div>
+    <div class="network-warn" id="network-warn">Wrong realm connected — turn toward Ink to proceed.</div>
 
     <div id="connect-wrap"><button class="connect-btn" onclick="connectWallet()">Connect Wallet</button></div>
     <div id="wallet-wrap" style="display:none;"><span class="wallet-pill"><span class="live-dot"></span><span id="wallet-addr"></span></span></div>
 
     <button class="rite-btn" id="mint-btn" style="display:none;" onclick="doMint()">Claim Your Vessel</button>
-    <div class="claimed-box" id="claimed-box" style="display:none;">You have already claimed your vessel from this realm. One per wallet, forever.</div>
+    <div class="claimed-box" id="claimed-box" style="display:none;">Your vessel has already been claimed from this realm — one per wallet, forever.</div>
 
     <p class="status-msg" id="status-msg"></p>
 
     <button class="traits-toggle" id="traits-toggle" style="display:none;" onclick="toggleTraits()">Reveal Traits</button>
     <div class="traits-grid" id="traits-grid"></div>
 
-    <p class="foot-note">Contract <span id="contract-short"></span> · Powered by SGM Hub</p>
+    <p class="foot-note">Contract <span id="contract-short"></span> — Powered by SGM Hub</p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
@@ -280,9 +341,9 @@
     const IPFS_GATEWAYS = [
         "https://nftstorage.link/ipfs/",
         "https://cloudflare-ipfs.com/ipfs/",
-        "https://ipfs.io/ipfs/",
         "https://gateway.pinata.cloud/ipfs/",
-        "https://dweb.link/ipfs/"
+        "https://dweb.link/ipfs/",
+        "https://ipfs.io/ipfs/"
     ];
 
     const INK_NETWORK = {
@@ -311,12 +372,10 @@
     function ipfsPathFromUri(uri) {
         if (!uri) return null;
         if (uri.startsWith("ipfs://")) return uri.slice(7);
-        // already a gateway URL - try to pull the /ipfs/<path> part out of it
         const m = uri.match(/\/ipfs\/(.+)$/);
         return m ? m[1] : uri;
     }
 
-    // Try each gateway in turn until one responds with JSON.
     async function fetchMetadataWithFallback(path) {
         let lastErr = null;
         for (const gw of IPFS_GATEWAYS) {
@@ -325,10 +384,7 @@
                 if (!res.ok) throw new Error("status " + res.status);
                 const meta = await res.json();
                 return { meta, gateway: gw };
-            } catch (e) {
-                lastErr = e;
-                continue;
-            }
+            } catch (e) { lastErr = e; continue; }
         }
         throw lastErr || new Error("all gateways failed");
     }
@@ -358,7 +414,7 @@
             const path = ipfsPathFromUri(METADATA_BASE) + "1.json";
             const { meta, gateway } = await fetchMetadataWithFallback(path);
 
-            document.getElementById("relic-name").innerText = meta.name || "SGM #001";
+            document.getElementById("relic-name").innerText = meta.name || "SGM Nº001";
             document.getElementById("relic-desc").innerText = meta.description || "";
 
             const img = document.getElementById("relic-img");
@@ -368,13 +424,11 @@
 
             if (animUrl) {
                 frame.onload = () => { skeleton.style.display = "none"; };
-                frame.src = animUrl;
-                frame.style.display = "block";
+                frame.src = animUrl; frame.style.display = "block";
             } else if (imgUrl) {
                 img.onload = () => { skeleton.style.display = "none"; };
-                img.onerror = () => { skeletonMsg.innerText = "Preview unavailable"; };
-                img.src = imgUrl;
-                img.style.display = "block";
+                img.onerror = () => { skeletonMsg.innerText = "The fog will not lift — the fragment resists preview."; };
+                img.src = imgUrl; img.style.display = "block";
             } else {
                 skeleton.style.display = "none";
             }
@@ -386,9 +440,8 @@
                 document.getElementById("traits-toggle").style.display = "inline-block";
             }
         } catch (e) {
-            document.getElementById("relic-desc").innerText = "The preview is obscured by fog — minting still works.";
-            skeletonMsg.innerText = "Preview unavailable";
-            setTimeout(() => { skeleton.style.display = "none"; }, 1500);
+            document.getElementById("relic-desc").innerText = "The fog will not lift tonight — minting still works regardless.";
+            skeletonMsg.innerText = "Preview unavailable — the metadata could not be reached.";
         }
     }
 
@@ -506,7 +559,7 @@
         const statusEl = document.getElementById("status-msg");
         btn.disabled = true;
         statusEl.className = "status-msg";
-        statusEl.innerText = "Sending your offering...";
+        statusEl.innerText = "Sending your offering into the dark...";
         try {
             const price = await contract.mintPrice();
             const overrides = await getTxOverrides();
@@ -540,20 +593,31 @@
         } catch (e) {}
     }
 
+    /* ---- Subtle 3D tilt on the relic frame following the pointer ---- */
+    (function initTilt() {
+        const wrap = document.querySelector(".relic-wrap");
+        const frame = document.getElementById("relic-frame");
+        if (!wrap || !frame) return;
+        wrap.addEventListener("mousemove", (e) => {
+            const r = wrap.getBoundingClientRect();
+            const px = (e.clientX - r.left) / r.width - 0.5;
+            const py = (e.clientY - r.top) / r.height - 0.5;
+            frame.style.transform = `rotateY(${px * 8}deg) rotateX(${-py * 8}deg)`;
+        });
+        wrap.addEventListener("mouseleave", () => { frame.style.transform = "rotateY(0) rotateX(0)"; });
+    })();
+
     /* ---------------- Fog + firefly particle background ---------------- */
     (function initBackground() {
         const canvas = document.getElementById("bg-canvas");
         const ctx = canvas.getContext("2d");
         let w, h, particles = [], fogBlobs = [];
 
-        function resize() {
-            w = canvas.width = window.innerWidth;
-            h = canvas.height = window.innerHeight;
-        }
+        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
         window.addEventListener("resize", resize);
         resize();
 
-        for (let i = 0; i < 26; i++) {
+        for (let i = 0; i < 30; i++) {
             particles.push({
                 x: Math.random() * w, y: Math.random() * h,
                 r: Math.random() * 1.6 + 0.4,
@@ -574,33 +638,25 @@
 
         function draw() {
             ctx.clearRect(0, 0, w, h);
-
             fogBlobs.forEach(f => {
                 f.x += f.vx;
                 if (f.x < -f.r) f.x = w + f.r;
                 if (f.x > w + f.r) f.x = -f.r;
                 const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
-                grad.addColorStop(0, `rgba(160,175,190,${f.a})`);
-                grad.addColorStop(1, "rgba(160,175,190,0)");
+                grad.addColorStop(0, `rgba(120,140,130,${f.a})`);
+                grad.addColorStop(1, "rgba(120,140,130,0)");
                 ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
             });
-
             particles.forEach(p => {
                 p.y += p.vy; p.x += p.vx; p.flick += 0.04;
                 if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
                 const flicker = (Math.sin(p.flick) + 1) / 2;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255,205,140,${p.a * flicker})`;
-                ctx.shadowColor = "rgba(255,190,110,0.8)";
-                ctx.shadowBlur = 6;
-                ctx.fill();
-                ctx.shadowBlur = 0;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(233,162,90,${p.a * flicker})`;
+                ctx.shadowColor = "rgba(233,162,90,0.8)"; ctx.shadowBlur = 6;
+                ctx.fill(); ctx.shadowBlur = 0;
             });
-
             requestAnimationFrame(draw);
         }
         draw();
