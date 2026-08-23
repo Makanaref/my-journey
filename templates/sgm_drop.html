@@ -223,17 +223,25 @@
     .relic-frame {
         position: relative; width: 100%; aspect-ratio: 1/1; z-index: 2;
         transition: transform 0.5s ease;
+        display: flex; align-items: center; justify-content: center;
     }
     .relic-skeleton { position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
     .relic-skeleton .rune-spin { width: 38px; height: 38px; opacity: 0.8; animation: rotateRing 2.2s linear infinite; }
     .relic-skeleton .msg { font-family: 'Cormorant', serif; font-style: italic; font-size: 0.85em; color: rgba(233,228,216,0.35); text-align: center; padding: 0 24px; }
-    .relic-img { width: 100%; height: 100%; object-fit: contain; display: none; position: relative; z-index: 2; filter: drop-shadow(0 24px 50px rgba(0,0,0,0.6)); }
-    .relic-frame-el { width: 100%; height: 100%; border: 0; display: none; position: relative; z-index: 2; background: transparent; }
-    .relic-tag {
-        position: absolute; bottom: 14px; left: 14px; z-index: 4;
-        font-family: 'Cormorant SC', serif; font-size: 0.72em; letter-spacing: 3px; text-transform: uppercase;
-        color: var(--ember-bright); background: rgba(4,5,7,0.8); border: 1px solid rgba(233,162,90,0.35);
-        padding: 5px 12px;
+    /* The vessel sits at its own natural size (never stretched or cropped
+       to fill a box) and its edges dissolve into the background via a
+       soft mask, so it reads as an object resting in the dark rather than
+       a photo pinned inside a frame. */
+    .relic-img {
+        max-width: 88%; max-height: 88%; width: auto; height: auto;
+        object-fit: contain; display: none; position: relative; z-index: 2;
+        filter: drop-shadow(0 20px 46px rgba(0,0,0,0.65));
+        -webkit-mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, black 58%, transparent 94%);
+        mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, black 58%, transparent 94%);
+    }
+    .relic-frame-el {
+        max-width: 88%; max-height: 88%; width: 100%; height: 100%;
+        border: 0; display: none; position: relative; z-index: 2; background: transparent;
     }
 
     .relic-title { font-family: 'Cormorant SC', serif; font-weight: 600; font-size: 1.5em; letter-spacing: 2px; color: var(--bone); text-align: center; margin-top: 44px; margin-bottom: 8px; }
@@ -413,7 +421,6 @@
             </div>
             <img id="relic-img" class="relic-img">
             <iframe id="relic-frame-el" class="relic-frame-el" sandbox="allow-scripts" scrolling="no"></iframe>
-            <div class="relic-tag" id="relic-tag">Fragment · Nº001</div>
         </div>
     </div>
 
