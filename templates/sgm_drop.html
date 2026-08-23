@@ -422,9 +422,21 @@
             const animUrl = resolveMediaUrl(meta.animation_url, gateway);
             const imgUrl = resolveMediaUrl(meta.image, gateway);
 
+            // Self-hosted animation_url (served from /nft-animation/<file>
+            // on our own domain) is now allowed by frame-src 'self' and
+            // isn't subject to Pinata's public-gateway HTML restriction,
+            // so it's safe to prefer it again when present.
             if (animUrl) {
                 frame.onload = () => { skeleton.style.display = "none"; };
+                frame.onerror = () => { skeletonMsg.innerText = "The fog will not lift — the fragment resists preview."; };
                 frame.src = animUrl; frame.style.display = "block";
+                // iframe onerror doesn't reliably fire for blocked/refused
+                // frames, so time out the skeleton after a few seconds.
+                setTimeout(() => {
+                    if (skeleton.style.display !== "none") {
+                        skeletonMsg.innerText = "The fog will not lift — the fragment resists preview.";
+                    }
+                }, 6000);
             } else if (imgUrl) {
                 img.onload = () => { skeleton.style.display = "none"; };
                 img.onerror = () => { skeletonMsg.innerText = "The fog will not lift — the fragment resists preview."; };
