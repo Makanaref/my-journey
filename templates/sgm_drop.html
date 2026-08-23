@@ -411,8 +411,19 @@
         const skeleton = document.getElementById("relic-skeleton");
         const skeletonMsg = document.getElementById("relic-skeleton-msg");
         try {
-            const path = ipfsPathFromUri(METADATA_BASE) + "001.json";
-            const { meta, gateway } = await fetchMetadataWithFallback(path);
+            let meta, gateway;
+if (METADATA_BASE.startsWith("http://") || METADATA_BASE.startsWith("https://")) {
+    // Self-hosted metadata — fetch directly, no IPFS gateway needed
+    const res = await fetch(METADATA_BASE + "001.json", { cache: "no-store" });
+    if (!res.ok) throw new Error("status " + res.status);
+    meta = await res.json();
+    gateway = METADATA_BASE; // used later for resolving image/animation URLs
+} else {
+    const path = ipfsPathFromUri(METADATA_BASE) + "001.json";
+    const result = await fetchMetadataWithFallback(path);
+    meta = result.meta;
+    gateway = result.gateway;
+}
 
             document.getElementById("relic-name").innerText = meta.name || "SGM Nº001";
             document.getElementById("relic-desc").innerText = meta.description || "";
