@@ -38,7 +38,11 @@ csp = {
     'img-src': ["'self'", "data:", "https:"],
     'font-src': ["'self'", "https:", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
     'connect-src': ["'self'", "https:"],
-    'frame-src': ["https://transferto.xyz", "https://li.fi", "https://jumper.exchange"],
+    'frame-src': [
+        "https://transferto.xyz", "https://li.fi", "https://jumper.exchange",
+        "https://gateway.pinata.cloud", "https://nftstorage.link",
+        "https://cloudflare-ipfs.com", "https://dweb.link", "https://ipfs.io"
+    ],
 }
 Talisman(app, content_security_policy=csp, force_https=False)
 
