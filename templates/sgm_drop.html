@@ -411,7 +411,7 @@
         const skeleton = document.getElementById("relic-skeleton");
         const skeletonMsg = document.getElementById("relic-skeleton-msg");
         try {
-            const path = ipfsPathFromUri(METADATA_BASE) + "1.json";
+            const path = ipfsPathFromUri(METADATA_BASE) + "001.json";
             const { meta, gateway } = await fetchMetadataWithFallback(path);
 
             document.getElementById("relic-name").innerText = meta.name || "SGM Nº001";
