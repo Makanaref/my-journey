@@ -2222,8 +2222,24 @@
             const tx = await signer.sendTransaction({ to: B20_FACTORY, data: data, gasPrice: (feeData.gasPrice * 85n / 100n) });
             statusEl.innerText = "Confirming transaction...";
             const receipt = await tx.wait();
-            const _foundLog = receipt.logs.find(log => log.address.toLowerCase().startsWith("0xb20"));
-            const tokenAddress = (_foundLog && _foundLog.address) || "Check explorer";
+            const factoryInterface2 = new ethers.Interface([
+    "event B20Created(address indexed token, uint8 indexed variant, string name, string symbol, uint8 decimals, bytes variantEventParams)"
+]);
+
+let tokenAddress = "Check explorer";
+for (const log of receipt.logs) {
+    try {
+        const parsed = factoryInterface2.parseLog(log);
+        if (parsed && parsed.name === "B20Created") {
+            tokenAddress = parsed.args.token;
+            break;
+        }
+    } catch (e) {
+       
+    }
+}
+
+document.getElementById("deploy-address").innerText = tokenAddress;
             document.getElementById("deploy-address").innerText = tokenAddress;
             document.getElementById("deploy-result").className = "deploy-result show";
             showSuccess("Deployed successfully", statusEl);
@@ -2574,13 +2590,18 @@
         }
 
         const navbar = document.getElementById('navbar');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 20) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        }, { passive: true });
+
+        const navScrollSentinel = document.createElement('div');
+        navScrollSentinel.style.cssText = 'position:absolute; top:20px; left:0; width:1px; height:1px; pointer-events:none;';
+        document.body.prepend(navScrollSentinel);
+
+        const navScrollObserver = new IntersectionObserver(
+            ([entry]) => {
+                navbar.classList.toggle('scrolled', !entry.isIntersecting);
+            },
+            { threshold: 0 }
+        );
+        navScrollObserver.observe(navScrollSentinel);
 
         function toggleMenu() {
     document.getElementById("navlinks").classList.toggle("open");

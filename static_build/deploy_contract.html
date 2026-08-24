@@ -1532,14 +1532,23 @@
         statusEl.innerText = "Compiling...";
 
         try {
-            const source = `// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\ncontract ${name} {}\n`;
-            const input = {
-                language: "Solidity",
-                sources: { "contract.sol": { content: source } },
-                settings: { outputSelection: { "*": { "*": ["abi", "evm.bytecode.object"] } } }
-            };
+            const source = `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+contract ${name} {
+    uint256 private immutable tag = block.timestamp;
+}`;
 
-            const outputRaw = await compileWithWorker(JSON.stringify(input));
+const input = {
+    language: "Solidity",
+    sources: { "contract.sol": { content: source } },
+    settings: {
+        optimizer: { enabled: true, runs: 1 },
+        metadata: { bytecodeHash: "none" },
+        outputSelection: { "*": { "*": ["abi", "evm.bytecode.object"] } }
+    }
+};
+
+const outputRaw = await compileWithWorker(JSON.stringify(input));
             const output = JSON.parse(outputRaw);
 
             if (output.errors) {
@@ -1646,13 +1655,18 @@
         }
 
         const navbar = document.getElementById('navbar');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 20) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        }, { passive: true });
+
+        const navScrollSentinel = document.createElement('div');
+        navScrollSentinel.style.cssText = 'position:absolute; top:20px; left:0; width:1px; height:1px; pointer-events:none;';
+        document.body.prepend(navScrollSentinel);
+
+        const navScrollObserver = new IntersectionObserver(
+            ([entry]) => {
+                navbar.classList.toggle('scrolled', !entry.isIntersecting);
+            },
+            { threshold: 0 }
+        );
+        navScrollObserver.observe(navScrollSentinel);
 
         function toggleMenu() {
     document.getElementById("navlinks").classList.toggle("open");

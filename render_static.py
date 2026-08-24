@@ -20,7 +20,6 @@ ROUTES = {
     "/games": "games.html",
     "/mint": "mint.html",
     "/domain": "domain.html",
-    "/deploy-contract": "deploy_contract.html",
     "/flip": "flip.html",
     "/mint-nft": "mint-nft.html",
     "/marketplace": "marketplace.html",
@@ -52,6 +51,8 @@ ROUTES = {
     "/timeline": "timeline.html",
     "/faq": "faq.html",
     "/coin": "coin.html",
+    "/deploy-contract": "deploy-contract.html",
+    "/sgm-drop": "sgm-drop.html",
 }
 
 if os.path.exists(OUTPUT_DIR):
