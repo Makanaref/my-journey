@@ -1138,12 +1138,16 @@
         ];
 
         const INK_NETWORK = {
-            chainIdHex: "0x" + (57073).toString(16),
-            chainName: "Ink",
-            rpcUrls: ["https://rpc-gel.inkonchain.com"],
-            nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-            blockExplorerUrls: ["https://explorer.inkonchain.com"]
-        };
+    chainId: "0xdef1", // 57073 به صورت hex
+    chainName: "Ink",
+    rpcUrls: [
+        "https://rpc-gel.inkonchain.com",
+        "https://1rpc.io/ink",
+        "https://ink.drpc.org"
+    ],
+    nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+    blockExplorerUrls: ["https://explorer.inkonchain.com"]
+};
 
         const CONTRACT_ABI = [
             "function mint() external payable",
