@@ -1300,7 +1300,7 @@
             return "FREE";
         }
 
-        async function refreshDropState() {
+                async function refreshDropState() {
             const statusEl = document.getElementById("status-msg");
             try {
                 const [price, minted, max, isOpen, alreadyMinted] = await Promise.all([
@@ -1311,7 +1311,7 @@
                 const priceLabel = formatPrice(price);
                 const priceEl = document.getElementById("price-text");
                 priceEl.innerText = priceLabel;
-                priceEl.classList.add("free");
+                priceEl.classList.add("free"); // دوباره سبز می‌شود
 
                 document.getElementById("supply-text").innerText = minted.toString() + " / " + max.toString();
                 document.getElementById("supply-fill").style.width = Math.min(100, (Number(minted)/Number(max))*100) + "%";
@@ -1325,7 +1325,7 @@
                 } else if (!isOpen) {
                     mintBtn.style.display = "inline-block"; mintBtn.disabled = true; mintBtn.innerText = "Rite Not Yet Opened";
                 } else if (Number(minted) >= Number(max)) {
-                    mintBtn.style.display = "inline-block"; mintBtn.disabled = true; mintBtn.innerText = "All NFTs Claimed";
+                    mintBtn.style.display = "inline-block"; mintBtn.disabled = true; mintBtn.innerText = "All Vessels Claimed";
                 } else {
                     mintBtn.style.display = "inline-block"; mintBtn.disabled = false;
                     mintBtn.innerText = "Claim for Free";
