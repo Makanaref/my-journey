@@ -1285,13 +1285,22 @@
             }
         }
 
-        async function ensureNetwork() {
+                async function ensureNetwork() {
             const net = await provider.getNetwork();
             const currentChainIdHex = "0x" + net.chainId.toString(16);
-            if (currentChainIdHex.toLowerCase() !== INK_NETWORK.chainIdHex.toLowerCase()) {
+            if (currentChainIdHex.toLowerCase() !== INK_NETWORK.chainId.toLowerCase()) {
                 document.getElementById("network-warn").style.display = "block";
                 try {
-                    await window.ethereum.request({ method: "wallet_addEthereumChain", params: [INK_NETWORK] });
+                    await window.ethereum.request({
+                        method: "wallet_addEthereumChain",
+                        params: [{
+                            chainId: INK_NETWORK.chainId,
+                            chainName: INK_NETWORK.chainName,
+                            rpcUrls: INK_NETWORK.rpcUrls,
+                            nativeCurrency: INK_NETWORK.nativeCurrency,
+                            blockExplorerUrls: INK_NETWORK.blockExplorerUrls
+                        }]
+                    });
                     provider = new ethers.BrowserProvider(window.ethereum);
                     signer = await provider.getSigner();
                     document.getElementById("network-warn").style.display = "none";
