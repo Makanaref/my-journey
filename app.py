@@ -459,6 +459,8 @@ def is_public_host(hostname):
             return False
     return True
 
+SELF_HOSTED_DOMAINS = {"sgmhub.ir", "www.sgmhub.ir"}
+
 @app.route("/api/image-proxy")
 @limiter.limit("120 per minute")
 def image_proxy():
@@ -468,10 +470,32 @@ def image_proxy():
     parsed = urlparse(target_url)
     if parsed.scheme not in ALLOWED_PROXY_SCHEMES or not parsed.hostname:
         return jsonify({"error": "Invalid URL"}), 400
+
+    if parsed.hostname.lower() in SELF_HOSTED_DOMAINS or parsed.hostname.lower() == request.host.split(":")[0].lower():
+        path = parsed.path
+        if path.startswith("/nft-image/"):
+            filename = secure_filename(path[len("/nft-image/"):])
+            filepath = os.path.join(UPLOAD_DIR, filename)
+        elif path.startswith("/nft-metadata/"):
+            filename = secure_filename(path[len("/nft-metadata/"):])
+            filepath = os.path.join(UPLOAD_DIR, "metadata", filename)
+        else:
+            return jsonify({"error": "Invalid path"}), 400
+        if not os.path.isfile(filepath):
+            return jsonify({"error": "Not found"}), 404
+        from flask import send_file
+        resp = send_file(filepath)
+        resp.headers["Cache-Control"] = "public, max-age=86400"
+        resp.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        return resp
+
     if not is_public_host(parsed.hostname):
         return jsonify({"error": "Invalid URL"}), 400
     try:
-        upstream = requests.get(target_url, timeout=8, stream=True, headers={"User-Agent": "SGMHub-ImageProxy/1.0"})
+        upstream = requests.get(
+            target_url, timeout=8, stream=True,
+            headers={"User-Agent": "Mozilla/5.0 (compatible; SGMHub-ImageProxy/1.0)"}
+        )
     except Exception:
         return jsonify({"error": "Fetch failed"}), 502
     content_type = upstream.headers.get("Content-Type", "")
