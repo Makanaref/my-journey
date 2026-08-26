@@ -471,7 +471,9 @@ def image_proxy():
     if parsed.scheme not in ALLOWED_PROXY_SCHEMES or not parsed.hostname:
         return jsonify({"error": "Invalid URL"}), 400
 
-    if parsed.hostname.lower() in SELF_HOSTED_DOMAINS or parsed.hostname.lower() == request.host.split(":")[0].lower():
+    host_lower = parsed.hostname.lower()
+    is_self_hosted = host_lower.endswith("sgmhub.ir") or host_lower == request.host.split(":")[0].lower()
+    if is_self_hosted:
         path = parsed.path
         if path.startswith("/nft-image/"):
             filename = secure_filename(path[len("/nft-image/"):])
@@ -480,7 +482,7 @@ def image_proxy():
             filename = secure_filename(path[len("/nft-metadata/"):])
             filepath = os.path.join(UPLOAD_DIR, "metadata", filename)
         else:
-            return jsonify({"error": "Invalid path"}), 400
+            return jsonify({"error": "Unknown self-hosted path", "path": path}), 400
         if not os.path.isfile(filepath):
             return jsonify({"error": "Not found"}), 404
         from flask import send_file
@@ -501,7 +503,7 @@ def image_proxy():
     content_type = upstream.headers.get("Content-Type", "")
     if not content_type.startswith("image/"):
         upstream.close()
-        return jsonify({"error": "Not an image"}), 415
+        return jsonify({"error": "Not an image", "content_type": content_type, "status": upstream.status_code, "fetched_url": target_url}), 415
     max_bytes = 8 * 1024 * 1024
     chunks = []
     total = 0
