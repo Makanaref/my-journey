@@ -33,11 +33,11 @@ app.secret_key = require_env("SECRET_KEY")
 csp = {
     'default-src': "'self'",
     'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-    'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "blob:", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://binaries.soliditylang.org"],
+    'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "blob:", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://binaries.soliditylang.org", "https://static.cloudflareinsights.com"],
     'worker-src': ["'self'", "blob:"],
     'img-src': ["'self'", "data:", "blob:", "https:"],
     'font-src': ["'self'", "https:", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-    'connect-src': ["'self'", "https:"],
+    'connect-src': ["'self'", "https:", "https://cloudflareinsights.com"],
     'frame-src': ["'self'", "https://transferto.xyz", "https://li.fi", "https://jumper.exchange"],
 }
 Talisman(app, content_security_policy=csp, force_https=False)
