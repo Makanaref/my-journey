@@ -35,7 +35,7 @@ csp = {
     'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
     'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "blob:", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://binaries.soliditylang.org"],
     'worker-src': ["'self'", "blob:"],
-    'img-src': ["'self'", "data:", "https:"],
+    'img-src': ["'self'", "data:", "blob:", "https:"],
     'font-src': ["'self'", "https:", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
     'connect-src': ["'self'", "https:"],
     'frame-src': ["'self'", "https://transferto.xyz", "https://li.fi", "https://jumper.exchange"],
@@ -190,7 +190,7 @@ def list_bids():
 def respond_bid():
     data = request.get_json(force=True, silent=True) or {}
     bid_id = data.get("bid_id")
-    action = (data.get("action") or "").strip()  # "accept" or "reject"
+    action = (data.get("action") or "").strip()
     seller_address = (data.get("seller_address") or "").strip().lower()
 
     if not bid_id or action not in ("accept", "reject"):
@@ -425,7 +425,16 @@ def serve_nft_animation(filename):
     with open(filepath, "r", encoding="utf-8", errors="replace") as f:
         html_content = f.read()
     response = Response(html_content, mimetype="text/html")
-    response.headers["Content-Security-Policy"] = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; frame-ancestors 'self'"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'none'; "
+        "img-src data: blob: https: http:; "
+        "media-src data: blob: https: http:; "
+        "style-src 'unsafe-inline' https: http:; "
+        "font-src data: https: http:; "
+        "script-src 'unsafe-inline' 'unsafe-eval' blob: https: http:; "
+        "connect-src https: http: data: blob:; "
+        "frame-ancestors 'self'"
+    )
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     return response
 

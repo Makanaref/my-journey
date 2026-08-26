@@ -739,7 +739,7 @@
                 <div class="listing-img-wrap">
                     <div class="listing-img-skeleton" id="img-skel-${item.key}"></div>
                     <img class="listing-img" id="img-${item.key}" style="display:none;" alt="NFT" />
-                    <iframe class="listing-frame" id="frame-${item.key}" style="display:none;" sandbox="allow-scripts" scrolling="no"></iframe>
+                    <iframe class="listing-frame" id="frame-${item.key}" style="display:none;" sandbox="allow-scripts allow-same-origin" scrolling="no"></iframe>
                     <div class="qty-badge">${qty}</div>
                 </div>
                 <div class="listing-body">
@@ -771,14 +771,22 @@
                 frameEl.onload = () => {
                     skel.style.display = "none";
                     frameEl.style.display = "block";
-                    if (wrapEl) {
+                    if (wrapEl && !wrapEl.querySelector(".live-badge")) {
                         const badge = document.createElement("div");
                         badge.className = "live-badge";
                         badge.innerText = "LIVE";
                         wrapEl.appendChild(badge);
                     }
                 };
-                frameEl.onerror = () => { skel.innerText = "🖼️"; };
+                frameEl.onerror = () => {
+                    if (meta.image) {
+                        imgEl.src = meta.image;
+                        imgEl.onload = () => { skel.style.display = "none"; imgEl.style.display = "block"; };
+                        imgEl.onerror = () => { skel.innerText = "🖼️"; };
+                    } else {
+                        skel.innerText = "🖼️";
+                    }
+                };
             } else if (meta.image) {
                 imgEl.src = meta.image;
                 imgEl.onload = () => { skel.style.display = "none"; imgEl.style.display = "block"; };
