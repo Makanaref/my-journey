@@ -500,10 +500,7 @@ def image_proxy():
         )
     except Exception:
         return jsonify({"error": "Fetch failed"}), 502
-    content_type = upstream.headers.get("Content-Type", "")
-    if not content_type.startswith("image/"):
-        upstream.close()
-        return jsonify({"error": "Not an image", "content_type": content_type, "status": upstream.status_code, "fetched_url": target_url}), 415
+    content_type = upstream.headers.get("Content-Type", "").split(";")[0].strip().lower()
     max_bytes = 8 * 1024 * 1024
     chunks = []
     total = 0
@@ -514,8 +511,36 @@ def image_proxy():
             return jsonify({"error": "Image too large"}), 413
         chunks.append(chunk)
     upstream.close()
+    body = b"".join(chunks)
+
+    def sniff_image_type(data):
+        if data.startswith(b"\x89PNG\r\n\x1a\n"):
+            return "image/png"
+        if data.startswith(b"\xff\xd8\xff"):
+            return "image/jpeg"
+        if data.startswith(b"GIF87a") or data.startswith(b"GIF89a"):
+            return "image/gif"
+        if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+            return "image/webp"
+        head = data[:512].lstrip().lower()
+        if head.startswith(b"<svg") or (head.startswith(b"<?xml") and b"<svg" in data[:2048].lower()):
+            return "image/svg+xml"
+        return None
+
+    if content_type.startswith("image/"):
+        final_type = content_type
+    else:
+        final_type = sniff_image_type(body)
+        if not final_type:
+            return jsonify({
+                "error": "Not an image",
+                "content_type": content_type,
+                "status": upstream.status_code,
+                "fetched_url": target_url
+            }), 415
+
     from flask import Response
-    resp = Response(b"".join(chunks), mimetype=content_type)
+    resp = Response(body, mimetype=final_type)
     resp.headers["Cache-Control"] = "public, max-age=86400"
     resp.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
     return resp
