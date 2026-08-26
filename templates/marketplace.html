@@ -764,7 +764,6 @@
                 <div class="listing-img-wrap">
                     <div class="listing-img-skeleton" id="img-skel-${item.key}"></div>
                     <img class="listing-img" id="img-${item.key}" style="display:none;" alt="NFT" />
-                    <iframe class="listing-frame" id="frame-${item.key}" style="display:none;" sandbox="allow-scripts" scrolling="no"></iframe>
                     <div class="qty-badge">${qty}</div>
                 </div>
                 <div class="listing-body">
@@ -788,33 +787,20 @@
         fetchNftMetadata(item.nftContract, item.tokenId, activeNet).then(meta => {
             const skel = document.getElementById("img-skel-" + item.key);
             const imgEl = document.getElementById("img-" + item.key);
-            const frameEl = document.getElementById("frame-" + item.key);
-            const wrapEl = frameEl ? frameEl.closest(".listing-img-wrap") : null;
+            const wrapEl = imgEl ? imgEl.closest(".listing-img-wrap") : null;
             if (!skel) return;
-            if (meta.animationUrl) {
-                frameEl.src = meta.animationUrl;
-                frameEl.onload = () => {
+            if (meta.image) {
+                imgEl.src = meta.image;
+                imgEl.onload = () => {
                     skel.style.display = "none";
-                    frameEl.style.display = "block";
-                    if (wrapEl && !wrapEl.querySelector(".live-badge")) {
+                    imgEl.style.display = "block";
+                    if (meta.animationUrl && wrapEl && !wrapEl.querySelector(".live-badge")) {
                         const badge = document.createElement("div");
                         badge.className = "live-badge";
                         badge.innerText = "LIVE";
                         wrapEl.appendChild(badge);
                     }
                 };
-                frameEl.onerror = () => {
-                    if (meta.image) {
-                        imgEl.src = meta.image;
-                        imgEl.onload = () => { skel.style.display = "none"; imgEl.style.display = "block"; };
-                        imgEl.onerror = () => { skel.innerText = "🖼️"; };
-                    } else {
-                        skel.innerText = "🖼️";
-                    }
-                };
-            } else if (meta.image) {
-                imgEl.src = meta.image;
-                imgEl.onload = () => { skel.style.display = "none"; imgEl.style.display = "block"; };
                 imgEl.onerror = () => { skel.innerText = "🖼️"; };
             } else {
                 skel.innerText = "🖼️";
@@ -905,11 +891,7 @@
     async function fetchTotalSupply(nftContract, netKey) {
         try {
             const cRead = new ethers.Contract(nftContract, ["function totalSupply() view returns (uint256)"], getReadProvider(netKey));
-            const cWallet = new ethers.Contract(nftContract, ["function totalSupply() view returns (uint256)"], provider);
-            const total = await callWithFallback(
-                () => cRead.totalSupply(),
-                () => cWallet.totalSupply()
-            );
+            const total = await cRead.totalSupply();
             return total.toString();
         } catch (err) {
             return null;
