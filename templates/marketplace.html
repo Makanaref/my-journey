@@ -601,6 +601,12 @@
         return uri;
     }
 
+    function proxiedImageUrl(uri) {
+        if (!uri) return null;
+        if (uri.startsWith("data:")) return uri;
+        return "/api/image-proxy?url=" + encodeURIComponent(uri);
+    }
+
     async function fetchNftMetadata(nftContract, tokenId, netKey) {
         try {
             const nftWallet = new ethers.Contract(nftContract, ERC721_ABI, provider);
@@ -790,7 +796,7 @@
             const wrapEl = imgEl ? imgEl.closest(".listing-img-wrap") : null;
             if (!skel) return;
             if (meta.image) {
-                imgEl.src = meta.image;
+                imgEl.src = proxiedImageUrl(meta.image);
                 imgEl.onload = () => {
                     skel.style.display = "none";
                     imgEl.style.display = "block";

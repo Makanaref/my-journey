@@ -438,6 +438,62 @@ def serve_nft_animation(filename):
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     return response
 
+import ipaddress
+import socket
+from urllib.parse import urlparse
+
+ALLOWED_PROXY_SCHEMES = {"http", "https"}
+
+def is_public_host(hostname):
+    try:
+        infos = socket.getaddrinfo(hostname, None)
+    except Exception:
+        return False
+    for info in infos:
+        ip = info[4][0]
+        try:
+            addr = ipaddress.ip_address(ip)
+        except ValueError:
+            return False
+        if addr.is_private or addr.is_loopback or addr.is_link_local or addr.is_reserved or addr.is_multicast:
+            return False
+    return True
+
+@app.route("/api/image-proxy")
+@limiter.limit("120 per minute")
+def image_proxy():
+    target_url = (request.args.get("url") or "").strip()
+    if not target_url or len(target_url) > 2000:
+        return jsonify({"error": "Invalid URL"}), 400
+    parsed = urlparse(target_url)
+    if parsed.scheme not in ALLOWED_PROXY_SCHEMES or not parsed.hostname:
+        return jsonify({"error": "Invalid URL"}), 400
+    if not is_public_host(parsed.hostname):
+        return jsonify({"error": "Invalid URL"}), 400
+    try:
+        upstream = requests.get(target_url, timeout=8, stream=True, headers={"User-Agent": "SGMHub-ImageProxy/1.0"})
+    except Exception:
+        return jsonify({"error": "Fetch failed"}), 502
+    content_type = upstream.headers.get("Content-Type", "")
+    if not content_type.startswith("image/"):
+        upstream.close()
+        return jsonify({"error": "Not an image"}), 415
+    max_bytes = 8 * 1024 * 1024
+    chunks = []
+    total = 0
+    for chunk in upstream.iter_content(chunk_size=65536):
+        total += len(chunk)
+        if total > max_bytes:
+            upstream.close()
+            return jsonify({"error": "Image too large"}), 413
+        chunks.append(chunk)
+    upstream.close()
+    from flask import Response
+    resp = Response(b"".join(chunks), mimetype=content_type)
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    resp.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+    return resp
+
 @app.route("/b20")
 def b20():
     return render_template("b20.html")
