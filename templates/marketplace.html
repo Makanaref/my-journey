@@ -572,6 +572,27 @@
 
     let provider, signer, account, marketplaceContract, oldMarketplaceContract, currentNet = null, sellMode = "single";
     let allListingItems = [];
+    let readProvider = null;
+    const readProviderCache = {};
+
+    function getReadProvider(netKey) {
+        if (readProviderCache[netKey]) return readProviderCache[netKey];
+        const config = NETWORKS[netKey];
+        const url = config && config.rpcUrls && config.rpcUrls[0];
+        if (!url) return provider;
+        const rp = new ethers.JsonRpcProvider(url);
+        readProviderCache[netKey] = rp;
+        return rp;
+    }
+
+    async function callWithFallback(fn, fallbackFn) {
+        try {
+            return await fn();
+        } catch (err) {
+            if (!fallbackFn) throw err;
+            return await fallbackFn();
+        }
+    }
 
     function resolveUri(uri) {
         if (!uri) return null;
@@ -580,10 +601,14 @@
         return uri;
     }
 
-    async function fetchNftMetadata(nftContract, tokenId) {
+    async function fetchNftMetadata(nftContract, tokenId, netKey) {
         try {
-            const nft = new ethers.Contract(nftContract, ERC721_ABI, provider);
-            let uri = await nft.tokenURI(tokenId);
+            const nftWallet = new ethers.Contract(nftContract, ERC721_ABI, provider);
+            const nftRead = new ethers.Contract(nftContract, ERC721_ABI, getReadProvider(netKey));
+            let uri = await callWithFallback(
+                () => nftRead.tokenURI(tokenId),
+                () => nftWallet.tokenURI(tokenId)
+            );
             uri = resolveUri(uri);
             if (!uri) return { name: null, image: null, animationUrl: null, description: null };
             let meta;
@@ -739,7 +764,7 @@
                 <div class="listing-img-wrap">
                     <div class="listing-img-skeleton" id="img-skel-${item.key}"></div>
                     <img class="listing-img" id="img-${item.key}" style="display:none;" alt="NFT" />
-                    <iframe class="listing-frame" id="frame-${item.key}" style="display:none;" sandbox="allow-scripts allow-same-origin" scrolling="no"></iframe>
+                    <iframe class="listing-frame" id="frame-${item.key}" style="display:none;" sandbox="allow-scripts" scrolling="no"></iframe>
                     <div class="qty-badge">${qty}</div>
                 </div>
                 <div class="listing-body">
@@ -760,7 +785,7 @@
     }
 
     function attachCardBehaviors(item, activeNet, activeProvider, token) {
-        fetchNftMetadata(item.nftContract, item.tokenId).then(meta => {
+        fetchNftMetadata(item.nftContract, item.tokenId, activeNet).then(meta => {
             const skel = document.getElementById("img-skel-" + item.key);
             const imgEl = document.getElementById("img-" + item.key);
             const frameEl = document.getElementById("frame-" + item.key);
@@ -801,7 +826,7 @@
                 if (descEl) { descEl.innerText = meta.description; descEl.style.display = "block"; }
             }
         });
-        fetchTotalSupply(item.nftContract).then(total => {
+        fetchTotalSupply(item.nftContract, activeNet).then(total => {
             const el = document.getElementById("info-supply-" + item.key);
             if (el) el.innerText = total || "Unknown";
         });
@@ -877,10 +902,14 @@
             statusEl.innerText = getFriendlyError(err);
         }
     }
-    async function fetchTotalSupply(nftContract) {
+    async function fetchTotalSupply(nftContract, netKey) {
         try {
-            const c = new ethers.Contract(nftContract, ["function totalSupply() view returns (uint256)"], provider);
-            const total = await c.totalSupply();
+            const cRead = new ethers.Contract(nftContract, ["function totalSupply() view returns (uint256)"], getReadProvider(netKey));
+            const cWallet = new ethers.Contract(nftContract, ["function totalSupply() view returns (uint256)"], provider);
+            const total = await callWithFallback(
+                () => cRead.totalSupply(),
+                () => cWallet.totalSupply()
+            );
             return total.toString();
         } catch (err) {
             return null;
