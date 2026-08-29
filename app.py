@@ -527,7 +527,7 @@ def image_proxy():
             return "image/svg+xml"
         return None
 
-    if content_type.startswith("image/"):
+        if content_type.startswith("image/"):
         final_type = content_type
     else:
         final_type = sniff_image_type(body)
@@ -536,7 +536,8 @@ def image_proxy():
                 "error": "Not an image",
                 "content_type": content_type,
                 "status": upstream.status_code,
-                "fetched_url": target_url
+                "fetched_url": target_url,
+                "body_preview": body[:200].decode("utf-8", errors="replace")
             }), 415
 
     from flask import Response
