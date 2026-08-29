@@ -493,10 +493,13 @@ def image_proxy():
 
     if not is_public_host(parsed.hostname):
         return jsonify({"error": "Invalid URL"}), 400
-    try:
+        try:
         upstream = requests.get(
             target_url, timeout=8, stream=True,
-            headers={"User-Agent": "Mozilla/5.0 (compatible; SGMHub-ImageProxy/1.0)"}
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Accept": "image/*,*/*;q=0.8"
+            }
         )
     except Exception:
         return jsonify({"error": "Fetch failed"}), 502
