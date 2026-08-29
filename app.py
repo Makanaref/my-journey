@@ -491,7 +491,7 @@ def image_proxy():
         resp.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
         return resp
 
-        if not is_public_host(parsed.hostname):
+    if not is_public_host(parsed.hostname):
         return jsonify({"error": "Invalid URL"}), 400
     try:
         upstream = requests.get(
