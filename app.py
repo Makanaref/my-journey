@@ -522,7 +522,7 @@ def image_proxy():
             return "image/gif"
         if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
             return "image/webp"
-                head = data[:512].lstrip().lower()
+        head = data[:512].lstrip().lower()
         if head.startswith(b"<svg") or (head.startswith(b"<?xml") and b"<svg" in data[:2048].lower()):
             return "image/svg+xml"
         return None
