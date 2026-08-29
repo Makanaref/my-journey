@@ -5,20 +5,14 @@
 <div style="text-align:center; padding: 60px 30px 20px; width:100vw; margin-left:calc(-50vw + 50%);">
 
 <!-- Hero -->
-    <div class="hero-section" style="text-align:center; padding: 60px 30px 20px;">
+    <div style="text-align:center; padding: 60px 30px 20px;">
 
         <div style="position:absolute; top:-40px; left:50%; transform:translateX(-50%); width:420px; height:320px; background:radial-gradient(ellipse, rgba(233,69,96,0.12), rgba(0,0,0,0) 70%); filter:blur(20px); pointer-events:none; z-index:0;"></div>
 
         <div style="position:relative; z-index:1; opacity:0; animation: fadeUp 0.6s ease forwards;">
 
-            <div class="hero-intro">
-                <span class="hero-kicker">On Base</span>
-                <h1 class="hero-title">Everything onchain,<br>in one place</h1>
-                <p class="hero-subtitle">Say GM, mint, trade and play — all from one dashboard.</p>
-            </div>
-
             <!-- Row 1 -->
-            <div class="hero-row" style="display:flex; align-items:stretch; justify-content:center; gap:20px; flex-wrap:wrap; margin-bottom:20px;">
+            <div style="display:flex; align-items:stretch; justify-content:center; gap:20px; flex-wrap:wrap; margin-bottom:20px;">
 
                 <a href="/gm" class="hero-card">
                     <div class="hero-card-icon">
@@ -41,7 +35,7 @@
             </div>
 
             <!-- Row 2 -->
-            <div class="hero-row" style="display:flex; align-items:stretch; justify-content:center; gap:20px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:stretch; justify-content:center; gap:20px; flex-wrap:wrap;">
 
                 <a href="/marketplace" class="hero-card hero-card-purple">
                     <div class="hero-card-icon hero-card-icon-purple">
@@ -106,42 +100,6 @@
             from { opacity: 0; transform: translateY(14px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        .hero-intro {
-            margin-bottom: 34px;
-        }
-        .hero-kicker {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.7em;
-            font-weight: 700;
-            letter-spacing: 1.4px;
-            text-transform: uppercase;
-            color: #e94560;
-            background: rgba(233,69,96,0.09);
-            border: 1px solid rgba(233,69,96,0.25);
-            padding: 5px 14px;
-            border-radius: 20px;
-            margin-bottom: 16px;
-        }
-        .hero-title {
-            font-family: Georgia, 'Times New Roman', serif;
-            font-size: clamp(1.9em, 5vw, 2.6em);
-            font-weight: 700;
-            line-height: 1.25;
-            color: #fff;
-            margin-bottom: 12px;
-            letter-spacing: -0.3px;
-        }
-        .hero-subtitle {
-            font-size: 0.95em;
-            color: rgba(255,255,255,0.45);
-            max-width: 380px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-
         .hero-card {
             position:relative;
             width:260px;
@@ -270,64 +228,15 @@
         .hero-card:hover .hero-card-arrow-purple {
             background: rgba(192,132,252,0.16);
         }
-
         @media (max-width: 560px) {
-            .hero-section { padding: 34px 16px 8px !important; }
-
-            .hero-intro { margin-bottom: 24px; }
-            .hero-kicker { font-size: 0.62em; padding: 4px 12px; margin-bottom: 12px; }
-            .hero-subtitle { font-size: 0.85em; max-width: 280px; }
-
-            .hero-row {
-                display: grid !important;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px !important;
-                flex-wrap: nowrap !important;
-                margin-bottom: 10px !important;
-            }
-
-            .hero-card {
-                width: 100% !important;
-                max-width: none;
-                padding: 18px 14px 16px;
-                border-radius: 16px;
-                display: flex;
-                flex-direction: column;
-            }
-            .hero-card-icon {
-                width: 40px; height: 40px;
-                border-radius: 12px;
-                font-size: 1.2em;
-                margin-bottom: 12px;
-            }
-            .hero-card-icon svg { width: 18px; height: 18px; }
-            .hero-card-title {
-                font-size: 1.02em;
-                margin-bottom: 5px;
-            }
-            .hero-card-desc {
-                font-size: 0.72em;
-                line-height: 1.4;
-                margin-bottom: 14px;
-                flex-grow: 1;
-            }
-            .hero-card-arrow {
-                width: 26px; height: 26px;
-                font-size: 0.75em;
-                align-self: flex-end;
-            }
+            .hero-card { width:100%; max-width:320px; }
         }
     </style>
 
     <!-- Blockchain Animation -->
-    <div id="chain-anim" class="chain-anim-wrap" style="position:relative; width:100%; max-width:900px; height:220px; margin:0 auto; border-radius:16px; overflow:hidden; background:radial-gradient(ellipse at center, rgba(233,69,96,0.06), rgba(0,0,0,0) 70%);">
+    <div id="chain-anim" style="position:relative; width:100%; max-width:900px; height:220px; margin:0 auto; border-radius:16px; overflow:hidden; background:radial-gradient(ellipse at center, rgba(233,69,96,0.06), rgba(0,0,0,0) 70%);">
         <canvas id="chain-canvas" style="display:block; width:100%; height:100%;"></canvas>
     </div>
-    <style>
-        @media (max-width: 560px) {
-            .chain-anim-wrap { height: 140px !important; border-radius: 12px !important; margin-top: 6px; }
-        }
-    </style>
 
     <script>
     (function () {
@@ -351,7 +260,6 @@
 
         function buildScene() {
             const count = w < 640 ? 4 : 6;
-            const blockSize = w < 640 ? 34 : 46;
             blocks = [];
             const marginX = w * 0.14;
             const usable = w - marginX * 2;
@@ -359,7 +267,7 @@
                 blocks.push({
                     x: marginX + (count === 1 ? 0 : (usable / (count - 1)) * i),
                     y: h / 2,
-                    size: blockSize,
+                    size: 46,
                     hash: '0x' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0')
                 });
             }
@@ -438,13 +346,13 @@
                 ctx.stroke();
 
                 ctx.fillStyle = 'rgba(255,255,255,0.85)';
-                ctx.font = (w < 640 ? '9px' : '11px') + ' monospace';
+                ctx.font = '11px monospace';
                 ctx.textAlign = 'center';
                 ctx.fillText('#' + (idx + 1), b.x, b.y + 4);
 
                 ctx.fillStyle = 'rgba(255,255,255,0.35)';
-                ctx.font = (w < 640 ? '7px' : '9px') + ' monospace';
-                ctx.fillText(b.hash, b.x, b.y + b.size / 2 + (w < 640 ? 13 : 16));
+                ctx.font = '9px monospace';
+                ctx.fillText(b.hash, b.x, b.y + b.size / 2 + 16);
             });
 
             requestAnimationFrame(step);
