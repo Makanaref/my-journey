@@ -608,16 +608,17 @@
     }
 
     async function fetchNftMetadata(nftContract, tokenId, netKey) {
-        try {
-            const nftWallet = new ethers.Contract(nftContract, ERC721_ABI, provider);
-            const nftRead = new ethers.Contract(nftContract, ERC721_ABI, getReadProvider(netKey));
-            let uri = await callWithFallback(
-                () => nftRead.tokenURI(tokenId),
-                () => nftWallet.tokenURI(tokenId)
-            );
-            uri = resolveUri(uri);
-            if (!uri) return { name: null, image: null, animationUrl: null, description: null };
-            let meta;
+    try {
+        const nftWallet = new ethers.Contract(nftContract, ERC721_ABI, provider);
+        const nftRead = new ethers.Contract(nftContract, ERC721_ABI, getReadProvider(netKey));
+        let uri = await callWithFallback(
+            () => nftRead.tokenURI(tokenId),
+            () => nftWallet.tokenURI(tokenId)
+        );
+        uri = resolveUri(uri);
+        console.log("nftContract:", nftContract, "tokenId:", tokenId, "→ metadata URL:", uri);
+        if (!uri) return { name: null, image: null, animationUrl: null, description: null };
+        let meta;
             if (uri.startsWith("data:application/json;base64,")) {
                 meta = JSON.parse(atob(uri.split(",")[1]));
             } else {
