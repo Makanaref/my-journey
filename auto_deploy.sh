@@ -24,8 +24,18 @@ start_server() {
 
 restart_server() {
   echo "Restarting..."
-  kill $PID
-  wait $PID 2>/dev/null
+  if [ -n "$PID" ]; then
+    taskkill //F //T //PID "$PID" 2>/dev/null
+  fi
+  for p in $(tasklist //FI "IMAGENAME eq python.exe" //FO CSV //NH 2>/dev/null | tr -d '"' | cut -d, -f2); do
+    if [ "$p" != "$PID" ]; then
+      port_owner=$(netstat -ano 2>/dev/null | grep ":8080" | grep "LISTENING" | awk '{print $5}' | grep -x "$p")
+      if [ -n "$port_owner" ]; then
+        echo "Killing leftover python.exe on port 8080 (PID $p)"
+        taskkill //F //T //PID "$p" 2>/dev/null
+      fi
+    fi
+  done
   start_server
 }
 
