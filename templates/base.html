@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#16213e">
-    <title>{% block title %}🚀🚀{% endblock %}</title>
+    <title>{% block title %}\xf0\x9f\x9a\x80\xf0\x9f\x9a\x80{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -480,15 +480,30 @@
             display: none;
             background: none;
             border: none;
-            color: #eee;
-            font-size: 1.8em;
-            line-height: 1;
             cursor: pointer;
-            padding: 6px 10px;
-            border-radius: 12px;
-            transition: background 0.2s;
+            padding: 10px;
+            border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.25s ease;
         }
-        .hamburger:active { background: rgba(233,69,96,0.15); }
+        .hamburger:active { background: rgba(233,69,96,0.1); }
+        .hamburger-line {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: rgba(255,255,255,0.85);
+            border-radius: 2px;
+            transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease, width 0.25s ease;
+        }
+        .hamburger.open .hamburger-line:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .hamburger.open .hamburger-line:nth-child(2) { opacity: 0; }
+        .hamburger.open .hamburger-line:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+        body.light .hamburger-line { background: rgba(42,32,21,0.85); }
 
         .page-wrapper {
     display: flex;
@@ -667,7 +682,6 @@
             background: rgba(233, 69, 96, 0.04);
             color: #1a1a2e;
         }
-        body.light .hamburger { color: #2a2015; }
         body.light .card { background-color: #ede8e2; border-color: rgba(233,69,96,0.15); box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
         body.light input, body.light textarea, body.light select { background: #e5dfd8; color: #2a2015; border-color: #cfc8c0; }
         body.light .theme-switch .slider { background-color: #c8c0b8; border-color: rgba(0,0,0,0.05); }
@@ -700,13 +714,14 @@
         }
 
         @media (max-width: 700px) {
-            nav { padding: 8px 16px; padding-top: calc(8px + env(safe-area-inset-top)); min-height: 60px; }
-            nav.scrolled { padding: 4px 16px; min-height: 48px; }
-            .logo-wrapper { gap: 8px; }
-            .logo-icon-container { width: 36px; height: 36px; }
-            .logo-text { font-size: 1.1em; }
+            nav { padding: 10px 18px; padding-top: calc(10px + env(safe-area-inset-top)); min-height: 62px; }
+            nav.scrolled { padding: 6px 18px; min-height: 50px; }
+            .logo-wrapper { gap: 9px; }
+            .logo-icon-container { width: 34px; height: 34px; }
+            .logo-text { font-size: 1.05em; letter-spacing: 1px; }
 
-            .hamburger { display: block; z-index: 101; }
+            .hamburger { display: flex; z-index: 101; }
+
             nav .links {
                 display: flex;
                 flex-direction: column;
@@ -714,49 +729,75 @@
                 top: 0;
                 right: 0;
                 height: 100dvh;
-                width: min(82vw, 350px);
-                background: rgba(22, 33, 62, 0.94);
-                backdrop-filter: blur(30px);
-                padding: 80px 24px 30px;
-                box-shadow: -8px 0 50px rgba(0, 0, 0, 0.6);
-                gap: 2px;
+                width: min(68vw, 260px);
+                background: rgba(18, 27, 51, 0.97);
+                backdrop-filter: blur(28px) saturate(1.15);
+                -webkit-backdrop-filter: blur(28px) saturate(1.15);
+                padding: 84px 14px 24px;
+                box-shadow: -12px 0 60px rgba(0, 0, 0, 0.5);
+                gap: 3px;
                 align-items: stretch;
                 transform: translateX(100%);
                 transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                 z-index: 99;
                 overflow-y: auto;
-                border-left: 1px solid rgba(233, 69, 96, 0.06);
+                border-left: 1px solid rgba(233, 69, 96, 0.08);
             }
             nav .links.open { transform: translateX(0); }
             nav .links > * + *::before { display: none; }
+
             nav .links > a,
             nav .links .dropbtn {
-                padding: 12px 18px;
-                font-size: 0.95em;
-                border-radius: 14px;
+                padding: 12px 14px;
+                font-size: 0.85em;
+                font-weight: 500;
+                border-radius: 12px;
                 width: 100%;
                 justify-content: flex-start;
-                border-bottom: 1px solid rgba(233, 69, 96, 0.02);
+                color: rgba(255,255,255,0.6);
+                letter-spacing: 0.2px;
+                gap: 10px;
+            }
+            nav .links > a i,
+            nav .links .dropbtn i:first-child {
+                width: 16px;
+                text-align: center;
+                color: rgba(233,69,96,0.75);
+                font-size: 0.88em;
+                flex-shrink: 0;
             }
             nav .links > a::after,
             nav .links .dropbtn::after { display: none; }
+            nav .links > a:hover,
+            nav .links .dropbtn:hover {
+                background: rgba(233,69,96,0.06);
+                color: #fff;
+                transform: none;
+            }
+            nav .links > a.active {
+                background: rgba(233,69,96,0.1);
+                color: #fff;
+            }
+            nav .links > a.active i { color: #e94560; }
 
             .dropdown { width: 100%; }
             .dropdown .dropbtn {
                 justify-content: space-between !important;
-                background: rgba(233, 69, 96, 0.02) !important;
-                border: 1px solid rgba(233, 69, 96, 0.04) !important;
-                border-radius: 14px !important;
+                background: transparent !important;
+                border: none !important;
+                border-radius: 12px !important;
+                padding: 12px 14px !important;
             }
-            .dropdown .dropbtn i:last-child { transition: transform 0.3s; }
+            .dropdown .dropbtn i:last-child { transition: transform 0.3s ease; opacity: 0.5; margin-left: 0; }
             .dropdown.open .dropbtn i:last-child { transform: rotate(180deg); }
+
             .dropdown-content {
                 all: unset;
                 display: none;
-                background: rgba(255, 255, 255, 0.02);
-                border-radius: 16px;
-                padding: 8px 4px;
-                margin-top: 4px;
+                background: rgba(255, 255, 255, 0.025);
+                border-radius: 12px;
+                padding: 6px 3px;
+                margin: 2px 0 6px;
                 width: 100%;
                 opacity: 1;
                 visibility: visible;
@@ -766,26 +807,41 @@
                 backdrop-filter: none;
             }
             .dropdown.open .dropdown-content { display: block; }
-            .dropdown-grid {
-                grid-template-columns: 1fr;
-                gap: 0;
-            }
+            .dropdown-grid { grid-template-columns: 1fr; gap: 0; }
+
             .dropdown-content a {
                 opacity: 1 !important;
                 transform: none !important;
-                padding: 10px 16px;
-                font-size: 0.9em;
-                border-radius: 12px;
+                padding: 9px 12px;
+                font-size: 0.8em;
+                border-radius: 10px;
+                color: rgba(255,255,255,0.55);
                 transition-delay: 0s !important;
+                gap: 10px;
+            }
+            .dropdown-content a i {
+                width: 22px;
+                height: 22px;
+                font-size: 0.76em;
+                background: rgba(233,69,96,0.05);
+            }
+            .dropdown-content a:hover {
+                background: rgba(233,69,96,0.05);
+                border-left-color: transparent;
+                color: #fff;
+                transform: none !important;
             }
             .dropdown-col .dropdown-category {
-                margin-top: 6px;
-                padding-left: 8px;
+                font-size: 0.56em;
+                margin-top: 8px;
+                padding: 8px 8px 3px;
             }
 
             .theme-switch-wrapper {
-                margin: 20px 0 0;
-                justify-content: center;
+                margin: 16px 2px 0;
+                justify-content: flex-start;
+                padding-top: 14px;
+                border-top: 1px solid rgba(255,255,255,0.06);
             }
 
             .content { padding: 16px 14px; }
@@ -803,11 +859,16 @@
         }
 
         body.light nav .links {
-            background: rgba(237, 232, 226, 0.96);
-            backdrop-filter: blur(30px);
+            background: rgba(240, 235, 229, 0.97);
             border-left-color: rgba(233, 69, 96, 0.06);
         }
+        body.light nav .links > a,
+        body.light nav .links .dropbtn { color: rgba(42,32,21,0.65); }
+        body.light nav .links > a:hover,
+        body.light nav .links .dropbtn:hover { background: rgba(233,69,96,0.06); color: #1a1a2e; }
+        body.light nav .links > a.active { background: rgba(233,69,96,0.1); color: #1a1a2e; }
         body.light .dropdown-content { background: rgba(0,0,0,0.02); }
+        body.light .theme-switch-wrapper { border-top-color: rgba(0,0,0,0.06); }
 
         .nav-overlay {
             display: none;
@@ -1205,7 +1266,11 @@
             <span class="logo-text">SGMHub</span>
         </a>
 
-        <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">☰</button>
+        <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
         <div class="links" id="navlinks">
             <div class="dropdown" id="toolsDropdown">
                 <button class="dropbtn" onclick="toggleDropdown(event)">
@@ -1276,8 +1341,8 @@
                     <input type="checkbox" id="themeCheckbox" onclick="toggleMode()">
                     <span class="slider">
                         <span class="icons">
-                            <span>☀️</span>
-                            <span>🌙</span>
+                            <span>\xe2\x98\x80\xef\xb8\x8f</span>
+                            <span>\xf0\x9f\x8c\x99</span>
                         </span>
                     </span>
                 </label>
@@ -1383,6 +1448,7 @@
         function toggleMenu() {
     document.getElementById("navlinks").classList.toggle("open");
     document.getElementById("navOverlay").classList.toggle("open");
+    document.querySelector(".hamburger").classList.toggle("open");
     if (!document.getElementById("navlinks").classList.contains("open")) {
         document.getElementById("toolsDropdown")?.classList.remove("open");
         document.getElementById("domainDropdown")?.classList.remove("open");
@@ -1402,6 +1468,7 @@
                 if (this.tagName === "A" && document.getElementById("navlinks").classList.contains("open")) {
                     document.getElementById("navlinks").classList.remove("open");
                     document.getElementById("navOverlay").classList.remove("open");
+                    document.querySelector(".hamburger").classList.remove("open");
                     document.getElementById("toolsDropdown")?.classList.remove("open");
                 }
             });
@@ -1481,7 +1548,7 @@
         function chatSetReply(name, text, address) {
             chatReplyingTo = { name: name, text: text, address: address };
             document.getElementById("chatReplyPreviewName").innerText = name;
-            document.getElementById("chatReplyPreviewText").innerText = text.length > 60 ? text.slice(0, 60) + "…" : text;
+            document.getElementById("chatReplyPreviewText").innerText = text.length > 60 ? text.slice(0, 60) + "\xe2\x80\xa6" : text;
             document.getElementById("chatReplyPreview").classList.add("active");
             const input = document.getElementById("chatTextInput");
             if (input && !input.disabled) input.focus();
