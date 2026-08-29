@@ -55,6 +55,9 @@ WEATHER_API_KEY = require_env("WEATHER_API_KEY")
 PINATA_API_KEY = require_env("PINATA_API_KEY")
 PINATA_SECRET_KEY = require_env("PINATA_SECRET_KEY")
 
+IPFS_API_URL = os.environ.get("IPFS_API_URL", "http://127.0.0.1:5001")
+IPFS_GATEWAY_URL = os.environ.get("IPFS_GATEWAY_URL", "http://127.0.0.1:8080")
+
 DB_PATH = os.environ.get("DB_PATH", "messages.db")
 
 def get_db():
@@ -600,6 +603,85 @@ def ipfs_upload_json():
         return jsonify({"ipfs_hash": response.json().get("IpfsHash")})
     except Exception:
         return jsonify({"error": "IPFS upload failed"}), 502
+
+@app.route("/api/ipfs-local/upload-file", methods=["POST"])
+@csrf.exempt
+@limiter.limit("30 per hour")
+def ipfs_local_upload_file():
+    if "file" not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No file selected"}), 400
+    try:
+        files = {"file": (secure_filename(file.filename), file.stream, file.mimetype)}
+        response = requests.post(
+            f"{IPFS_API_URL}/api/v0/add",
+            files=files,
+            params={"pin": "true", "cid-version": "1"},
+            timeout=60
+        )
+        if response.status_code != 200:
+            return jsonify({"error": "Local IPFS upload failed"}), 502
+        result = response.json()
+        return jsonify({"ipfs_hash": result.get("Hash")})
+    except requests.exceptions.ConnectionError:
+        return jsonify({"error": "Local IPFS daemon unreachable"}), 503
+    except Exception:
+        return jsonify({"error": "Local IPFS upload failed"}), 502
+
+@app.route("/api/ipfs-local/upload-json", methods=["POST"])
+@csrf.exempt
+@limiter.limit("30 per hour")
+def ipfs_local_upload_json():
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "No JSON provided"}), 400
+    try:
+        json_bytes = json.dumps(data).encode("utf-8")
+        files = {"file": ("metadata.json", json_bytes, "application/json")}
+        response = requests.post(
+            f"{IPFS_API_URL}/api/v0/add",
+            files=files,
+            params={"pin": "true", "cid-version": "1"},
+            timeout=60
+        )
+        if response.status_code != 200:
+            return jsonify({"error": "Local IPFS upload failed"}), 502
+        result = response.json()
+        return jsonify({"ipfs_hash": result.get("Hash")})
+    except requests.exceptions.ConnectionError:
+        return jsonify({"error": "Local IPFS daemon unreachable"}), 503
+    except Exception:
+        return jsonify({"error": "Local IPFS upload failed"}), 502
+
+@app.route("/api/ipfs-local/status")
+@limiter.limit("30 per minute")
+def ipfs_local_status():
+    try:
+        response = requests.post(f"{IPFS_API_URL}/api/v0/version", timeout=5)
+        if response.status_code == 200:
+            return jsonify({"online": True, "version": response.json().get("Version")})
+        return jsonify({"online": False}), 503
+    except Exception:
+        return jsonify({"online": False}), 503
+
+@app.route("/ipfs-local/<cid>")
+@limiter.limit("120 per minute")
+def ipfs_local_gateway_proxy(cid):
+    safe_cid = secure_filename(cid)
+    try:
+        response = requests.get(f"{IPFS_GATEWAY_URL}/ipfs/{safe_cid}", timeout=15, stream=True)
+    except Exception:
+        return jsonify({"error": "Local IPFS gateway unreachable"}), 502
+    if response.status_code != 200:
+        return jsonify({"error": "Not found on local IPFS"}), 404
+    from flask import Response
+    content_type = response.headers.get("Content-Type", "application/octet-stream")
+    resp = Response(response.content, mimetype=content_type)
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    resp.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+    return resp
 
 @app.route("/nft-image/<filename>")
 @limiter.limit("300 per minute")
