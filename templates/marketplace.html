@@ -792,8 +792,9 @@
     }
 
     function attachCardBehaviors(item, activeNet, activeProvider, token) {
-        fetchNftMetadata(item.nftContract, item.tokenId, activeNet).then(meta => {
-            const skel = document.getElementById("img-skel-" + item.key);
+    fetchNftMetadata(item.nftContract, item.tokenId, activeNet).then(meta => {
+        console.log("META for", item.key, ":", meta);
+        const skel = document.getElementById("img-skel-" + item.key);
             const imgEl = document.getElementById("img-" + item.key);
             const wrapEl = imgEl ? imgEl.closest(".listing-img-wrap") : null;
             if (!skel) return;
