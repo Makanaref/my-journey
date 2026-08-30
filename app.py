@@ -475,7 +475,8 @@ def image_proxy():
         return jsonify({"error": "Invalid URL"}), 400
 
     host_lower = parsed.hostname.lower()
-    is_self_hosted = host_lower.endswith("sgmhub.ir") or host_lower == request.host.split(":")[0].lower()
+    site_host = request.host.split(":")[0].lower()
+    is_self_hosted = host_lower in SELF_HOSTED_DOMAINS or host_lower == site_host
     if is_self_hosted:
         path = parsed.path
         if path.startswith("/nft-image/"):
