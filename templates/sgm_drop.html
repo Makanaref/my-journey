@@ -1452,9 +1452,22 @@
             }
         }
 
+        async function getWorkingReadProvider(rpcUrls) {
+            for (const url of rpcUrls) {
+                try {
+                    const p = new ethers.JsonRpcProvider(url);
+                    await p.getBlockNumber();
+                    return p;
+                } catch (e) {
+                    continue;
+                }
+            }
+            throw new Error("All RPC endpoints failed");
+        }
+
         async function loadPublicDropState() {
             try {
-                const readProvider = new ethers.JsonRpcProvider(INK_NETWORK.rpcUrls[0]);
+                const readProvider = await getWorkingReadProvider(INK_NETWORK.rpcUrls);
                 const readContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, readProvider);
                 const [price, minted, max] = await Promise.all([
                     readContract.mintPrice(), readContract.totalMinted(), readContract.maxSupply()
@@ -1769,9 +1782,22 @@
             }
         }
 
+        async function getWorkingReadProvider(rpcUrls) {
+            for (const url of rpcUrls) {
+                try {
+                    const p = new ethers.JsonRpcProvider(url);
+                    await p.getBlockNumber();
+                    return p;
+                } catch (e) {
+                    continue;
+                }
+            }
+            throw new Error("All RPC endpoints failed");
+        }
+
         async function loadPublicDropState() {
             try {
-                const readProvider = new ethers.JsonRpcProvider(BASE_NETWORK.rpcUrls[0]);
+                const readProvider = await getWorkingReadProvider(BASE_NETWORK.rpcUrls);
                 const readContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, readProvider);
                 const [price, minted, max] = await Promise.all([
                     readContract.mintPrice(), readContract.totalMinted(), readContract.maxSupply()
