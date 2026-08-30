@@ -594,13 +594,47 @@
         }
     }
 
+    const IPFS_GATEWAYS = [
+        "https://ipfs.sgmhub.ir/ipfs/",
+        "https://gateway.pinata.cloud/ipfs/",
+        "https://cloudflare-ipfs.com/ipfs/",
+        "https://ipfs.io/ipfs/"
+    ];
+
+    function resolveUriCandidates(uri) {
+        if (!uri) return [];
+        if (uri.startsWith("ipfs://")) {
+            const path = uri.slice(7);
+            return IPFS_GATEWAYS.map(gw => gw + path);
+        }
+        if (uri.startsWith("http://")) return ["https://" + uri.slice(7)];
+        if (uri.includes("/ipfs/")) {
+            const path = uri.split("/ipfs/")[1];
+            return IPFS_GATEWAYS.map(gw => gw + path);
+        }
+        return [uri];
+    }
+
     function resolveUri(uri) {
-    if (!uri) return null;
-    if (uri.startsWith("ipfs://")) return "https://gateway.pinata.cloud/ipfs/" + uri.slice(7);
-    if (uri.startsWith("http://")) return "https://" + uri.slice(7);
-    if (uri.includes("ipfs.io/ipfs/")) return uri.replace("ipfs.io/ipfs/", "gateway.pinata.cloud/ipfs/");
-    return uri;
-}
+        const candidates = resolveUriCandidates(uri);
+        return candidates.length ? candidates[0] : null;
+    }
+
+    async function fetchJsonWithFallback(uri) {
+        const candidates = resolveUriCandidates(uri);
+        let lastErr;
+        for (const url of candidates) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error("status " + res.status);
+                return await res.json();
+            } catch (err) {
+                lastErr = err;
+                continue;
+            }
+        }
+        throw lastErr || new Error("No gateway succeeded");
+    }
 
     function proxiedImageUrl(uri) {
         if (!uri) return null;
@@ -612,19 +646,17 @@
     try {
         const nftWallet = new ethers.Contract(nftContract, ERC721_ABI, provider);
         const nftRead = new ethers.Contract(nftContract, ERC721_ABI, getReadProvider(netKey));
-        let uri = await callWithFallback(
+        let rawUri = await callWithFallback(
             () => nftRead.tokenURI(tokenId),
             () => nftWallet.tokenURI(tokenId)
         );
-        uri = resolveUri(uri);
-        console.log("nftContract:", nftContract, "tokenId:", tokenId, "→ metadata URL:", uri);
-        if (!uri) return { name: null, image: null, animationUrl: null, description: null };
+        console.log("nftContract:", nftContract, "tokenId:", tokenId, "→ metadata URL:", resolveUri(rawUri));
+        if (!rawUri) return { name: null, image: null, animationUrl: null, description: null };
         let meta;
-            if (uri.startsWith("data:application/json;base64,")) {
-                meta = JSON.parse(atob(uri.split(",")[1]));
+            if (rawUri.startsWith("data:application/json;base64,")) {
+                meta = JSON.parse(atob(rawUri.split(",")[1]));
             } else {
-                const res = await fetch(uri);
-                meta = await res.json();
+                meta = await fetchJsonWithFallback(rawUri);
             }
             return {
                 name: meta.name || null,

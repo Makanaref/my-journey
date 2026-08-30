@@ -1033,6 +1033,9 @@
             margin-bottom: 5px;
             font-size: 0.7em;
             color: rgba(255,255,255,0.4);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .chat-msg-quote .quote-name {
             color: rgba(45,212,191,0.7);
@@ -1050,6 +1053,8 @@
             padding: 6px 10px;
             margin-bottom: 8px;
             font-size: 0.72em;
+            min-width: 0;
+            max-width: 100%;
         }
         .chat-reply-preview.active { display: flex; }
         .chat-reply-preview-text {
@@ -1057,6 +1062,8 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            min-width: 0;
+            flex: 1;
         }
         .chat-reply-preview-text .quote-name {
             color: #2dd4bf;
@@ -1101,10 +1108,18 @@
             display: none;
             gap: 8px;
             align-items: flex-end;
+            min-width: 0;
+            max-width: 100%;
         }
         .chat-input-row.active { display: flex; }
+        .chat-input-col {
+            flex: 1;
+            min-width: 0;
+        }
         .chat-input-row textarea {
             flex: 1;
+            width: 100%;
+            min-width: 0;
             resize: none;
             min-height: 40px;
             max-height: 90px;
@@ -1145,6 +1160,9 @@
             color: rgba(255,255,255,0.35);
             font-family: monospace;
             margin-bottom: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         body.light .chat-blob.chat-open {
@@ -1912,7 +1930,7 @@
                 <div class="chat-footer">
                     <button class="chat-connect-btn" id="chatConnectBtn" onclick="chatConnectWallet(event)">Connect Wallet to Chat</button>
                     <div class="chat-input-row" id="chatInputRow">
-                        <div style="flex:1;">
+                        <div class="chat-input-col">
                             <div class="chat-connected-as" id="chatConnectedAs"></div>
                             <div class="chat-reply-preview" id="chatReplyPreview">
                                 <span class="chat-reply-preview-text"><span class="quote-name" id="chatReplyPreviewName"></span><span id="chatReplyPreviewText"></span></span>

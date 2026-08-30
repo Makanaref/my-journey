@@ -1033,6 +1033,9 @@
             margin-bottom: 5px;
             font-size: 0.7em;
             color: rgba(255,255,255,0.4);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .chat-msg-quote .quote-name {
             color: rgba(45,212,191,0.7);
@@ -1050,6 +1053,8 @@
             padding: 6px 10px;
             margin-bottom: 8px;
             font-size: 0.72em;
+            min-width: 0;
+            max-width: 100%;
         }
         .chat-reply-preview.active { display: flex; }
         .chat-reply-preview-text {
@@ -1057,6 +1062,8 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            min-width: 0;
+            flex: 1;
         }
         .chat-reply-preview-text .quote-name {
             color: #2dd4bf;
@@ -1101,10 +1108,18 @@
             display: none;
             gap: 8px;
             align-items: flex-end;
+            min-width: 0;
+            max-width: 100%;
         }
         .chat-input-row.active { display: flex; }
+        .chat-input-col {
+            flex: 1;
+            min-width: 0;
+        }
         .chat-input-row textarea {
             flex: 1;
+            width: 100%;
+            min-width: 0;
             resize: none;
             min-height: 40px;
             max-height: 90px;
@@ -1145,6 +1160,9 @@
             color: rgba(255,255,255,0.35);
             font-family: monospace;
             margin-bottom: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         body.light .chat-blob.chat-open {
@@ -1851,21 +1869,54 @@
 
     let provider, signer, account, marketplaceContract, oldMarketplaceContract, currentNet = null, sellMode = "single";
     let allListingItems = [];
+    let readProvider = null;
+    const readProviderCache = {};
 
-    function resolveUri(uri) {
-        if (!uri) return null;
-        if (uri.startsWith("ipfs://")) return "https://ipfs.io/ipfs/" + uri.slice(7);
-        if (uri.startsWith("http://")) return "https://" + uri.slice(7);
-        return uri;
+    function getReadProvider(netKey) {
+        if (readProviderCache[netKey]) return readProviderCache[netKey];
+        const config = NETWORKS[netKey];
+        const url = config && config.rpcUrls && config.rpcUrls[0];
+        if (!url) return provider;
+        const rp = new ethers.JsonRpcProvider(url);
+        readProviderCache[netKey] = rp;
+        return rp;
     }
 
-    async function fetchNftMetadata(nftContract, tokenId) {
+    async function callWithFallback(fn, fallbackFn) {
         try {
-            const nft = new ethers.Contract(nftContract, ERC721_ABI, provider);
-            let uri = await nft.tokenURI(tokenId);
-            uri = resolveUri(uri);
-            if (!uri) return { name: null, image: null, animationUrl: null, description: null };
-            let meta;
+            return await fn();
+        } catch (err) {
+            if (!fallbackFn) throw err;
+            return await fallbackFn();
+        }
+    }
+
+    function resolveUri(uri) {
+    if (!uri) return null;
+    if (uri.startsWith("ipfs://")) return "https://gateway.pinata.cloud/ipfs/" + uri.slice(7);
+    if (uri.startsWith("http://")) return "https://" + uri.slice(7);
+    if (uri.includes("ipfs.io/ipfs/")) return uri.replace("ipfs.io/ipfs/", "gateway.pinata.cloud/ipfs/");
+    return uri;
+}
+
+    function proxiedImageUrl(uri) {
+        if (!uri) return null;
+        if (uri.startsWith("data:")) return uri;
+        return "/api/image-proxy?url=" + encodeURIComponent(uri);
+    }
+
+    async function fetchNftMetadata(nftContract, tokenId, netKey) {
+    try {
+        const nftWallet = new ethers.Contract(nftContract, ERC721_ABI, provider);
+        const nftRead = new ethers.Contract(nftContract, ERC721_ABI, getReadProvider(netKey));
+        let uri = await callWithFallback(
+            () => nftRead.tokenURI(tokenId),
+            () => nftWallet.tokenURI(tokenId)
+        );
+        uri = resolveUri(uri);
+        console.log("nftContract:", nftContract, "tokenId:", tokenId, "→ metadata URL:", uri);
+        if (!uri) return { name: null, image: null, animationUrl: null, description: null };
+        let meta;
             if (uri.startsWith("data:application/json;base64,")) {
                 meta = JSON.parse(atob(uri.split(",")[1]));
             } else {
@@ -2018,7 +2069,6 @@
                 <div class="listing-img-wrap">
                     <div class="listing-img-skeleton" id="img-skel-${item.key}"></div>
                     <img class="listing-img" id="img-${item.key}" style="display:none;" alt="NFT" />
-                    <iframe class="listing-frame" id="frame-${item.key}" style="display:none;" sandbox="allow-scripts" scrolling="no"></iframe>
                     <div class="qty-badge">${qty}</div>
                 </div>
                 <div class="listing-body">
@@ -2039,28 +2089,24 @@
     }
 
     function attachCardBehaviors(item, activeNet, activeProvider, token) {
-        fetchNftMetadata(item.nftContract, item.tokenId).then(meta => {
-            const skel = document.getElementById("img-skel-" + item.key);
+    fetchNftMetadata(item.nftContract, item.tokenId, activeNet).then(meta => {
+        console.log("META for", item.key, ":", meta);
+        const skel = document.getElementById("img-skel-" + item.key);
             const imgEl = document.getElementById("img-" + item.key);
-            const frameEl = document.getElementById("frame-" + item.key);
-            const wrapEl = frameEl ? frameEl.closest(".listing-img-wrap") : null;
+            const wrapEl = imgEl ? imgEl.closest(".listing-img-wrap") : null;
             if (!skel) return;
-            if (meta.animationUrl) {
-                frameEl.src = meta.animationUrl;
-                frameEl.onload = () => {
+            if (meta.image) {
+                imgEl.src = proxiedImageUrl(meta.image);
+                imgEl.onload = () => {
                     skel.style.display = "none";
-                    frameEl.style.display = "block";
-                    if (wrapEl) {
+                    imgEl.style.display = "block";
+                    if (meta.animationUrl && wrapEl && !wrapEl.querySelector(".live-badge")) {
                         const badge = document.createElement("div");
                         badge.className = "live-badge";
                         badge.innerText = "LIVE";
                         wrapEl.appendChild(badge);
                     }
                 };
-                frameEl.onerror = () => { skel.innerText = "🖼️"; };
-            } else if (meta.image) {
-                imgEl.src = meta.image;
-                imgEl.onload = () => { skel.style.display = "none"; imgEl.style.display = "block"; };
                 imgEl.onerror = () => { skel.innerText = "🖼️"; };
             } else {
                 skel.innerText = "🖼️";
@@ -2072,7 +2118,7 @@
                 if (descEl) { descEl.innerText = meta.description; descEl.style.display = "block"; }
             }
         });
-        fetchTotalSupply(item.nftContract).then(total => {
+        fetchTotalSupply(item.nftContract, activeNet).then(total => {
             const el = document.getElementById("info-supply-" + item.key);
             if (el) el.innerText = total || "Unknown";
         });
@@ -2148,10 +2194,10 @@
             statusEl.innerText = getFriendlyError(err);
         }
     }
-    async function fetchTotalSupply(nftContract) {
+    async function fetchTotalSupply(nftContract, netKey) {
         try {
-            const c = new ethers.Contract(nftContract, ["function totalSupply() view returns (uint256)"], provider);
-            const total = await c.totalSupply();
+            const cRead = new ethers.Contract(nftContract, ["function totalSupply() view returns (uint256)"], getReadProvider(netKey));
+            const total = await cRead.totalSupply();
             return total.toString();
         } catch (err) {
             return null;
@@ -2307,7 +2353,7 @@
                 <div class="chat-footer">
                     <button class="chat-connect-btn" id="chatConnectBtn" onclick="chatConnectWallet(event)">Connect Wallet to Chat</button>
                     <div class="chat-input-row" id="chatInputRow">
-                        <div style="flex:1;">
+                        <div class="chat-input-col">
                             <div class="chat-connected-as" id="chatConnectedAs"></div>
                             <div class="chat-reply-preview" id="chatReplyPreview">
                                 <span class="chat-reply-preview-text"><span class="quote-name" id="chatReplyPreviewName"></span><span id="chatReplyPreviewText"></span></span>
