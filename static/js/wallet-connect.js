@@ -11,16 +11,11 @@
 
     let wcProviderInstance = null;
 
-    // These polyfills must exist before the WalletConnect bundle is ever evaluated,
-    // so they are applied immediately when this file loads (not lazily on click).
-    if (typeof window.process === "undefined") {
-        window.process = { env: {}, version: "", browser: true, nextTick: (fn, ...args) => setTimeout(() => fn(...args), 0) };
-    }
+    // Real process/Buffer polyfills are loaded via <script> tags in base.html,
+    // before this file. We just make sure window.global points at window,
+    // since some bundles look for that specifically.
     if (typeof window.global === "undefined") {
         window.global = window;
-    }
-    if (typeof window.Buffer === "undefined") {
-        window.Buffer = { isBuffer: () => false };
     }
 
     async function getWalletConnectProvider() {
