@@ -11,18 +11,20 @@
 
     let wcProviderInstance = null;
 
-    function ensureNodePolyfills() {
-        if (typeof window.process === "undefined") {
-            window.process = { env: {} };
-        }
-        if (typeof window.global === "undefined") {
-            window.global = window;
-        }
+    // These polyfills must exist before the WalletConnect bundle is ever evaluated,
+    // so they are applied immediately when this file loads (not lazily on click).
+    if (typeof window.process === "undefined") {
+        window.process = { env: {}, version: "", browser: true, nextTick: (fn, ...args) => setTimeout(() => fn(...args), 0) };
+    }
+    if (typeof window.global === "undefined") {
+        window.global = window;
+    }
+    if (typeof window.Buffer === "undefined") {
+        window.Buffer = { isBuffer: () => false };
     }
 
     async function getWalletConnectProvider() {
         if (wcProviderInstance) return wcProviderInstance;
-        ensureNodePolyfills();
         if (typeof window.EthereumProvider === "undefined") {
             await new Promise((resolve, reject) => {
                 const script = document.createElement("script");
