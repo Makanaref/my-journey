@@ -217,29 +217,41 @@
         Object.entries(NETWORKS).filter(([key]) => ["lamina1","nexus","ink","plume","zetachain","optimism","base"].includes(key))
     );
 
-    async function connectWallet() {
-        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-        try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-            document.getElementById("connect-section").style.display = "none";
-            document.getElementById("wallet-info").style.display = "block";
-            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
-            document.getElementById("network-card").style.display = "block";
-        } catch (err) { alert("Connection failed: " + err.message); }
-    }
+    let activeEip1193 = null;
+
+async function connectWallet() {
+    activeEip1193 = await window.SGMWallet.selectProvider();
+    if (!activeEip1193) return;
+    await finishConnect(activeEip1193);
+}
+
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+    activeEip1193 = wcProvider;
+    await finishConnect(wcProvider);
+});
+
+async function finishConnect(eip1193) {
+    try {
+        provider = new ethers.BrowserProvider(eip1193);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        document.getElementById("connect-section").style.display = "none";
+        document.getElementById("wallet-info").style.display = "block";
+        document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+        document.getElementById("network-card").style.display = "block";
+    } catch (err) { alert("Connection failed: " + err.message); }
+}
 
     async function switchNetwork(net) {
         const config = networks[net];
         if (!CONTRACT_ADDRESSES[net]) { alert("This network isn't live yet, coming soon!"); return; }
         try {
-            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
+            await activeEip1193.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
             currentNet = net;
             Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
             document.getElementById("net-"+net).classList.add("active");
-            provider = new ethers.BrowserProvider(window.ethereum);
+            provider = new ethers.BrowserProvider(activeEip1193);
             signer = await provider.getSigner();
             account = await signer.getAddress();
             contract = new ethers.Contract(CONTRACT_ADDRESSES[net], CONTRACT_ABI, signer);
