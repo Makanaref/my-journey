@@ -11,8 +11,18 @@
 
     let wcProviderInstance = null;
 
+    function ensureNodePolyfills() {
+        if (typeof window.process === "undefined") {
+            window.process = { env: {} };
+        }
+        if (typeof window.global === "undefined") {
+            window.global = window;
+        }
+    }
+
     async function getWalletConnectProvider() {
         if (wcProviderInstance) return wcProviderInstance;
+        ensureNodePolyfills();
         if (typeof window.EthereumProvider === "undefined") {
             await new Promise((resolve, reject) => {
                 const script = document.createElement("script");
