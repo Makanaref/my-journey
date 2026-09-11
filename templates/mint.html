@@ -324,38 +324,50 @@
         optimism: { chainIdHex: "0x" + (10).toString(16), chainName: "Optimism", rpcUrls: ["https://mainnet.optimism.io"], nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://optimistic.etherscan.io"] }
     };
 
-    async function connectWallet() {
-        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-        try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-            document.getElementById("connect-section").style.display = "none";
-            document.getElementById("wallet-info").style.display = "block";
-            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
-            document.getElementById("network-card").style.display = "block";
-        } catch (err) { alert("Connection failed: " + err.message); }
-    }
+    let activeEip1193 = null;
+
+async function connectWallet() {
+    activeEip1193 = await window.SGMWallet.selectProvider();
+    if (!activeEip1193) return;
+    await finishConnect(activeEip1193);
+}
+
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+    activeEip1193 = wcProvider;
+    await finishConnect(wcProvider);
+});
+
+async function finishConnect(eip1193) {
+    try {
+        provider = new ethers.BrowserProvider(eip1193);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        document.getElementById("connect-section").style.display = "none";
+        document.getElementById("wallet-info").style.display = "block";
+        document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+        document.getElementById("network-card").style.display = "block";
+    } catch (err) { alert("Connection failed: " + err.message); }
+}
 
     async function switchNetwork(net) {
-        const config = networks[net];
-        try {
-            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
-            currentNet = net;
-            Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
-            document.getElementById("net-"+net).classList.add("active");
-            provider = new ethers.BrowserProvider(window.ethereum);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-            factoryContract = new ethers.Contract(FACTORY_ADDRESSES[net], FACTORY_ABI, signer);
-            document.getElementById("create-panel").style.display = "block";
-            document.getElementById("mytokens-panel").style.display = "block";
-            document.getElementById("manage-panel").style.display = "none";
-            document.getElementById("create-status").innerText = "";
-            await loadMyTokens();
-        } catch (err) { alert("Network switch failed: " + err.message); }
-    }
+    const config = networks[net];
+    try {
+        await activeEip1193.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
+        currentNet = net;
+        Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
+        document.getElementById("net-"+net).classList.add("active");
+        provider = new ethers.BrowserProvider(activeEip1193);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        factoryContract = new ethers.Contract(FACTORY_ADDRESSES[net], FACTORY_ABI, signer);
+        document.getElementById("create-panel").style.display = "block";
+        document.getElementById("mytokens-panel").style.display = "block";
+        document.getElementById("manage-panel").style.display = "none";
+        document.getElementById("create-status").innerText = "";
+        await loadMyTokens();
+    } catch (err) { alert("Network switch failed: " + err.message); }
+}
 
     async function createToken() {
         const name = document.getElementById("tok-name").value.trim();
