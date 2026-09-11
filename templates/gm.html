@@ -487,20 +487,32 @@
     // networks object now provided by /static/js/dapp-common.js (as NETWORKS)
     const networks = NETWORKS;
 
-    async function connectWallet() {
-        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-        try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-            claimPendingRefForAccount();
-            document.getElementById("connect-section").style.display = "none";
-            document.getElementById("wallet-info").style.display = "block";
-            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
-            document.getElementById("network-card").style.display = "block";
-        } catch (err) { alert("Connection failed: " + err.message); }
-    }
+    let activeEip1193 = null;
+
+async function connectWallet() {
+    activeEip1193 = await window.SGMWallet.selectProvider();
+    if (!activeEip1193) return;
+    await finishConnect(activeEip1193);
+}
+
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+    activeEip1193 = wcProvider;
+    await finishConnect(wcProvider);
+});
+
+async function finishConnect(eip1193) {
+    try {
+        provider = new ethers.BrowserProvider(eip1193);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        claimPendingRefForAccount();
+        document.getElementById("connect-section").style.display = "none";
+        document.getElementById("wallet-info").style.display = "block";
+        document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+        document.getElementById("network-card").style.display = "block";
+    } catch (err) { alert("Connection failed: " + err.message); }
+}
 
     function claimPendingRefForAccount() {
         const pending = localStorage.getItem("sgm_ref_pending");
@@ -514,34 +526,32 @@
     let leaderboardLoadedForNet = null;
 
     async function switchNetwork(net) {
-        const config = networks[net];
-        try {
-            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
-            currentNet = net;
-            Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
-            document.getElementById("net-"+net).classList.add("active");
-            provider = new ethers.BrowserProvider(window.ethereum);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-            contract = new ethers.Contract(CONTRACT_ADDRESSES[net], CONTRACT_ABI, signer);
-            document.getElementById("gm-tabs").style.display = "flex";
-            document.getElementById("gm-card").style.display = "block";
-            document.getElementById("leaderboard-card").style.display = "block";
-            document.getElementById("tx-status").innerText = "";
-            switchMode("gm");
+    const config = networks[net];
+    try {
+        await activeEip1193.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
+        currentNet = net;
+        Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
+        document.getElementById("net-"+net).classList.add("active");
+        provider = new ethers.BrowserProvider(activeEip1193);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        contract = new ethers.Contract(CONTRACT_ADDRESSES[net], CONTRACT_ABI, signer);
+        document.getElementById("gm-tabs").style.display = "flex";
+        document.getElementById("gm-card").style.display = "block";
+        document.getElementById("leaderboard-card").style.display = "block";
+        document.getElementById("tx-status").innerText = "";
+        switchMode("gm");
 
-            // Reset leaderboard to closed/unloaded state on network switch
-            leaderboardLoadedForNet = null;
-            document.getElementById("lb-wrap").classList.remove("open");
-            document.getElementById("lb-toggle-btn").classList.remove("open");
-            document.getElementById("leaderboard-list").innerHTML = "<div class='lb-loading'>Tap to load leaderboard…</div>";
-            document.getElementById("lb-pagination").style.display = "none";
-            updateLamps(0);
+        leaderboardLoadedForNet = null;
+        document.getElementById("lb-wrap").classList.remove("open");
+        document.getElementById("lb-toggle-btn").classList.remove("open");
+        document.getElementById("leaderboard-list").innerHTML = "<div class='lb-loading'>Tap to load leaderboard…</div>";
+        document.getElementById("lb-pagination").style.display = "none";
+        updateLamps(0);
 
-           
-            await loadStats();
-        } catch (err) { alert("Network switch failed: " + err.message); }
-    }
+        await loadStats();
+    } catch (err) { alert("Network switch failed: " + err.message); }
+}
 
     function switchMode(mode) {
         document.getElementById("tab-btn-gm").classList.toggle("active", mode === "gm");
