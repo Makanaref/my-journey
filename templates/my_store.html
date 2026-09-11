@@ -118,39 +118,51 @@
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
 <script>
-    async function connectAndScanAll() {
-        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-        try {
-            const tempProvider = new ethers.BrowserProvider(window.ethereum);
-            await tempProvider.send("eth_requestAccounts", []);
-            const signer = await tempProvider.getSigner();
-            const account = await signer.getAddress();
+    let activeEip1193 = null;
 
-            document.getElementById("connect-section").style.display = "none";
-            document.getElementById("wallet-info").style.display = "block";
-            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
-            document.getElementById("scan-area").style.display = "block";
+async function connectAndScanAll() {
+    activeEip1193 = await window.SGMWallet.selectProvider();
+    if (!activeEip1193) return;
+    await finishScanConnect(activeEip1193);
+}
 
-            const res = await fetch("/api/scan-wallet?account=" + account);
-            const data = await res.json();
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+    activeEip1193 = wcProvider;
+    await finishScanConnect(wcProvider);
+});
 
-            document.getElementById("scan-spinner").style.display = "none";
-            document.getElementById("scan-status").innerText = "";
+async function finishScanConnect(eip1193) {
+    try {
+        const tempProvider = new ethers.BrowserProvider(eip1193);
+        await tempProvider.send("eth_requestAccounts", []);
+        const signer = await tempProvider.getSigner();
+        const account = await signer.getAddress();
 
-            if (!res.ok) {
-                document.getElementById("scan-status").innerText = "Failed to scan: " + (data.error || "unknown error");
-                return;
-            }
+        document.getElementById("connect-section").style.display = "none";
+        document.getElementById("wallet-info").style.display = "block";
+        document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+        document.getElementById("scan-area").style.display = "block";
 
-            renderNfts(data.nfts || []);
-            renderTokens(data.tokens || []);
-            renderRanks(data.ranks || []);
+        const res = await fetch("/api/scan-wallet?account=" + account);
+        const data = await res.json();
 
-            document.getElementById("tab-nav").style.display = "flex";
-        } catch (err) {
-            alert("Connection failed: " + err.message);
+        document.getElementById("scan-spinner").style.display = "none";
+        document.getElementById("scan-status").innerText = "";
+
+        if (!res.ok) {
+            document.getElementById("scan-status").innerText = "Failed to scan: " + (data.error || "unknown error");
+            return;
         }
+
+        renderNfts(data.nfts || []);
+        renderTokens(data.tokens || []);
+        renderRanks(data.ranks || []);
+
+        document.getElementById("tab-nav").style.display = "flex";
+    } catch (err) {
+        alert("Connection failed: " + err.message);
     }
+}
 
     function switchStoreTab(tab) {
         ["nft", "token", "rank"].forEach(t => {
