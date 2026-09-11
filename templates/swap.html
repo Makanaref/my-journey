@@ -1458,27 +1458,27 @@
                     return;
                 }
                 if (activeEip1193) {
-                    activeEip1193.request
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: n.chainId }],
-                    }).catch((error) => {
-                        if (error.code === 4902) {
-                            window.ethereum.request({
-                                method: 'wallet_addEthereumChain',
-                                params: [{
-                                    chainId: n.chainId,
-                                    chainName: n.name,
-                                    rpcUrls: [n.rpc],
-                                    nativeCurrency: n.nativeCurrency,
-                                    blockExplorerUrls: [`https://${n.name.toLowerCase()}.explorer.url`],
-                                }],
-                            }).catch((err) => {
-                                statusMsg.innerText = '❌ Failed to add network: ' + err.message;
-                                statusMsg.className = 'status-msg error';
-                            });
-                        }
-                    });
-                }
+    activeEip1193.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: n.chainId }],
+    }).catch((error) => {
+        if (error.code === 4902) {
+            activeEip1193.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                    chainId: n.chainId,
+                    chainName: n.name,
+                    rpcUrls: [n.rpc],
+                    nativeCurrency: n.nativeCurrency,
+                    blockExplorerUrls: [`https://${n.name.toLowerCase()}.explorer.url`],
+                }],
+            }).catch((err) => {
+                statusMsg.innerText = '❌ Failed to add network: ' + err.message;
+                statusMsg.className = 'status-msg error';
+            });
+        }
+    });
+}
             };
             networkList.appendChild(btn);
         });
