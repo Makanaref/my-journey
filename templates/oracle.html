@@ -251,41 +251,53 @@
         Object.entries(NETWORKS).filter(([key]) => ["lamina1","nexus","ink","avax","plume","zetachain","optimism"].includes(key))
     );
 
-    async function connectWallet() {
-        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-        try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-            document.getElementById("connect-section").style.display = "none";
-            document.getElementById("wallet-info").style.display = "block";
-            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
-            document.getElementById("network-section").style.display = "block";
-        } catch (err) { alert("Failed: " + err.message); }
-    }
+    let activeEip1193 = null;
+
+async function connectWallet() {
+    activeEip1193 = await window.SGMWallet.selectProvider();
+    if (!activeEip1193) return;
+    await finishConnect(activeEip1193);
+}
+
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+    activeEip1193 = wcProvider;
+    await finishConnect(wcProvider);
+});
+
+async function finishConnect(eip1193) {
+    try {
+        provider = new ethers.BrowserProvider(eip1193);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        document.getElementById("connect-section").style.display = "none";
+        document.getElementById("wallet-info").style.display = "block";
+        document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+        document.getElementById("network-section").style.display = "block";
+    } catch (err) { alert("Failed: " + err.message); }
+}
 
     async function switchNetwork(net) {
-        const config = networks[net];
-        try {
-            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
-            ["lamina1","nexus","ink","avax","plume","zetachain","optimism"].forEach(n => document.getElementById("net-" + n).classList.remove("active"));
-            document.getElementById("net-" + net).classList.add("active");
-            provider = new ethers.BrowserProvider(window.ethereum);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-            contract = new ethers.Contract(CONTRACTS[net], ABI, signer);
-          btcContract = new ethers.Contract(BTC_CONTRACTS[net], BTC_ABI, signer);
-            currentNet = net;
-            document.getElementById("main-section").style.display = "block";
-            if (account.toLowerCase() === ADMIN.toLowerCase()) {
-                document.getElementById("admin-section").style.display = "block";
-            }
-            await loadQuestion();
-            await loadMyStats();
-            await loadLeaderboard();
-        } catch (err) { alert("Network switch failed: " + err.message); }
-    }
+    const config = networks[net];
+    try {
+        await activeEip1193.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
+        ["lamina1","nexus","ink","avax","plume","zetachain","optimism"].forEach(n => document.getElementById("net-" + n).classList.remove("active"));
+        document.getElementById("net-" + net).classList.add("active");
+        provider = new ethers.BrowserProvider(activeEip1193);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        contract = new ethers.Contract(CONTRACTS[net], ABI, signer);
+        btcContract = new ethers.Contract(BTC_CONTRACTS[net], BTC_ABI, signer);
+        currentNet = net;
+        document.getElementById("main-section").style.display = "block";
+        if (account.toLowerCase() === ADMIN.toLowerCase()) {
+            document.getElementById("admin-section").style.display = "block";
+        }
+        await loadQuestion();
+        await loadMyStats();
+        await loadLeaderboard();
+    } catch (err) { alert("Network switch failed: " + err.message); }
+}
 
     async function loadQuestion() {
         try {
