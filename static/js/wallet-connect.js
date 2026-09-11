@@ -23,7 +23,7 @@
 
     async function getWalletConnectProvider() {
         if (wcProviderInstance) return wcProviderInstance;
-        if (typeof window.EthereumProvider === "undefined") {
+        if (typeof window.EthereumProvider === "undefined" && typeof window.WalletConnectEthereumProvider === "undefined") {
             await new Promise((resolve, reject) => {
                 const script = document.createElement("script");
                 script.src = "https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.13.3/dist/index.umd.js";
@@ -32,7 +32,18 @@
                 document.head.appendChild(script);
             });
         }
-        wcProviderInstance = await window.EthereumProvider.init({
+        const EthereumProviderClass =
+            window.EthereumProvider ||
+            window.WalletConnectEthereumProvider ||
+            (window.EthereumProvider && window.EthereumProvider.EthereumProvider);
+
+        if (!EthereumProviderClass || typeof EthereumProviderClass.init !== "function") {
+            console.log("WalletConnect bundle loaded but no known global was found. Available globals containing 'Ethereum' or 'WalletConnect':",
+                Object.keys(window).filter(k => /ethereum|walletconnect/i.test(k)));
+            throw new Error("Could not locate EthereumProvider on window after loading the script.");
+        }
+
+        wcProviderInstance = await EthereumProviderClass.init({
             projectId: WALLETCONNECT_PROJECT_ID,
             chains: [1],
             showQrModal: true,
