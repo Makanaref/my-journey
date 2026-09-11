@@ -738,6 +738,8 @@
                 transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                 z-index: 99;
                 overflow-y: auto;
+                overflow-x: hidden;
+                box-sizing: border-box;
                 border-left: 1px solid rgba(233, 69, 96, 0.06);
             }
             nav .links.open { transform: translateX(0); }
@@ -771,6 +773,8 @@
                 padding: 8px 4px;
                 margin-top: 4px;
                 width: 100%;
+                box-sizing: border-box;
+                overflow-x: hidden;
                 opacity: 1;
                 visibility: visible;
                 transform: none;
@@ -790,6 +794,9 @@
                 font-size: 0.9em;
                 border-radius: 12px;
                 transition-delay: 0s !important;
+                white-space: normal;
+                width: 100%;
+                box-sizing: border-box;
             }
             .dropdown-col .dropdown-category {
                 margin-top: 6px;
