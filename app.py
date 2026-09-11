@@ -37,8 +37,8 @@ csp = {
     'worker-src': ["'self'", "blob:"],
     'img-src': ["'self'", "data:", "blob:", "https:"],
     'font-src': ["'self'", "https:", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-    'connect-src': ["'self'", "https:", "https://cloudflareinsights.com"],
-    'frame-src': ["'self'", "https://transferto.xyz", "https://li.fi", "https://jumper.exchange"],
+    'connect-src': ["'self'", "https:", "wss:", "https://cloudflareinsights.com"],
+    'frame-src': ["'self'", "https://transferto.xyz", "https://li.fi", "https://jumper.exchange", "https://verify.walletconnect.com", "https://verify.walletconnect.org"],
 }
 Talisman(app, content_security_policy=csp, force_https=False)
 

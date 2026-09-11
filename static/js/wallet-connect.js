@@ -11,11 +11,28 @@
 
     let wcProviderInstance = null;
 
+    if (typeof window.process === "undefined") {
+        window.process = { env: {}, version: "", browser: true, nextTick: (fn, ...args) => setTimeout(() => fn(...args), 0) };
+    }
+    if (typeof window.global === "undefined") {
+        window.global = window;
+    }
+    if (typeof window.Buffer === "undefined") {
+        window.Buffer = { isBuffer: () => false };
+    }
+
     async function getWalletConnectProvider() {
         if (wcProviderInstance) return wcProviderInstance;
-        const mod = await import("https://esm.sh/@walletconnect/ethereum-provider@2.13.3?bundle");
-        const EthereumProvider = mod.EthereumProvider || mod.default;
-        wcProviderInstance = await EthereumProvider.init({
+        if (typeof window.EthereumProvider === "undefined") {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+                script.src = "https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.13.3/dist/index.umd.js";
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+        wcProviderInstance = await window.EthereumProvider.init({
             projectId: WALLETCONNECT_PROJECT_ID,
             chains: [1],
             showQrModal: true,
