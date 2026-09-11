@@ -745,30 +745,42 @@
         });
     }
 
-    async function connectWallet() {
-        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-        try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            await window.ethereum.request({
-                method: "wallet_addEthereumChain",
-                params: [{
-                    chainId: BASE_CHAIN_ID,
-                    chainName: "Base",
-                    rpcUrls: ["https://mainnet.base.org"],
-                    nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-                    blockExplorerUrls: ["https://basescan.org"]
-                }]
-            });
-            provider = new ethers.BrowserProvider(window.ethereum);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-            document.getElementById("connect-section").style.display = "none";
-            document.getElementById("wallet-info").style.display = "block";
-            document.getElementById("wallet-addr").innerText = account.slice(0,6)+"..."+account.slice(-4);
-            document.getElementById("main-section").style.display = "block";
-        } catch (err) { alert("Failed: "+err.message); }
-    }
+    let activeEip1193 = null;
+
+async function connectWallet() {
+    activeEip1193 = await window.SGMWallet.selectProvider();
+    if (!activeEip1193) return;
+    await finishConnect(activeEip1193);
+}
+
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+    activeEip1193 = wcProvider;
+    await finishConnect(wcProvider);
+});
+
+async function finishConnect(eip1193) {
+    try {
+        provider = new ethers.BrowserProvider(eip1193);
+        await provider.send("eth_requestAccounts", []);
+        await eip1193.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+                chainId: BASE_CHAIN_ID,
+                chainName: "Base",
+                rpcUrls: ["https://mainnet.base.org"],
+                nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+                blockExplorerUrls: ["https://basescan.org"]
+            }]
+        });
+        provider = new ethers.BrowserProvider(eip1193);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        document.getElementById("connect-section").style.display = "none";
+        document.getElementById("wallet-info").style.display = "block";
+        document.getElementById("wallet-addr").innerText = account.slice(0,6)+"..."+account.slice(-4);
+        document.getElementById("main-section").style.display = "block";
+    } catch (err) { alert("Failed: "+err.message); }
+}
 
     // ===== INTERACT =====
     async function loadToken() {
@@ -1218,7 +1230,7 @@ document.getElementById("deploy-address").innerText = tokenAddress;
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        if (window.ethereum) { connectWallet(); }
+    const area = document.getElementById('upload-area');
         const area = document.getElementById('upload-area');
         if (area) {
             area.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
