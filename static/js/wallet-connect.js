@@ -11,25 +11,11 @@
 
     let wcProviderInstance = null;
 
-    // Real process/Buffer polyfills are loaded via <script> tags in base.html,
-    // before this file. We just make sure window.global points at window,
-    // since some bundles look for that specifically.
-    if (typeof window.global === "undefined") {
-        window.global = window;
-    }
-
     async function getWalletConnectProvider() {
         if (wcProviderInstance) return wcProviderInstance;
-        if (typeof window.EthereumProvider === "undefined") {
-            await new Promise((resolve, reject) => {
-                const script = document.createElement("script");
-                script.src = "https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.13.3/dist/index.umd.js";
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        }
-        wcProviderInstance = await window.EthereumProvider.init({
+        const mod = await import("https://esm.sh/@walletconnect/ethereum-provider@2.13.3?bundle");
+        const EthereumProvider = mod.EthereumProvider || mod.default;
+        wcProviderInstance = await EthereumProvider.init({
             projectId: WALLETCONNECT_PROJECT_ID,
             chains: [1],
             showQrModal: true,
