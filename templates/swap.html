@@ -1417,13 +1417,8 @@
         renderNetworks();
         setupChainChangeListener();
 
-        if (window.ethereum && window.ethereum.selectedAddress) {
-    activeEip1193 = window.ethereum;
-    await finishConnect(window.ethereum);
-} else {
-    selectNetwork('8453');
-    updateChainIndicator('8453');
-}
+        selectNetwork('8453');
+        updateChainIndicator('8453');
 
         checkMemberStatus();
         renderTokenPicker();
