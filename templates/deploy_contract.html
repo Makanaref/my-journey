@@ -194,34 +194,46 @@
         }).join("");
     }
 
-    async function connectWallet() {
-        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-        try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-            document.getElementById("connect-section").style.display = "none";
-            document.getElementById("wallet-info").style.display = "block";
-            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
-            document.getElementById("network-section").style.display = "block";
-            buildNetworkGrid();
-        } catch (err) { alert("Failed: " + err.message); }
-    }
+    let activeEip1193 = null;
+
+async function connectWallet() {
+    activeEip1193 = await window.SGMWallet.selectProvider();
+    if (!activeEip1193) return;
+    await finishConnect(activeEip1193);
+}
+
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+    activeEip1193 = wcProvider;
+    await finishConnect(wcProvider);
+});
+
+async function finishConnect(eip1193) {
+    try {
+        provider = new ethers.BrowserProvider(eip1193);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        document.getElementById("connect-section").style.display = "none";
+        document.getElementById("wallet-info").style.display = "block";
+        document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+        document.getElementById("network-section").style.display = "block";
+        buildNetworkGrid();
+    } catch (err) { alert("Failed: " + err.message); }
+}
 
     async function switchNetwork(net) {
-        const config = NETWORKS[net];
-        try {
-            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
-            Object.keys(NETWORKS).forEach(n => document.getElementById("net-" + n).classList.remove("active"));
-            document.getElementById("net-" + net).classList.add("active");
-            provider = new ethers.BrowserProvider(window.ethereum);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-            currentNet = net;
-            document.getElementById("main-section").style.display = "block";
-        } catch (err) { alert("Network switch failed: " + err.message); }
-    }
+    const config = NETWORKS[net];
+    try {
+        await activeEip1193.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
+        Object.keys(NETWORKS).forEach(n => document.getElementById("net-" + n).classList.remove("active"));
+        document.getElementById("net-" + net).classList.add("active");
+        provider = new ethers.BrowserProvider(activeEip1193);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        currentNet = net;
+        document.getElementById("main-section").style.display = "block";
+    } catch (err) { alert("Network switch failed: " + err.message); }
+}
 
     function copyResultValue(elId, btn) {
         const text = document.getElementById(elId).innerText;
