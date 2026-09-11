@@ -287,7 +287,8 @@
 <script src="/static/js/dapp-common.js"></script>
 <script>
     let provider, signer, account, factoryContract, collectionContract, currentNet, currentCollectionAddress;
-    let uploadedImageUrl = null;
+let uploadedImageUrl = null;
+let activeEip1193 = null;
 
     const OLD_FACTORY_NETWORKS = ["robinhood"];
 
@@ -398,26 +399,66 @@
     }
 
     async function connectWallet() {
-        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-        try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-            document.getElementById("wallet-info").style.display = "block";
-            document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+    activeEip1193 = await window.SGMWallet.selectProvider();
+    if (!activeEip1193) return;
+    await finishConnect(activeEip1193);
+}
 
-            const urlParams = getUrlParams();
-            if (urlParams.net && urlParams.collection && networks[urlParams.net]) {
-                document.getElementById("connect-section").style.display = "none";
-                document.getElementById("mv-connect-wrap").style.display = "none";
-                await switchNetwork(urlParams.net);
-            } else {
-                document.getElementById("connect-section").style.display = "none";
-                document.getElementById("network-card").style.display = "block";
-            }
-        } catch (err) { alert("Connection failed: " + err.message); }
-    }
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+    activeEip1193 = wcProvider;
+    await finishConnect(wcProvider);
+});
+
+async function finishConnect(eip1193) {
+    try {
+        provider = new ethers.BrowserProvider(eip1193);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        document.getElementById("wallet-info").style.display = "block";
+        document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+
+        const urlParams = getUrlParams();
+        if (urlParams.net && urlParams.collection && networks[urlParams.net]) {
+            document.getElementById("connect-section").style.display = "none";
+            document.getElementById("mv-connect-wrap").style.display = "none";
+            await switchNetwork(urlParams.net);
+        } else {
+            document.getElementById("connect-section").style.display = "none";
+            document.getElementById("network-card").style.display = "block";
+        }
+    } catch (err) { alert("Connection failed: " + err.message); }
+}async function connectWallet() {
+    activeEip1193 = await window.SGMWallet.selectProvider();
+    if (!activeEip1193) return;
+    await finishConnect(activeEip1193);
+}
+
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+    activeEip1193 = wcProvider;
+    await finishConnect(wcProvider);
+});
+
+async function finishConnect(eip1193) {
+    try {
+        provider = new ethers.BrowserProvider(eip1193);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        document.getElementById("wallet-info").style.display = "block";
+        document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
+
+        const urlParams = getUrlParams();
+        if (urlParams.net && urlParams.collection && networks[urlParams.net]) {
+            document.getElementById("connect-section").style.display = "none";
+            document.getElementById("mv-connect-wrap").style.display = "none";
+            await switchNetwork(urlParams.net);
+        } else {
+            document.getElementById("connect-section").style.display = "none";
+            document.getElementById("network-card").style.display = "block";
+        }
+    } catch (err) { alert("Connection failed: " + err.message); }
+}
 
     function renderMintMedia(prefix, meta) {
         const img = document.getElementById(prefix + "-image");
@@ -519,35 +560,35 @@ if (errMsg.includes("max fee per gas less than block base fee") || errMsg.includ
         }
     }
 
-    async function switchNetwork(net) {
-        if (!FACTORY_ADDRESSES[net]) {
-            alert("This network isn't available for Mint NFT yet.");
-            return;
-        }
-        const config = networks[net];
-        try {
-            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
-            currentNet = net;
-            Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
-            document.getElementById("net-"+net).classList.add("active");
-            provider = new ethers.BrowserProvider(window.ethereum);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-            factoryContract = new ethers.Contract(FACTORY_ADDRESSES[net], FACTORY_ABI, signer);
-
-            const urlParams = getUrlParams();
-            if (urlParams.net && urlParams.collection) {
-                await loadMintView(urlParams.collection, urlParams.meta);
-            } else {
-                document.getElementById("create-panel").style.display = "block";
-                document.getElementById("mycollections-panel").style.display = "block";
-                document.getElementById("manage-panel").style.display = "none";
-                document.getElementById("create-nft-status").innerText = "";
-                document.getElementById("share-link-box").style.display = "none";
-                await loadMyCollections();
-            }
-        } catch (err) { alert("Network switch failed: " + err.message); }
+   async function switchNetwork(net) {
+    if (!FACTORY_ADDRESSES[net]) {
+        alert("This network isn't available for Mint NFT yet.");
+        return;
     }
+    const config = networks[net];
+    try {
+        await activeEip1193.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
+        currentNet = net;
+        Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
+        document.getElementById("net-"+net).classList.add("active");
+        provider = new ethers.BrowserProvider(activeEip1193);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        factoryContract = new ethers.Contract(FACTORY_ADDRESSES[net], FACTORY_ABI, signer);
+
+        const urlParams = getUrlParams();
+        if (urlParams.net && urlParams.collection) {
+            await loadMintView(urlParams.collection, urlParams.meta);
+        } else {
+            document.getElementById("create-panel").style.display = "block";
+            document.getElementById("mycollections-panel").style.display = "block";
+            document.getElementById("manage-panel").style.display = "none";
+            document.getElementById("create-nft-status").innerText = "";
+            document.getElementById("share-link-box").style.display = "none";
+            await loadMyCollections();
+        }
+    } catch (err) { alert("Network switch failed: " + err.message); }
+}
 
     function renderShareBox(url) {
         const shareBox = document.getElementById("share-link-box");
