@@ -1205,6 +1205,7 @@
     // STATE
     // ============================================================
     let provider, signer, account;
+    let activeEip1193 = null;
     let selectedChain = "8453";
     let fromToken = null;
     let toToken = null;
@@ -1327,30 +1328,30 @@
     // CHAIN CHANGE DETECTION
     // ============================================================
     function setupChainChangeListener() {
-        if (window.ethereum) {
-            window.ethereum.on('chainChanged', (chainId) => {
-                console.log('🔄 Chain changed to:', chainId);
-                handleChainChange(chainId);
-            });
+    if (activeEip1193) {
+        activeEip1193.on('chainChanged', (chainId) => {
+            console.log('🔄 Chain changed to:', chainId);
+            handleChainChange(chainId);
+        });
 
-            window.ethereum.on('accountsChanged', (accounts) => {
-                console.log('👤 Accounts changed:', accounts);
-                if (accounts.length > 0) {
-                    account = accounts[0];
-                    statusMsg.innerText = '✅ Account changed: ' + account.slice(0,6) + '...' + account.slice(-4);
-                    statusMsg.className = 'status-msg success';
-                    loadBalances();
-                } else {
-                    account = null;
-                    statusMsg.innerText = '👋 Wallet disconnected';
-                    statusMsg.className = 'status-msg';
-                    swapBtn.innerHTML = 'Connect Wallet';
-                    fromBalance.textContent = '0.0000';
-                    toBalance.textContent = '0.0000';
-                }
-            });
-        }
+        activeEip1193.on('accountsChanged', (accounts) => {
+            console.log('👤 Accounts changed:', accounts);
+            if (accounts.length > 0) {
+                account = accounts[0];
+                statusMsg.innerText = '✅ Account changed: ' + account.slice(0,6) + '...' + account.slice(-4);
+                statusMsg.className = 'status-msg success';
+                loadBalances();
+            } else {
+                account = null;
+                statusMsg.innerText = '👋 Wallet disconnected';
+                statusMsg.className = 'status-msg';
+                swapBtn.innerHTML = 'Connect Wallet';
+                fromBalance.textContent = '0.0000';
+                toBalance.textContent = '0.0000';
+            }
+        });
     }
+}
 
     // ============================================================
     // HANDLE CHAIN CHANGE
@@ -1417,17 +1418,12 @@
         setupChainChangeListener();
 
         if (window.ethereum && window.ethereum.selectedAddress) {
-            await connectWallet();
-            try {
-                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                await handleChainChange(chainId);
-            } catch (err) {
-                console.warn('Could not get initial chain:', err);
-            }
-        } else {
-            selectNetwork('8453');
-            updateChainIndicator('8453');
-        }
+    activeEip1193 = window.ethereum;
+    await finishConnect(window.ethereum);
+} else {
+    selectNetwork('8453');
+    updateChainIndicator('8453');
+}
 
         checkMemberStatus();
         renderTokenPicker();
@@ -1461,8 +1457,8 @@
                     statusMsg.className = 'status-msg error';
                     return;
                 }
-                if (window.ethereum) {
-                    window.ethereum.request({
+                if (activeEip1193) {
+                    activeEip1193.request
                         method: 'wallet_switchEthereumChain',
                         params: [{ chainId: n.chainId }],
                     }).catch((error) => {
@@ -1587,42 +1583,64 @@
     // WALLET
     // ============================================================
     async function connectWallet() {
-        if (isConnecting) return;
-        if (!window.ethereum) {
-            statusMsg.innerText = '⚠️ Please install MetaMask!';
-            return;
-        }
-        isConnecting = true;
-        swapBtn.disabled = true;
-        swapBtn.innerHTML = '<span class="loader"></span> Connecting...';
-        statusMsg.innerText = '⏳ Connecting...';
+    if (isConnecting) return;
+    isConnecting = true;
+    swapBtn.disabled = true;
+    swapBtn.innerHTML = '<span class="loader"></span> Connecting...';
+    statusMsg.innerText = '⏳ Connecting...';
 
-        try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            await provider.send('eth_requestAccounts', []);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-
-            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-            await handleChainChange(chainId);
-
-            statusMsg.innerText = '✅ Connected: ' + account.slice(0,6) + '...' + account.slice(-4);
-            statusMsg.className = 'status-msg success';
-            swapBtn.innerHTML = 'Get Quote';
-            swapBtn.disabled = false;
-            isConnecting = false;
-
-            checkMemberStatus();
-            await loadBalances();
-
-        } catch (err) {
-            statusMsg.innerText = '❌ ' + (getFriendlyError(err));
-            statusMsg.className = 'status-msg error';
+    try {
+        activeEip1193 = await window.SGMWallet.selectProvider();
+        if (!activeEip1193) {
             swapBtn.innerHTML = 'Connect Wallet';
             swapBtn.disabled = false;
             isConnecting = false;
+            return;
         }
+        await finishConnect(activeEip1193);
+    } catch (err) {
+        statusMsg.innerText = '❌ ' + (getFriendlyError(err));
+        statusMsg.className = 'status-msg error';
+        swapBtn.innerHTML = 'Connect Wallet';
+        swapBtn.disabled = false;
+        isConnecting = false;
     }
+}
+
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+    activeEip1193 = wcProvider;
+    isConnecting = true;
+    await finishConnect(wcProvider);
+});
+
+async function finishConnect(eip1193) {
+    try {
+        provider = new ethers.BrowserProvider(eip1193);
+        await provider.send('eth_requestAccounts', []);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+
+        setupChainChangeListener();
+
+        const chainId = await eip1193.request({ method: 'eth_chainId' });
+        await handleChainChange(chainId);
+
+        statusMsg.innerText = '✅ Connected: ' + account.slice(0,6) + '...' + account.slice(-4);
+        statusMsg.className = 'status-msg success';
+        swapBtn.innerHTML = 'Get Quote';
+        swapBtn.disabled = false;
+        isConnecting = false;
+
+        checkMemberStatus();
+        await loadBalances();
+    } catch (err) {
+        statusMsg.innerText = '❌ ' + (getFriendlyError(err));
+        statusMsg.className = 'status-msg error';
+        swapBtn.innerHTML = 'Connect Wallet';
+        swapBtn.disabled = false;
+        isConnecting = false;
+    }
+}
 
     // ============================================================
     // MEMBER STATUS
@@ -1882,11 +1900,11 @@
     document.addEventListener('DOMContentLoaded', init);
 
     window.addEventListener('beforeunload', () => {
-        if (balanceInterval) clearInterval(balanceInterval);
-        if (window.ethereum) {
-            window.ethereum.removeAllListeners('chainChanged');
-            window.ethereum.removeAllListeners('accountsChanged');
-        }
-    });
+    if (balanceInterval) clearInterval(balanceInterval);
+    if (activeEip1193 && activeEip1193.removeAllListeners) {
+        activeEip1193.removeAllListeners('chainChanged');
+        activeEip1193.removeAllListeners('accountsChanged');
+    }
+});
 </script>
 {% endblock %}
