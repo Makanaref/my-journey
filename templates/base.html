@@ -468,14 +468,26 @@
             box-shadow: 0 0 30px rgba(233, 69, 96, 0.6);
         }
         .theme-switch .slider .icons {
-            display: flex;
-            justify-content: space-between;
-            padding: 0 7px;
-            font-size: 12px;
-            line-height: 26px;
-            color: #fff;
-            opacity: 0.5;
-        }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 6px;
+    height: 100%;
+}
+.theme-switch .slider .icons .icon-moon,
+.theme-switch .slider .icons .icon-sun {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.55);
+    transition: color 0.3s ease;
+}
+.theme-switch input:checked + .slider .icon-sun {
+    color: #f7b32b;
+}
+.theme-switch input:not(:checked) + .slider .icon-moon {
+    color: #e94560;
+}
 
         .hamburger {
             display: none;
@@ -1274,14 +1286,32 @@
 
             <div class="theme-switch-wrapper">
                 <label class="theme-switch" for="themeCheckbox">
-                    <input type="checkbox" id="themeCheckbox" onclick="toggleMode()">
-                    <span class="slider">
-                        <span class="icons">
-                            <span>☀️</span>
-                            <span>🌙</span>
-                        </span>
-                    </span>
-                </label>
+    <input type="checkbox" id="themeCheckbox" onclick="toggleMode()">
+    <span class="slider">
+        <span class="icons">
+            <span class="icon-moon">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <path d="M20.5 14.5c-1 4-4.7 7-9 7-5 0-9-4-9-9 0-4.3 3-8 7-9-.6 1.2-1 2.6-1 4 0 5 4 9 9 9 1.4 0 2.8-.3 4-1z" fill="currentColor"/>
+                </svg>
+            </span>
+            <span class="icon-sun">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="4.5" fill="currentColor"/>
+                    <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <line x1="12" y1="2" x2="12" y2="4.5"/>
+                        <line x1="12" y1="19.5" x2="12" y2="22"/>
+                        <line x1="2" y1="12" x2="4.5" y2="12"/>
+                        <line x1="19.5" y1="12" x2="22" y2="12"/>
+                        <line x1="4.9" y1="4.9" x2="6.6" y2="6.6"/>
+                        <line x1="17.4" y1="17.4" x2="19.1" y2="19.1"/>
+                        <line x1="4.9" y1="19.1" x2="6.6" y2="17.4"/>
+                        <line x1="17.4" y1="6.6" x2="19.1" y2="4.9"/>
+                    </g>
+                </svg>
+            </span>
+        </span>
+    </span>
+</label>
             </div>
         </div>
     </nav>
