@@ -683,44 +683,56 @@
         }
     }
 
-    async function connectWallet() {
-        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-        try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-            document.getElementById("wallet-info").style.display = "block";
-            document.getElementById("wallet-info").innerText = account.slice(0, 6) + "..." + account.slice(-4);
-            document.getElementById("network-switcher").style.display = "block";
-            document.getElementById("pre-connect-msg").style.display = "none";
-        } catch (err) {
-            alert(getFriendlyError(err));
-        }
+    let activeEip1193 = null;
+
+async function connectWallet() {
+    activeEip1193 = await window.SGMWallet.selectProvider();
+    if (!activeEip1193) return;
+    await finishConnect(activeEip1193);
+}
+
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+    activeEip1193 = wcProvider;
+    await finishConnect(wcProvider);
+});
+
+async function finishConnect(eip1193) {
+    try {
+        provider = new ethers.BrowserProvider(eip1193);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        document.getElementById("wallet-info").style.display = "block";
+        document.getElementById("wallet-info").innerText = account.slice(0, 6) + "..." + account.slice(-4);
+        document.getElementById("network-switcher").style.display = "block";
+        document.getElementById("pre-connect-msg").style.display = "none";
+    } catch (err) {
+        alert(getFriendlyError(err));
     }
+}
 
     async function switchNetwork(net) {
-        if (!account) { alert("Connect your wallet first."); return; }
-        if (!MARKETPLACE_ADDRESSES[net]) { alert("Marketplace not deployed on this network yet."); return; }
-        const config = NETWORKS[net];
-        try {
-            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
-            currentNet = net;
-            document.querySelectorAll(".net-card").forEach(b => b.classList.remove("active"));
-            document.getElementById("net-" + net).classList.add("active");
-            provider = new ethers.BrowserProvider(window.ethereum);
-            signer = await provider.getSigner();
-            marketplaceContract = new ethers.Contract(MARKETPLACE_ADDRESSES[net], MARKETPLACE_ABI, signer);
-            oldMarketplaceContract = OLD_MARKETPLACE_ADDRESSES[net]
-                ? new ethers.Contract(OLD_MARKETPLACE_ADDRESSES[net], MARKETPLACE_ABI, signer)
-                : null;
-            document.getElementById("marketplace-tabs").style.display = "block";
-            showGroupedView();
-            await loadListings();
-        } catch (err) {
-            alert(getFriendlyError(err));
-        }
+    if (!account) { alert("Connect your wallet first."); return; }
+    if (!MARKETPLACE_ADDRESSES[net]) { alert("Marketplace not deployed on this network yet."); return; }
+    const config = NETWORKS[net];
+    try {
+        await activeEip1193.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
+        currentNet = net;
+        document.querySelectorAll(".net-card").forEach(b => b.classList.remove("active"));
+        document.getElementById("net-" + net).classList.add("active");
+        provider = new ethers.BrowserProvider(activeEip1193);
+        signer = await provider.getSigner();
+        marketplaceContract = new ethers.Contract(MARKETPLACE_ADDRESSES[net], MARKETPLACE_ABI, signer);
+        oldMarketplaceContract = OLD_MARKETPLACE_ADDRESSES[net]
+            ? new ethers.Contract(OLD_MARKETPLACE_ADDRESSES[net], MARKETPLACE_ABI, signer)
+            : null;
+        document.getElementById("marketplace-tabs").style.display = "block";
+        showGroupedView();
+        await loadListings();
+    } catch (err) {
+        alert(getFriendlyError(err));
     }
+}
 
     function showTab(tab) {
         document.getElementById("tab-browse").classList.toggle("active", tab === "browse");
