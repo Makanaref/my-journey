@@ -20,6 +20,12 @@
             chains: [1],
             showQrModal: true,
             optionalChains: [1, 8453, 10, 43114],
+            metadata: {
+                name: "SGMHub",
+                description: "SGMHub dApps",
+                url: "https://www.sgmhub.ir",
+                icons: ["https://www.sgmhub.ir/favicon.ico"],
+            },
         });
         return wcProviderInstance;
     }
