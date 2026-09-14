@@ -1615,28 +1615,54 @@
             return address.slice(0, 6) + "..." + address.slice(-4);
         }
 
-        async function chatConnectWallet(e) {
-            e.stopPropagation();
-            if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-            const btn = document.getElementById("chatConnectBtn");
-            btn.disabled = true;
-            btn.innerText = "Connecting...";
-            try {
-                await chatLoadEthers();
-                chatProvider = new ethers.BrowserProvider(window.ethereum);
-                await chatProvider.send("eth_requestAccounts", []);
-                chatSigner = await chatProvider.getSigner();
-                chatAccount = await chatSigner.getAddress();
-                chatDisplayName = await chatResolveDisplayName(chatAccount);
+        let chatEip1193 = null;
 
-                document.getElementById("chatConnectBtn").style.display = "none";
-                document.getElementById("chatInputRow").classList.add("active");
-                document.getElementById("chatConnectedAs").innerText = "Chatting as " + chatDisplayName;
-            } catch (err) {
-                btn.disabled = false;
-                btn.innerText = "Connect Wallet to Chat";
-            }
+async function chatConnectWallet(e) {
+    e.stopPropagation();
+    const btn = document.getElementById("chatConnectBtn");
+    btn.disabled = true;
+    btn.innerText = "Connecting...";
+    try {
+        chatEip1193 = await window.SGMWallet.selectProvider();
+        if (!chatEip1193) {
+            btn.disabled = false;
+            btn.innerText = "Connect Wallet to Chat";
+            return;
         }
+        await chatFinishConnect(chatEip1193);
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerText = "Connect Wallet to Chat";
+    }
+}
+
+async function chatFinishConnect(eip1193) {
+    const btn = document.getElementById("chatConnectBtn");
+    try {
+        await chatLoadEthers();
+        chatProvider = new ethers.BrowserProvider(eip1193);
+        await chatProvider.send("eth_requestAccounts", []);
+        chatSigner = await chatProvider.getSigner();
+        chatAccount = await chatSigner.getAddress();
+        chatDisplayName = await chatResolveDisplayName(chatAccount);
+
+        document.getElementById("chatConnectBtn").style.display = "none";
+        document.getElementById("chatInputRow").classList.add("active");
+        document.getElementById("chatConnectedAs").innerText = "Chatting as " + chatDisplayName;
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerText = "Connect Wallet to Chat";
+    }
+}
+
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+   
+    if (document.getElementById("chatConnectBtn").style.display !== "none" &&
+        document.getElementById("chatBlob").classList.contains("chat-open")) {
+        chatEip1193 = wcProvider;
+        await chatFinishConnect(wcProvider);
+    }
+});
 
         function chatUpdateCount() {
             const input = document.getElementById("chatTextInput");
