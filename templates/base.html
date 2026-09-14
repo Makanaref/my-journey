@@ -1431,6 +1431,7 @@
             e.stopPropagation();
             const dropdown = document.getElementById("toolsDropdown");
             if (window.innerWidth <= 700) {
+                const dropdown = e.currentTarget.closest('.dropdown');
                 dropdown.classList.toggle("open");
             }
         }
