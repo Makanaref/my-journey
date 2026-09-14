@@ -588,7 +588,25 @@
         "function nameOf(address holder) view returns (string)"
     ];
 
-    let sgmProvider, sgmSigner, sgmAccount, sgmClaimContract, sgmReferralContract;
+    let sgmProvider, sgmSigner, sgmAccount, sgmClaimContract, sgmReferralContract, sgmEip1193;
+
+    async function sgmFinishConnect(eip1193) {
+        sgmProvider = new ethers.BrowserProvider(eip1193);
+        await sgmProvider.send("eth_requestAccounts", []);
+        sgmSigner = await sgmProvider.getSigner();
+        sgmAccount = await sgmSigner.getAddress();
+        sgmClaimContract = new ethers.Contract(CLAIM_ADDRESS, CLAIM_ABI, sgmSigner);
+        sgmReferralContract = new ethers.Contract(REFERRAL_ADDRESS, REFERRAL_ABI, sgmSigner);
+        await refreshSgmWidget();
+        await trySilentReferralRegister();
+    }
+
+    window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+        if (!sgmAccount && document.getElementById("sgm-claim-widget").classList.contains("sgm-open")) {
+            sgmEip1193 = wcProvider;
+            await sgmFinishConnect(wcProvider);
+        }
+    });
 
     async function refreshSgmWidget() {
         const btn = document.getElementById("sgm-claim-btn");
@@ -675,16 +693,10 @@
         const statusEl = document.getElementById("sgm-claim-status");
 
         if (!sgmAccount) {
-            if (!window.ethereum) { alert("Please install MetaMask!"); return; }
             try {
-                sgmProvider = new ethers.BrowserProvider(window.ethereum);
-                await sgmProvider.send("eth_requestAccounts", []);
-                sgmSigner = await sgmProvider.getSigner();
-                sgmAccount = await sgmSigner.getAddress();
-                sgmClaimContract = new ethers.Contract(CLAIM_ADDRESS, CLAIM_ABI, sgmSigner);
-                sgmReferralContract = new ethers.Contract(REFERRAL_ADDRESS, REFERRAL_ABI, sgmSigner);
-                await refreshSgmWidget();
-                await trySilentReferralRegister();
+                sgmEip1193 = await window.SGMWallet.selectProvider();
+                if (!sgmEip1193) return;
+                await sgmFinishConnect(sgmEip1193);
             } catch (err) { alert("Connection failed: " + err.message); }
             return;
         }
@@ -692,8 +704,8 @@
         const network = await sgmProvider.getNetwork();
         if ("0x" + network.chainId.toString(16) !== BASE_CHAIN_ID_HEX) {
             try {
-                await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BASE_CHAIN_ID_HEX }] });
-                sgmProvider = new ethers.BrowserProvider(window.ethereum);
+                await sgmEip1193.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BASE_CHAIN_ID_HEX }] });
+                sgmProvider = new ethers.BrowserProvider(sgmEip1193);
                 sgmSigner = await sgmProvider.getSigner();
                 sgmClaimContract = new ethers.Contract(CLAIM_ADDRESS, CLAIM_ABI, sgmSigner);
                 sgmReferralContract = new ethers.Contract(REFERRAL_ADDRESS, REFERRAL_ABI, sgmSigner);
