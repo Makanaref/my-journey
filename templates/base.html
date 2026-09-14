@@ -763,7 +763,7 @@
                 border: 1px solid rgba(233, 69, 96, 0.04) !important;
                 border-radius: 14px !important;
             }
-            .dropdown .dropbtn i:last-child { transition: transform 0.3s; }
+            .dropdown .dropbtn i:last-child { display: none; }
             .dropdown.open .dropbtn i:last-child { transform: rotate(180deg); }
             .dropdown-content {
                 all: unset;
@@ -1428,13 +1428,18 @@
 }
 
         function toggleDropdown(e) {
-            e.stopPropagation();
-            const dropdown = document.getElementById("toolsDropdown");
-            if (window.innerWidth <= 700) {
-                const dropdown = e.currentTarget.closest('.dropdown');
-                dropdown.classList.toggle("open");
-            }
+    e.stopPropagation();
+    if (window.innerWidth <= 700) {
+        const dropdown = e.currentTarget.closest('.dropdown');
+        if (dropdown.id === 'toolsDropdown') {
+            window.location.href = '/tools';
+        } else if (dropdown.id === 'domainDropdown') {
+            window.location.href = '/domain';
         }
+        return;
+    }
+    
+}
 
         document.querySelectorAll(".links a, .links .dropbtn").forEach(el => {
             el.addEventListener("click", function(e) {
