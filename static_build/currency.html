@@ -7,6 +7,7 @@
     <title>Currency Converter</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="/static/js/wallet-connect.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html { -webkit-text-size-adjust: 100%; }
@@ -467,14 +468,26 @@
             box-shadow: 0 0 30px rgba(233, 69, 96, 0.6);
         }
         .theme-switch .slider .icons {
-            display: flex;
-            justify-content: space-between;
-            padding: 0 7px;
-            font-size: 12px;
-            line-height: 26px;
-            color: #fff;
-            opacity: 0.5;
-        }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 6px;
+    height: 100%;
+}
+.theme-switch .slider .icons .icon-moon,
+.theme-switch .slider .icons .icon-sun {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.55);
+    transition: color 0.3s ease;
+}
+.theme-switch input:checked + .slider .icon-sun {
+    color: #f7b32b;
+}
+.theme-switch input:not(:checked) + .slider .icon-moon {
+    color: #e94560;
+}
 
         .hamburger {
             display: none;
@@ -725,6 +738,8 @@
                 transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                 z-index: 99;
                 overflow-y: auto;
+                overflow-x: hidden;
+                box-sizing: border-box;
                 border-left: 1px solid rgba(233, 69, 96, 0.06);
             }
             nav .links.open { transform: translateX(0); }
@@ -743,12 +758,12 @@
 
             .dropdown { width: 100%; }
             .dropdown .dropbtn {
-                justify-content: space-between !important;
+                justify-content: flex-start !important;
                 background: rgba(233, 69, 96, 0.02) !important;
                 border: 1px solid rgba(233, 69, 96, 0.04) !important;
                 border-radius: 14px !important;
             }
-            .dropdown .dropbtn i:last-child { transition: transform 0.3s; }
+            .dropdown .dropbtn i:last-child { display: none; }
             .dropdown.open .dropbtn i:last-child { transform: rotate(180deg); }
             .dropdown-content {
                 all: unset;
@@ -758,6 +773,8 @@
                 padding: 8px 4px;
                 margin-top: 4px;
                 width: 100%;
+                box-sizing: border-box;
+                overflow-x: hidden;
                 opacity: 1;
                 visibility: visible;
                 transform: none;
@@ -777,6 +794,9 @@
                 font-size: 0.9em;
                 border-radius: 12px;
                 transition-delay: 0s !important;
+                white-space: normal;
+                width: 100%;
+                box-sizing: border-box;
             }
             .dropdown-col .dropdown-category {
                 margin-top: 6px;
@@ -1273,14 +1293,32 @@
 
             <div class="theme-switch-wrapper">
                 <label class="theme-switch" for="themeCheckbox">
-                    <input type="checkbox" id="themeCheckbox" onclick="toggleMode()">
-                    <span class="slider">
-                        <span class="icons">
-                            <span>☀️</span>
-                            <span>🌙</span>
-                        </span>
-                    </span>
-                </label>
+    <input type="checkbox" id="themeCheckbox" onclick="toggleMode()">
+    <span class="slider">
+        <span class="icons">
+            <span class="icon-moon">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <path d="M20.5 14.5c-1 4-4.7 7-9 7-5 0-9-4-9-9 0-4.3 3-8 7-9-.6 1.2-1 2.6-1 4 0 5 4 9 9 9 1.4 0 2.8-.3 4-1z" fill="currentColor"/>
+                </svg>
+            </span>
+            <span class="icon-sun">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="4.5" fill="currentColor"/>
+                    <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <line x1="12" y1="2" x2="12" y2="4.5"/>
+                        <line x1="12" y1="19.5" x2="12" y2="22"/>
+                        <line x1="2" y1="12" x2="4.5" y2="12"/>
+                        <line x1="19.5" y1="12" x2="22" y2="12"/>
+                        <line x1="4.9" y1="4.9" x2="6.6" y2="6.6"/>
+                        <line x1="17.4" y1="17.4" x2="19.1" y2="19.1"/>
+                        <line x1="4.9" y1="19.1" x2="6.6" y2="17.4"/>
+                        <line x1="17.4" y1="6.6" x2="19.1" y2="4.9"/>
+                    </g>
+                </svg>
+            </span>
+        </span>
+    </span>
+</label>
             </div>
         </div>
     </nav>
@@ -1453,12 +1491,18 @@ async function convert() {
 }
 
         function toggleDropdown(e) {
-            e.stopPropagation();
-            const dropdown = document.getElementById("toolsDropdown");
-            if (window.innerWidth <= 700) {
-                dropdown.classList.toggle("open");
-            }
+    e.stopPropagation();
+    if (window.innerWidth <= 700) {
+        const dropdown = e.currentTarget.closest('.dropdown');
+        if (dropdown.id === 'toolsDropdown') {
+            window.location.href = '/tools';
+        } else if (dropdown.id === 'domainDropdown') {
+            window.location.href = '/domain';
         }
+        return;
+    }
+    
+}
 
         document.querySelectorAll(".links a, .links .dropbtn").forEach(el => {
             el.addEventListener("click", function(e) {
@@ -1634,28 +1678,54 @@ async function convert() {
             return address.slice(0, 6) + "..." + address.slice(-4);
         }
 
-        async function chatConnectWallet(e) {
-            e.stopPropagation();
-            if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-            const btn = document.getElementById("chatConnectBtn");
-            btn.disabled = true;
-            btn.innerText = "Connecting...";
-            try {
-                await chatLoadEthers();
-                chatProvider = new ethers.BrowserProvider(window.ethereum);
-                await chatProvider.send("eth_requestAccounts", []);
-                chatSigner = await chatProvider.getSigner();
-                chatAccount = await chatSigner.getAddress();
-                chatDisplayName = await chatResolveDisplayName(chatAccount);
+        let chatEip1193 = null;
 
-                document.getElementById("chatConnectBtn").style.display = "none";
-                document.getElementById("chatInputRow").classList.add("active");
-                document.getElementById("chatConnectedAs").innerText = "Chatting as " + chatDisplayName;
-            } catch (err) {
-                btn.disabled = false;
-                btn.innerText = "Connect Wallet to Chat";
-            }
+async function chatConnectWallet(e) {
+    e.stopPropagation();
+    const btn = document.getElementById("chatConnectBtn");
+    btn.disabled = true;
+    btn.innerText = "Connecting...";
+    try {
+        chatEip1193 = await window.SGMWallet.selectProvider();
+        if (!chatEip1193) {
+            btn.disabled = false;
+            btn.innerText = "Connect Wallet to Chat";
+            return;
         }
+        await chatFinishConnect(chatEip1193);
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerText = "Connect Wallet to Chat";
+    }
+}
+
+async function chatFinishConnect(eip1193) {
+    const btn = document.getElementById("chatConnectBtn");
+    try {
+        await chatLoadEthers();
+        chatProvider = new ethers.BrowserProvider(eip1193);
+        await chatProvider.send("eth_requestAccounts", []);
+        chatSigner = await chatProvider.getSigner();
+        chatAccount = await chatSigner.getAddress();
+        chatDisplayName = await chatResolveDisplayName(chatAccount);
+
+        document.getElementById("chatConnectBtn").style.display = "none";
+        document.getElementById("chatInputRow").classList.add("active");
+        document.getElementById("chatConnectedAs").innerText = "Chatting as " + chatDisplayName;
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerText = "Connect Wallet to Chat";
+    }
+}
+
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+   
+    if (document.getElementById("chatConnectBtn").style.display !== "none" &&
+        document.getElementById("chatBlob").classList.contains("chat-open")) {
+        chatEip1193 = wcProvider;
+        await chatFinishConnect(wcProvider);
+    }
+});
 
         function chatUpdateCount() {
             const input = document.getElementById("chatTextInput");

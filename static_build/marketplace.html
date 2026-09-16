@@ -7,6 +7,7 @@
     <title>Marketplace</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Orbitron:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="/static/js/wallet-connect.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html { -webkit-text-size-adjust: 100%; }
@@ -467,14 +468,26 @@
             box-shadow: 0 0 30px rgba(233, 69, 96, 0.6);
         }
         .theme-switch .slider .icons {
-            display: flex;
-            justify-content: space-between;
-            padding: 0 7px;
-            font-size: 12px;
-            line-height: 26px;
-            color: #fff;
-            opacity: 0.5;
-        }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 6px;
+    height: 100%;
+}
+.theme-switch .slider .icons .icon-moon,
+.theme-switch .slider .icons .icon-sun {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.55);
+    transition: color 0.3s ease;
+}
+.theme-switch input:checked + .slider .icon-sun {
+    color: #f7b32b;
+}
+.theme-switch input:not(:checked) + .slider .icon-moon {
+    color: #e94560;
+}
 
         .hamburger {
             display: none;
@@ -725,6 +738,8 @@
                 transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                 z-index: 99;
                 overflow-y: auto;
+                overflow-x: hidden;
+                box-sizing: border-box;
                 border-left: 1px solid rgba(233, 69, 96, 0.06);
             }
             nav .links.open { transform: translateX(0); }
@@ -743,12 +758,12 @@
 
             .dropdown { width: 100%; }
             .dropdown .dropbtn {
-                justify-content: space-between !important;
+                justify-content: flex-start !important;
                 background: rgba(233, 69, 96, 0.02) !important;
                 border: 1px solid rgba(233, 69, 96, 0.04) !important;
                 border-radius: 14px !important;
             }
-            .dropdown .dropbtn i:last-child { transition: transform 0.3s; }
+            .dropdown .dropbtn i:last-child { display: none; }
             .dropdown.open .dropbtn i:last-child { transform: rotate(180deg); }
             .dropdown-content {
                 all: unset;
@@ -758,6 +773,8 @@
                 padding: 8px 4px;
                 margin-top: 4px;
                 width: 100%;
+                box-sizing: border-box;
+                overflow-x: hidden;
                 opacity: 1;
                 visibility: visible;
                 transform: none;
@@ -777,6 +794,9 @@
                 font-size: 0.9em;
                 border-radius: 12px;
                 transition-delay: 0s !important;
+                white-space: normal;
+                width: 100%;
+                box-sizing: border-box;
             }
             .dropdown-col .dropdown-category {
                 margin-top: 6px;
@@ -1273,14 +1293,32 @@
 
             <div class="theme-switch-wrapper">
                 <label class="theme-switch" for="themeCheckbox">
-                    <input type="checkbox" id="themeCheckbox" onclick="toggleMode()">
-                    <span class="slider">
-                        <span class="icons">
-                            <span>☀️</span>
-                            <span>🌙</span>
-                        </span>
-                    </span>
-                </label>
+    <input type="checkbox" id="themeCheckbox" onclick="toggleMode()">
+    <span class="slider">
+        <span class="icons">
+            <span class="icon-moon">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <path d="M20.5 14.5c-1 4-4.7 7-9 7-5 0-9-4-9-9 0-4.3 3-8 7-9-.6 1.2-1 2.6-1 4 0 5 4 9 9 9 1.4 0 2.8-.3 4-1z" fill="currentColor"/>
+                </svg>
+            </span>
+            <span class="icon-sun">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="4.5" fill="currentColor"/>
+                    <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <line x1="12" y1="2" x2="12" y2="4.5"/>
+                        <line x1="12" y1="19.5" x2="12" y2="22"/>
+                        <line x1="2" y1="12" x2="4.5" y2="12"/>
+                        <line x1="19.5" y1="12" x2="22" y2="12"/>
+                        <line x1="4.9" y1="4.9" x2="6.6" y2="6.6"/>
+                        <line x1="17.4" y1="17.4" x2="19.1" y2="19.1"/>
+                        <line x1="4.9" y1="19.1" x2="6.6" y2="17.4"/>
+                        <line x1="17.4" y1="6.6" x2="19.1" y2="4.9"/>
+                    </g>
+                </svg>
+            </span>
+        </span>
+    </span>
+</label>
             </div>
         </div>
     </nav>
@@ -1891,13 +1929,47 @@
         }
     }
 
+    const IPFS_GATEWAYS = [
+        "https://ipfs.sgmhub.ir/ipfs/",
+        "https://gateway.pinata.cloud/ipfs/",
+        "https://cloudflare-ipfs.com/ipfs/",
+        "https://ipfs.io/ipfs/"
+    ];
+
+    function resolveUriCandidates(uri) {
+        if (!uri) return [];
+        if (uri.startsWith("ipfs://")) {
+            const path = uri.slice(7);
+            return IPFS_GATEWAYS.map(gw => gw + path);
+        }
+        if (uri.startsWith("http://")) return ["https://" + uri.slice(7)];
+        if (uri.includes("/ipfs/")) {
+            const path = uri.split("/ipfs/")[1];
+            return IPFS_GATEWAYS.map(gw => gw + path);
+        }
+        return [uri];
+    }
+
     function resolveUri(uri) {
-    if (!uri) return null;
-    if (uri.startsWith("ipfs://")) return "https://gateway.pinata.cloud/ipfs/" + uri.slice(7);
-    if (uri.startsWith("http://")) return "https://" + uri.slice(7);
-    if (uri.includes("ipfs.io/ipfs/")) return uri.replace("ipfs.io/ipfs/", "gateway.pinata.cloud/ipfs/");
-    return uri;
-}
+        const candidates = resolveUriCandidates(uri);
+        return candidates.length ? candidates[0] : null;
+    }
+
+    async function fetchJsonWithFallback(uri) {
+        const candidates = resolveUriCandidates(uri);
+        let lastErr;
+        for (const url of candidates) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error("status " + res.status);
+                return await res.json();
+            } catch (err) {
+                lastErr = err;
+                continue;
+            }
+        }
+        throw lastErr || new Error("No gateway succeeded");
+    }
 
     function proxiedImageUrl(uri) {
         if (!uri) return null;
@@ -1909,19 +1981,17 @@
     try {
         const nftWallet = new ethers.Contract(nftContract, ERC721_ABI, provider);
         const nftRead = new ethers.Contract(nftContract, ERC721_ABI, getReadProvider(netKey));
-        let uri = await callWithFallback(
+        let rawUri = await callWithFallback(
             () => nftRead.tokenURI(tokenId),
             () => nftWallet.tokenURI(tokenId)
         );
-        uri = resolveUri(uri);
-        console.log("nftContract:", nftContract, "tokenId:", tokenId, "→ metadata URL:", uri);
-        if (!uri) return { name: null, image: null, animationUrl: null, description: null };
+        console.log("nftContract:", nftContract, "tokenId:", tokenId, "→ metadata URL:", resolveUri(rawUri));
+        if (!rawUri) return { name: null, image: null, animationUrl: null, description: null };
         let meta;
-            if (uri.startsWith("data:application/json;base64,")) {
-                meta = JSON.parse(atob(uri.split(",")[1]));
+            if (rawUri.startsWith("data:application/json;base64,")) {
+                meta = JSON.parse(atob(rawUri.split(",")[1]));
             } else {
-                const res = await fetch(uri);
-                meta = await res.json();
+                meta = await fetchJsonWithFallback(rawUri);
             }
             return {
                 name: meta.name || null,
@@ -1948,44 +2018,56 @@
         }
     }
 
-    async function connectWallet() {
-        if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-        try {
-            provider = new ethers.BrowserProvider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            signer = await provider.getSigner();
-            account = await signer.getAddress();
-            document.getElementById("wallet-info").style.display = "block";
-            document.getElementById("wallet-info").innerText = account.slice(0, 6) + "..." + account.slice(-4);
-            document.getElementById("network-switcher").style.display = "block";
-            document.getElementById("pre-connect-msg").style.display = "none";
-        } catch (err) {
-            alert(getFriendlyError(err));
-        }
+    let activeEip1193 = null;
+
+async function connectWallet() {
+    activeEip1193 = await window.SGMWallet.selectProvider();
+    if (!activeEip1193) return;
+    await finishConnect(activeEip1193);
+}
+
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+    activeEip1193 = wcProvider;
+    await finishConnect(wcProvider);
+});
+
+async function finishConnect(eip1193) {
+    try {
+        provider = new ethers.BrowserProvider(eip1193);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        account = await signer.getAddress();
+        document.getElementById("wallet-info").style.display = "block";
+        document.getElementById("wallet-info").innerText = account.slice(0, 6) + "..." + account.slice(-4);
+        document.getElementById("network-switcher").style.display = "block";
+        document.getElementById("pre-connect-msg").style.display = "none";
+    } catch (err) {
+        alert(getFriendlyError(err));
     }
+}
 
     async function switchNetwork(net) {
-        if (!account) { alert("Connect your wallet first."); return; }
-        if (!MARKETPLACE_ADDRESSES[net]) { alert("Marketplace not deployed on this network yet."); return; }
-        const config = NETWORKS[net];
-        try {
-            await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
-            currentNet = net;
-            document.querySelectorAll(".net-card").forEach(b => b.classList.remove("active"));
-            document.getElementById("net-" + net).classList.add("active");
-            provider = new ethers.BrowserProvider(window.ethereum);
-            signer = await provider.getSigner();
-            marketplaceContract = new ethers.Contract(MARKETPLACE_ADDRESSES[net], MARKETPLACE_ABI, signer);
-            oldMarketplaceContract = OLD_MARKETPLACE_ADDRESSES[net]
-                ? new ethers.Contract(OLD_MARKETPLACE_ADDRESSES[net], MARKETPLACE_ABI, signer)
-                : null;
-            document.getElementById("marketplace-tabs").style.display = "block";
-            showGroupedView();
-            await loadListings();
-        } catch (err) {
-            alert(getFriendlyError(err));
-        }
+    if (!account) { alert("Connect your wallet first."); return; }
+    if (!MARKETPLACE_ADDRESSES[net]) { alert("Marketplace not deployed on this network yet."); return; }
+    const config = NETWORKS[net];
+    try {
+        await activeEip1193.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
+        currentNet = net;
+        document.querySelectorAll(".net-card").forEach(b => b.classList.remove("active"));
+        document.getElementById("net-" + net).classList.add("active");
+        provider = new ethers.BrowserProvider(activeEip1193);
+        signer = await provider.getSigner();
+        marketplaceContract = new ethers.Contract(MARKETPLACE_ADDRESSES[net], MARKETPLACE_ABI, signer);
+        oldMarketplaceContract = OLD_MARKETPLACE_ADDRESSES[net]
+            ? new ethers.Contract(OLD_MARKETPLACE_ADDRESSES[net], MARKETPLACE_ABI, signer)
+            : null;
+        document.getElementById("marketplace-tabs").style.display = "block";
+        showGroupedView();
+        await loadListings();
+    } catch (err) {
+        alert(getFriendlyError(err));
     }
+}
 
     function showTab(tab) {
         document.getElementById("tab-browse").classList.toggle("active", tab === "browse");
@@ -2405,12 +2487,18 @@
 }
 
         function toggleDropdown(e) {
-            e.stopPropagation();
-            const dropdown = document.getElementById("toolsDropdown");
-            if (window.innerWidth <= 700) {
-                dropdown.classList.toggle("open");
-            }
+    e.stopPropagation();
+    if (window.innerWidth <= 700) {
+        const dropdown = e.currentTarget.closest('.dropdown');
+        if (dropdown.id === 'toolsDropdown') {
+            window.location.href = '/tools';
+        } else if (dropdown.id === 'domainDropdown') {
+            window.location.href = '/domain';
         }
+        return;
+    }
+    
+}
 
         document.querySelectorAll(".links a, .links .dropbtn").forEach(el => {
             el.addEventListener("click", function(e) {
@@ -2586,28 +2674,54 @@
             return address.slice(0, 6) + "..." + address.slice(-4);
         }
 
-        async function chatConnectWallet(e) {
-            e.stopPropagation();
-            if (!window.ethereum) { alert("Please install MetaMask!"); return; }
-            const btn = document.getElementById("chatConnectBtn");
-            btn.disabled = true;
-            btn.innerText = "Connecting...";
-            try {
-                await chatLoadEthers();
-                chatProvider = new ethers.BrowserProvider(window.ethereum);
-                await chatProvider.send("eth_requestAccounts", []);
-                chatSigner = await chatProvider.getSigner();
-                chatAccount = await chatSigner.getAddress();
-                chatDisplayName = await chatResolveDisplayName(chatAccount);
+        let chatEip1193 = null;
 
-                document.getElementById("chatConnectBtn").style.display = "none";
-                document.getElementById("chatInputRow").classList.add("active");
-                document.getElementById("chatConnectedAs").innerText = "Chatting as " + chatDisplayName;
-            } catch (err) {
-                btn.disabled = false;
-                btn.innerText = "Connect Wallet to Chat";
-            }
+async function chatConnectWallet(e) {
+    e.stopPropagation();
+    const btn = document.getElementById("chatConnectBtn");
+    btn.disabled = true;
+    btn.innerText = "Connecting...";
+    try {
+        chatEip1193 = await window.SGMWallet.selectProvider();
+        if (!chatEip1193) {
+            btn.disabled = false;
+            btn.innerText = "Connect Wallet to Chat";
+            return;
         }
+        await chatFinishConnect(chatEip1193);
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerText = "Connect Wallet to Chat";
+    }
+}
+
+async function chatFinishConnect(eip1193) {
+    const btn = document.getElementById("chatConnectBtn");
+    try {
+        await chatLoadEthers();
+        chatProvider = new ethers.BrowserProvider(eip1193);
+        await chatProvider.send("eth_requestAccounts", []);
+        chatSigner = await chatProvider.getSigner();
+        chatAccount = await chatSigner.getAddress();
+        chatDisplayName = await chatResolveDisplayName(chatAccount);
+
+        document.getElementById("chatConnectBtn").style.display = "none";
+        document.getElementById("chatInputRow").classList.add("active");
+        document.getElementById("chatConnectedAs").innerText = "Chatting as " + chatDisplayName;
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerText = "Connect Wallet to Chat";
+    }
+}
+
+window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
+   
+    if (document.getElementById("chatConnectBtn").style.display !== "none" &&
+        document.getElementById("chatBlob").classList.contains("chat-open")) {
+        chatEip1193 = wcProvider;
+        await chatFinishConnect(wcProvider);
+    }
+});
 
         function chatUpdateCount() {
             const input = document.getElementById("chatTextInput");

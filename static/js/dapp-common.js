@@ -11,7 +11,8 @@ const NETWORKS = {
     avax:      { chainIdHex: "0x" + (43114).toString(16), chainName: "Avalanche",       rpcUrls: ["https://api.avax.network/ext/bc/C/rpc"],            nativeCurrency: { name: "AVAX", symbol: "AVAX", decimals: 18 }, blockExplorerUrls: ["https://snowtrace.io"] },
     plume:     { chainIdHex: "0x" + (98866).toString(16), chainName: "Plume",           rpcUrls: ["https://rpc.plume.org"],                            nativeCurrency: { name: "PLUME", symbol: "PLUME", decimals: 18 }, blockExplorerUrls:["https://explorer.plume.org"] },
     zetachain: { chainIdHex: "0x" + (7000).toString(16),  chainName: "ZetaChain",       rpcUrls: ["https://zetachain-evm.blockpi.network/v1/rpc/public"], nativeCurrency: { name: "ZETA", symbol: "ZETA", decimals: 18 }, blockExplorerUrls: ["https://zetachain.blockscout.com"] },
-    optimism:  { chainIdHex: "0x" + (10).toString(16),    chainName: "Optimism",        rpcUrls: ["https://mainnet.optimism.io"],                      nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://optimistic.etherscan.io"] }
+    optimism:  { chainIdHex: "0x" + (10).toString(16),    chainName: "Optimism",        rpcUrls: ["https://mainnet.optimism.io"],                      nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 }, blockExplorerUrls: ["https://optimistic.etherscan.io"] },
+    arc:       { chainIdHex: "0x" + (5042).toString(16),    chainName: "Arc",             rpcUrls: ["https://rpc.mainnet.arc.io"],                       nativeCurrency: { name: "USD Coin", symbol: "USDC", decimals: 18 }, blockExplorerUrls: ["https://explorer.arc.io"] }
 };
 
 function getFriendlyError(err) {
