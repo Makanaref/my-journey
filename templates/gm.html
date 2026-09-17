@@ -330,6 +330,10 @@
                 <div class="symbol">L1</div>
                 <div class="name">Lamina1</div>
             </div>
+            <div class="net-card" id="net-arc" onclick="switchNetwork('arc')">
+                <div class="symbol">ARC</div>
+                <div class="name">Arc</div>
+            </div>
         </div>
     </div>
 
@@ -446,7 +450,8 @@
         avax: "0x4DF798fD9F5Ff9109e6D42B67D3eE86FE09D3bf1",
         plume: "0xB72b9D6BF3a0d20a5A3152bcDD627A67eaDad56C",
         zetachain: "0xdA8F4Da59a24b4F5ab1F1f2bd6D000F069F54080",
-        optimism:  "0xc766525C577055bd918d257a0A09E45B859f139D"
+        optimism:  "0xc766525C577055bd918d257a0A09E45B859f139D",
+        arc: ""
     };
     const CONTRACT_ABI = [
         "function sayGM() public",
@@ -462,7 +467,7 @@
         zetachain: "0x0adeE88B5587E37CE5516964F2414b015aD73967",
         avax:      "0x971364BC185a694D817c143865Ec1aF7252ff063",
         plume:     "0x9d683961235260eB77bAB60c93b33f6205c0fa36"
-        // robinhood not deployed yet
+        // robinhood, arc not deployed yet
     };
     const GMPLUS_ABI = [
         "function registerReferral(address referrer) external",
@@ -527,11 +532,19 @@ async function finishConnect(eip1193) {
 
     async function switchNetwork(net) {
     const config = networks[net];
+    if (!CONTRACT_ADDRESSES[net]) {
+        alert("GM isn't deployed on this network yet.");
+        return;
+    }
     try {
         await activeEip1193.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
         currentNet = net;
-        Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
-        document.getElementById("net-"+net).classList.add("active");
+        Object.keys(networks).forEach(n => {
+            const el = document.getElementById("net-" + n);
+            if (el) el.classList.remove("active");
+        });
+        const activeEl = document.getElementById("net-" + net);
+        if (activeEl) activeEl.classList.add("active");
         provider = new ethers.BrowserProvider(activeEip1193);
         signer = await provider.getSigner();
         account = await signer.getAddress();

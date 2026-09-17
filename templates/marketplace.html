@@ -45,6 +45,10 @@
                 <div class="net-card-abbr">NEX</div>
                 <div class="net-card-name">Nexus</div>
             </div>
+            <div class="net-card" id="net-arc" onclick="switchNetwork('arc')">
+                <div class="net-card-abbr">ARC</div>
+                <div class="net-card-name">Arc</div>
+            </div>
         </div>
     </div>
 
@@ -527,7 +531,8 @@
         nexus:     "0x24161AfF13B5c8D81BD49BD75e4FF026cd099485",
         ink:       "0x49e20Fe256DDffC8247B3e02CAFdF91051b19Ad9",
         robinhood: "0xeC1157D5A3d6F05e6C6D0da38E3F0E2401688696",
-        plume:     ""
+        plume:     "",
+        arc:       ""
     };
 
     const OLD_MARKETPLACE_ADDRESSES = {
@@ -537,9 +542,12 @@
         nexus:     "0x2176d8338f55b2c31382FdD92121cf707bD4A0Bb",
         ink:       "0x6A58bCa51905c73071cC6462380B2f82E2c75962",
         robinhood: "",
-        plume:     ""
+        plume:     "",
+        arc:       ""
     };
 
+    // GMPLUS_ADDRESSES and DOMAIN_ADDRESSES intentionally untouched — Arc isn't
+    // deployed on either of those yet (same as Robinhood, which has no key here).
     const DOMAIN_ADDRESSES = {
         lamina1:   "0xA0F865285beBC988008FE081a9A4dFC1320E31A7",
         nexus:     "0xC2B99F200C4523900b73912269652095aFa84AFd",
@@ -715,11 +723,13 @@ async function finishConnect(eip1193) {
     if (!account) { alert("Connect your wallet first."); return; }
     if (!MARKETPLACE_ADDRESSES[net]) { alert("Marketplace not deployed on this network yet."); return; }
     const config = NETWORKS[net];
+    if (!config) { alert("Marketplace not deployed on this network yet."); return; }
     try {
         await activeEip1193.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
         currentNet = net;
         document.querySelectorAll(".net-card").forEach(b => b.classList.remove("active"));
-        document.getElementById("net-" + net).classList.add("active");
+        const activeEl = document.getElementById("net-" + net);
+        if (activeEl) activeEl.classList.add("active");
         provider = new ethers.BrowserProvider(activeEip1193);
         signer = await provider.getSigner();
         marketplaceContract = new ethers.Contract(MARKETPLACE_ADDRESSES[net], MARKETPLACE_ABI, signer);

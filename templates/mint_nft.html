@@ -163,6 +163,7 @@
             <div class="net-card" id="net-zetachain" onclick="switchNetwork('zetachain')"><div class="symbol">ZETA</div><div class="name">ZetaChain</div></div>
             <div class="net-card" id="net-nexus" onclick="switchNetwork('nexus')"><div class="symbol">NEX</div><div class="name">Nexus</div></div>
             <div class="net-card" id="net-lamina1" onclick="switchNetwork('lamina1')"><div class="symbol">L1</div><div class="name">Lamina1</div></div>
+            <div class="net-card" id="net-arc" onclick="switchNetwork('arc')"><div class="symbol">ARC</div><div class="name">Arc</div></div>
         </div>
     </div>
 
@@ -301,7 +302,8 @@ let activeEip1193 = null;
         avax:      "0x01d85BF4fb62c2Ba5746e4BC9821E6a7E05d68f4",
         plume:     "0x9791cDBf9a6AF15C313B49d80299769fB8Bd608D",
         zetachain: "0xF988CAc77e456e915aFbDC22BBc8c114fbd4Cd96",
-        optimism: "0xCA49ab409836c8301831f9908A86AfcFE20dE6e6"
+        optimism: "0xCA49ab409836c8301831f9908A86AfcFE20dE6e6",
+        arc: ""
     };
 
     const FACTORY_ABI = [
@@ -326,7 +328,7 @@ let activeEip1193 = null;
     ];
 
     const networks = Object.fromEntries(
-        Object.entries(NETWORKS).filter(([key]) => ["lamina1","nexus","ink","base","robinhood","avax","plume","zetachain","optimism"].includes(key))
+        Object.entries(NETWORKS).filter(([key]) => ["lamina1","nexus","ink","base","robinhood","avax","plume","zetachain","optimism","arc"].includes(key))
     );
 
     const gasPricePercent = { lamina1: 40, nexus: 8, ink: 13, base: 85, robinhood: 100, avax: 700, plume: 25, zetachain: 100, optimism: 85 };
@@ -399,36 +401,6 @@ let activeEip1193 = null;
     }
 
     async function connectWallet() {
-    activeEip1193 = await window.SGMWallet.selectProvider();
-    if (!activeEip1193) return;
-    await finishConnect(activeEip1193);
-}
-
-window.SGMWallet.onWalletConnectConnected(async (wcProvider) => {
-    activeEip1193 = wcProvider;
-    await finishConnect(wcProvider);
-});
-
-async function finishConnect(eip1193) {
-    try {
-        provider = new ethers.BrowserProvider(eip1193);
-        await provider.send("eth_requestAccounts", []);
-        signer = await provider.getSigner();
-        account = await signer.getAddress();
-        document.getElementById("wallet-info").style.display = "block";
-        document.getElementById("wallet-addr").innerText = account.slice(0,6) + "..." + account.slice(-4);
-
-        const urlParams = getUrlParams();
-        if (urlParams.net && urlParams.collection && networks[urlParams.net]) {
-            document.getElementById("connect-section").style.display = "none";
-            document.getElementById("mv-connect-wrap").style.display = "none";
-            await switchNetwork(urlParams.net);
-        } else {
-            document.getElementById("connect-section").style.display = "none";
-            document.getElementById("network-card").style.display = "block";
-        }
-    } catch (err) { alert("Connection failed: " + err.message); }
-}async function connectWallet() {
     activeEip1193 = await window.SGMWallet.selectProvider();
     if (!activeEip1193) return;
     await finishConnect(activeEip1193);
@@ -569,8 +541,12 @@ if (errMsg.includes("max fee per gas less than block base fee") || errMsg.includ
     try {
         await activeEip1193.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
         currentNet = net;
-        Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
-        document.getElementById("net-"+net).classList.add("active");
+        Object.keys(networks).forEach(n => {
+            const el = document.getElementById("net-" + n);
+            if (el) el.classList.remove("active");
+        });
+        const activeEl = document.getElementById("net-" + net);
+        if (activeEl) activeEl.classList.add("active");
         provider = new ethers.BrowserProvider(activeEip1193);
         signer = await provider.getSigner();
         account = await signer.getAddress();

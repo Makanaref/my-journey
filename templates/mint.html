@@ -164,6 +164,10 @@
                 <div class="symbol">L1</div>
                 <div class="name">Lamina1</div>
             </div>
+            <div class="net-card" id="net-arc" onclick="switchNetwork('arc')">
+                <div class="symbol">ARC</div>
+                <div class="name">Arc</div>
+            </div>
         </div>
     </div>
 
@@ -292,7 +296,8 @@
         avax: "0x5ecDA25Bd340b8684F8A97518F7f9892eC5712CB",
         plume: "0xf74fcdFc71a1B7d493a263E25766223004Bf20f7",
         zetachain: "0x2ACc1E37Ce6C219c9Fc4Cb5b74c9539fA202471a",
-        optimism: "0x9De98bf808154E247BD588E1cbb873495fb60424"
+        optimism: "0x9De98bf808154E247BD588E1cbb873495fb60424",
+        arc: ""
     };
 
     const FACTORY_ABI = [
@@ -351,6 +356,10 @@ async function finishConnect(eip1193) {
 }
 
     async function switchNetwork(net) {
+    if (!FACTORY_ADDRESSES[net]) {
+        alert("This network isn't available for Mint Token yet.");
+        return;
+    }
     const config = networks[net];
     try {
         await activeEip1193.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });

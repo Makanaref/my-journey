@@ -163,6 +163,10 @@
                 <div class="symbol">L1</div>
                 <div class="name">Lamina1</div>
             </div>
+            <div class="net-card" id="net-arc" onclick="switchNetwork('arc')">
+                <div class="symbol">ARC</div>
+                <div class="name">Arc</div>
+            </div>
         </div>
     </div>
 
@@ -195,7 +199,8 @@
         plume:     "0xa7967A3C93281785DF7020717419bEd603da948F",
         zetachain: "0x678D45B398331A1A1ef484FfB5370A1a2034737d",
         optimism:  "0x620145Db1914c1F9c327FA282BD95b9039647Bc6",
-        base:      "0x9242fBcF3AF8137cddE0bf7046b9DDb881d105CC"
+        base:      "0x9242fBcF3AF8137cddE0bf7046b9DDb881d105CC",
+        arc:       ""
         // robinhood coming soon
     };
 
@@ -214,7 +219,7 @@
     // networks object now provided by /static/js/dapp-common.js (as NETWORKS),
     // filtered to only the networks this page actually supports.
     const networks = Object.fromEntries(
-        Object.entries(NETWORKS).filter(([key]) => ["lamina1","nexus","ink","plume","zetachain","optimism","base"].includes(key))
+        Object.entries(NETWORKS).filter(([key]) => ["lamina1","nexus","ink","plume","zetachain","optimism","base","arc"].includes(key))
     );
 
     let activeEip1193 = null;
@@ -244,13 +249,18 @@ async function finishConnect(eip1193) {
 }
 
     async function switchNetwork(net) {
-        const config = networks[net];
         if (!CONTRACT_ADDRESSES[net]) { alert("This network isn't live yet, coming soon!"); return; }
+        const config = networks[net];
+        if (!config) { alert("This network isn't live yet, coming soon!"); return; }
         try {
             await activeEip1193.request({ method: "wallet_addEthereumChain", params: [{ chainId: config.chainIdHex, chainName: config.chainName, rpcUrls: config.rpcUrls, nativeCurrency: config.nativeCurrency, blockExplorerUrls: config.blockExplorerUrls }] });
             currentNet = net;
-            Object.keys(networks).forEach(n => document.getElementById("net-"+n).classList.remove("active"));
-            document.getElementById("net-"+net).classList.add("active");
+            Object.keys(networks).forEach(n => {
+                const el = document.getElementById("net-" + n);
+                if (el) el.classList.remove("active");
+            });
+            const activeEl = document.getElementById("net-" + net);
+            if (activeEl) activeEl.classList.add("active");
             provider = new ethers.BrowserProvider(activeEip1193);
             signer = await provider.getSigner();
             account = await signer.getAddress();
