@@ -1898,16 +1898,17 @@
     function initMainSiteArc() {
         const CONTRACT_ADDRESS = "0x326F4Fe94b3bAc43C7bFa2f75a5a701010d5B7b4";
         const METADATA_BASE = "ipfs://Qme8YeKb7gpWFMkqxDoPV3AjaLmyDg49frSmJux58WbJmd/";
+        const ANIMATION_FALLBACK = "ipfs://QmZr9erJGVeMxZn4dL28hpVnfD9BUV7bRyZNT8wY1WpYuy/1.html";
         const SALE_END_MS = 1787817043000;
         const FALLBACK_WINDOW_HOURS = 72;
 
         const IPFS_GATEWAYS = [
-            "https://ipfs.io/ipfs/",
-            "https://dweb.link/ipfs/",
+            "https://ipfs.sgmhub.ir/ipfs/",
             "https://w3s.link/ipfs/",
             "https://gateway.pinata.cloud/ipfs/",
             "https://4everland.io/ipfs/",
-            "https://ipfs.sgmhub.ir/ipfs/"
+            "https://dweb.link/ipfs/",
+            "https://ipfs.io/ipfs/"
         ];
 
         const BASE_NETWORK = {
@@ -1980,10 +1981,11 @@
         async function loadShowcaseMetadata() {
             const previewBox = document.getElementById("mint-nft-preview");
             const VIDEO_RE = /\.(mp4|webm|mov|m4v)(\?|$)/i;
+            const HTML_RE = /\.html?(\?|$)/i;
 
             function fetchOne(url) {
                 const ctl = new AbortController();
-                const t = setTimeout(() => ctl.abort(), 9000);
+                const t = setTimeout(() => ctl.abort(), 15000);
                 return fetch(url, { cache: "no-store", signal: ctl.signal }).then(async res => {
                     clearTimeout(t);
                     if (!res.ok) throw new Error("status " + res.status);
@@ -2004,6 +2006,18 @@
                 const urls = raw ? IPFS_GATEWAYS.map(g => g + raw) : [uri];
                 if (raw && startGw) { const k = urls.indexOf(startGw + raw); if (k > 0) urls.unshift(urls.splice(k, 1)[0]); }
                 let n = 0;
+                if (HTML_RE.test(uri)) {
+                    // interactive HTML animation -> sandboxed iframe
+                    const fr = document.createElement("iframe");
+                    fr.setAttribute("sandbox", "allow-scripts allow-same-origin");
+                    fr.setAttribute("allow", "autoplay");
+                    fr.setAttribute("loading", "eager");
+                    fr.title = "NFT animation";
+                    fr.style.cssText = "width:100%;height:100%;border:0;display:block;background:#000;";
+                    fr.src = urls[0];
+                    previewBox.appendChild(fr);
+                    return;
+                }
                 const el = document.createElement(isVideo || VIDEO_RE.test(uri) ? "video" : "img");
                 const isVid = el.tagName === "VIDEO";
                 if (isVid) { el.autoplay = true; el.loop = true; el.muted = true; el.playsInline = true; }
@@ -2030,9 +2044,10 @@
                     // CID can be a metadata folder (1.json), a single JSON file, or the media file itself
                     for (const path of [base + "/1.json", base + "/1", base]) {
                         try {
-                            result = await Promise.any(IPFS_GATEWAYS.map(gw =>
-                                fetchOne(gw + path).then(r => { r.gateway = gw; return r; })
-                            ));
+                            // own gateway first (has CORS + is reachable), then public ones in parallel
+                            const tryGw = gw => fetchOne(gw + path).then(r => { r.gateway = gw; return r; });
+                            try { result = await tryGw(IPFS_GATEWAYS[0]); }
+                            catch (e0) { result = await Promise.any(IPFS_GATEWAYS.slice(1).map(tryGw)); }
                             gateway = result.gateway;
                             break;
                         } catch (e) { result = null; }
@@ -2064,6 +2079,8 @@
                 }
             } catch (e) {
                 document.getElementById("relic-desc").innerText = "The fog will not lift tonight \u2014 minting still works regardless.";
+                // metadata unreachable (CORS / not pinned) -> show the known animation directly (iframe needs no CORS)
+                showMedia(ANIMATION_FALLBACK, false, IPFS_GATEWAYS[0]);
             }
         }
 
