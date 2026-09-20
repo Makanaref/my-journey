@@ -1914,17 +1914,29 @@
             "https://ipfs.io/ipfs/"
         ];
 
-        const BASE_NETWORK = {
-            chainId: "0x" + (8453).toString(16),
-            chainName: "Base",
-            rpcUrls: [
-                "https://mainnet.base.org",
-                "https://base.llamarpc.com",
-                "https://base-rpc.publicnode.com"
-            ],
-            nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-            blockExplorerUrls: ["https://basescan.org"]
-        };
+        // Arc: testnet (5042002) and mainnet (5042). The contract is auto-detected on whichever one holds its code.
+        const ARC_NETWORKS = [
+            {
+                chainId: "0x" + (5042002).toString(16),
+                chainName: "Arc Testnet",
+                rpcUrls: [
+                    "https://rpc.testnet.arc.network",
+                    "https://rpc.drpc.testnet.arc.network",
+                    "https://rpc.quicknode.testnet.arc.network"
+                ],
+                nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
+                blockExplorerUrls: ["https://testnet.arcscan.app"]
+            },
+            {
+                chainId: "0x" + (5042).toString(16),
+                chainName: "Arc",
+                rpcUrls: ["https://rpc.mainnet.arc.io"],
+                nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
+                blockExplorerUrls: ["https://explorer.arc.io"]
+            }
+        ];
+        let ARC_NETWORK = ARC_NETWORKS[0];
+        let arcReadContract = null;
 
         const CONTRACT_ABI = [
             "function mint() external payable",
@@ -2178,19 +2190,20 @@
         }
 
         async function ensureNetwork() {
+            try { await getArcReadContract(); } catch (e) {}
             const net = await provider.getNetwork();
             const currentChainIdHex = "0x" + net.chainId.toString(16);
-            if (currentChainIdHex.toLowerCase() !== BASE_NETWORK.chainId.toLowerCase()) {
+            if (currentChainIdHex.toLowerCase() !== ARC_NETWORK.chainId.toLowerCase()) {
                 document.getElementById("network-warn").style.display = "block";
                 try {
                     await window.ethereum.request({
                         method: "wallet_addEthereumChain",
                         params: [{
-                            chainId: BASE_NETWORK.chainId,
-                            chainName: BASE_NETWORK.chainName,
-                            rpcUrls: BASE_NETWORK.rpcUrls,
-                            nativeCurrency: BASE_NETWORK.nativeCurrency,
-                            blockExplorerUrls: BASE_NETWORK.blockExplorerUrls
+                            chainId: ARC_NETWORK.chainId,
+                            chainName: ARC_NETWORK.chainName,
+                            rpcUrls: ARC_NETWORK.rpcUrls,
+                            nativeCurrency: ARC_NETWORK.nativeCurrency,
+                            blockExplorerUrls: ARC_NETWORK.blockExplorerUrls
                         }]
                     });
                     provider = new ethers.BrowserProvider(window.ethereum);
@@ -2202,6 +2215,22 @@
             }
         }
 
+        async function getArcReadContract() {
+            if (arcReadContract) return arcReadContract;
+            for (const net of ARC_NETWORKS) {
+                try {
+                    const rp = await getWorkingReadProvider(net.rpcUrls);
+                    const code = await rp.getCode(CONTRACT_ADDRESS);
+                    if (code && code !== "0x") {
+                        ARC_NETWORK = net;
+                        arcReadContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, rp);
+                        return arcReadContract;
+                    }
+                } catch (e) { continue; }
+            }
+            throw new Error("Contract not found on Arc networks");
+        }
+
         function formatPrice(priceWei) {
             return "FREE";
         }
@@ -2209,9 +2238,10 @@
         async function refreshDropState() {
             const statusEl = document.getElementById("status-msg");
             try {
+                const rc = await getArcReadContract();
                 const [price, minted, max, isOpen, alreadyMinted] = await Promise.all([
-                    contract.mintPrice(), contract.totalMinted(), contract.maxSupply(),
-                    contract.mintOpen(), contract.hasMinted(account)
+                    rc.mintPrice(), rc.totalMinted(), rc.maxSupply(),
+                    rc.mintOpen(), rc.hasMinted(account)
                 ]);
 
                 const priceLabel = formatPrice(price);
@@ -2237,6 +2267,7 @@
                     mintBtn.innerText = "Claim for Free";
                 }
             } catch (err) {
+                console.warn("refreshDropState failed:", err);
                 statusEl.innerText = "Could not read the drop\'s current state.";
                 statusEl.className = "status-msg error";
             }
@@ -2297,18 +2328,15 @@
 
         async function loadPublicDropState() {
             try {
-                const readProvider = await getWorkingReadProvider(BASE_NETWORK.rpcUrls);
-                const [price, minted, max] = await multicallRead(
-                    readProvider, CONTRACT_ADDRESS, CONTRACT_ABI,
-                    ["mintPrice", "totalMinted", "maxSupply"]
-                );
+                const rc = await getArcReadContract();
+                const [price, minted, max] = await Promise.all([rc.mintPrice(), rc.totalMinted(), rc.maxSupply()]);
                 const priceLabel = formatPrice(price);
                 const priceEl = document.getElementById("price-text");
                 priceEl.innerText = priceLabel;
                 priceEl.classList.add("free");
                 document.getElementById("supply-text").innerText = minted.toString() + " / " + max.toString();
                 document.getElementById("supply-fill").style.width = Math.min(100, (Number(minted)/Number(max))*100) + "%";
-            } catch (e) {}
+            } catch (e) { console.warn("loadPublicDropState failed:", e); }
         }
 
         loadShowcaseMetadata();
