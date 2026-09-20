@@ -1900,6 +1900,7 @@
         const METADATA_BASE = "ipfs://Qme8YeKb7gpWFMkqxDoPV3AjaLmyDg49frSmJux58WbJmd/";
         // Optional: host 1.html on your own domain (allowed by frame-src 'self'), e.g. "/nft-animation/1.html"
         const ANIMATION_SELF_HOSTED = "";
+        const ANIM_ASPECT = 1.35;
         const ANIMATION_FALLBACK = "ipfs://QmZr9erJGVeMxZn4dL28hpVnfD9BUV7bRyZNT8wY1WpYuy/1.html";
         const SALE_END_MS = 1787817043000;
         const FALLBACK_WINDOW_HOURS = 72;
@@ -2016,7 +2017,21 @@
                     fr.setAttribute("allow", "autoplay");
                     fr.setAttribute("scrolling", "no");
                     fr.title = "NFT animation";
-                    fr.style.cssText = "width:100%;height:100%;border:0;display:block;background:#000;overflow:hidden;";
+                    // The animation page is taller than it is wide (~1.25x) and used to scroll.
+                    // Give it a taller virtual viewport and scale it down so the whole frame fits the square box.
+                    const ASPECT = ANIM_ASPECT; // virtual height / width; raise it if the bottom is still cut
+                    previewBox.style.position = "relative";
+                    previewBox.style.background = "#000";
+                    const layoutFrame = () => {
+                        const w = previewBox.clientWidth || 260;
+                        const h = Math.round(w * ASPECT);
+                        const sc = previewBox.clientHeight ? previewBox.clientHeight / h : w / h;
+                        fr.style.cssText = "position:absolute;top:0;left:50%;border:0;display:block;background:#000;overflow:hidden;" +
+                            "width:" + w + "px;height:" + h + "px;transform-origin:top center;" +
+                            "transform:translateX(-50%) scale(" + sc + ");";
+                    };
+                    layoutFrame();
+                    window.addEventListener("resize", layoutFrame);
 
                     // If the site's CSP (frame-src) blocks the gateway, fall back to srcdoc (not subject to frame-src)
                     let done = false;
