@@ -1897,17 +1897,17 @@
 
     function initMainSiteArc() {
         const CONTRACT_ADDRESS = "0x326F4Fe94b3bAc43C7bFa2f75a5a701010d5B7b4";
-        const METADATA_BASE = "ipfs://bafybeihkueu4blxxdm6445urrnfmwqmmd7tsmwcnoytrupn6ft5v7knfqa/";
+        const METADATA_BASE = "ipfs://Qme8YeKb7gpWFMkqxDoPV3AjaLmyDg49frSmJux58WbJmd/";
         const SALE_END_MS = 1787817043000;
         const FALLBACK_WINDOW_HOURS = 72;
 
         const IPFS_GATEWAYS = [
-            "https://ipfs.sgmhub.ir/ipfs/",
-            "https://nftstorage.link/ipfs/",
-            "https://cloudflare-ipfs.com/ipfs/",
-            "https://gateway.pinata.cloud/ipfs/",
+            "https://ipfs.io/ipfs/",
             "https://dweb.link/ipfs/",
-            "https://ipfs.io/ipfs/"
+            "https://w3s.link/ipfs/",
+            "https://gateway.pinata.cloud/ipfs/",
+            "https://4everland.io/ipfs/",
+            "https://ipfs.sgmhub.ir/ipfs/"
         ];
 
         const BASE_NETWORK = {
@@ -1978,32 +1978,82 @@
         }
 
         async function loadShowcaseMetadata() {
+            const previewBox = document.getElementById("mint-nft-preview");
+            const VIDEO_RE = /\.(mp4|webm|mov|m4v)(\?|$)/i;
+
+            function fetchOne(url) {
+                const ctl = new AbortController();
+                const t = setTimeout(() => ctl.abort(), 9000);
+                return fetch(url, { cache: "no-store", signal: ctl.signal }).then(async res => {
+                    clearTimeout(t);
+                    if (!res.ok) throw new Error("status " + res.status);
+                    const ct = (res.headers.get("content-type") || "").toLowerCase();
+                    if (ct.startsWith("image/") || ct.startsWith("video/")) {
+                        try { ctl.abort(); } catch (_) {}
+                        return { direct: url, video: ct.startsWith("video/") };
+                    }
+                    const txt = await res.text();
+                    return { meta: JSON.parse(txt) };
+                }).catch(e => { clearTimeout(t); throw e; });
+            }
+
+            function showMedia(uri, isVideo, startGw) {
+                if (!previewBox || !uri) return;
+                previewBox.innerHTML = "";
+                const raw = uri.startsWith("ipfs://") ? uri.slice(7) : null;
+                const urls = raw ? IPFS_GATEWAYS.map(g => g + raw) : [uri];
+                if (raw && startGw) { const k = urls.indexOf(startGw + raw); if (k > 0) urls.unshift(urls.splice(k, 1)[0]); }
+                let n = 0;
+                const el = document.createElement(isVideo || VIDEO_RE.test(uri) ? "video" : "img");
+                const isVid = el.tagName === "VIDEO";
+                if (isVid) { el.autoplay = true; el.loop = true; el.muted = true; el.playsInline = true; }
+                el.style.filter = "url(#waterRipple)";
+                el.onerror = () => {
+                    n++;
+                    if (n < urls.length) el.src = urls[n];
+                };
+                el.src = urls[0];
+                previewBox.appendChild(el);
+                if (isVid) el.play().catch(() => {});
+            }
+
             try {
-                let meta, gateway;
+                const base = ipfsPathFromUri(METADATA_BASE).replace(/\/+$/, "");
+                let result = null, gateway = IPFS_GATEWAYS[0];
+
                 if (METADATA_BASE.startsWith("http://") || METADATA_BASE.startsWith("https://")) {
                     const res = await fetch(METADATA_BASE + "1.json", { cache: "no-store" });
                     if (!res.ok) throw new Error("status " + res.status);
-                    meta = await res.json();
+                    result = { meta: await res.json() };
                     gateway = METADATA_BASE;
                 } else {
-                    const path = ipfsPathFromUri(METADATA_BASE) + "1.json";
-                    const result = await fetchMetadataWithFallback(path);
-                    meta = result.meta;
-                    gateway = result.gateway;
+                    // CID can be a metadata folder (1.json), a single JSON file, or the media file itself
+                    for (const path of [base + "/1.json", base + "/1", base]) {
+                        try {
+                            result = await Promise.any(IPFS_GATEWAYS.map(gw =>
+                                fetchOne(gw + path).then(r => { r.gateway = gw; return r; })
+                            ));
+                            gateway = result.gateway;
+                            break;
+                        } catch (e) { result = null; }
+                    }
+                }
+                if (!result) throw new Error("not found");
+
+                if (result.direct) {
+                    showMedia("ipfs://" + base, result.video, gateway);
+                    return;
                 }
 
+                const meta = result.meta;
                 document.getElementById("relic-name").innerText = meta.name || "SGM N\u00ba001";
                 document.getElementById("relic-desc").innerText = meta.description || "";
 
-                const imgUrl = resolveMediaUrl(meta.image, gateway);
-                const previewBox = document.getElementById("mint-nft-preview");
-                if (imgUrl && previewBox) {
-                    previewBox.innerHTML = "";
-                    const tokenImg = document.createElement("img");
-                    tokenImg.src = imgUrl;
-                    tokenImg.alt = meta.name || "SGM NFT";
-                    tokenImg.style.filter = "url(#waterRipple)";
-                    previewBox.appendChild(tokenImg);
+                const mediaUri = meta.animation_url || meta.image;
+                const isVid = !!meta.animation_url && VIDEO_RE.test(meta.animation_url);
+                if (mediaUri) {
+                    const resolved = mediaUri.startsWith("ipfs://") ? mediaUri : resolveMediaUrl(mediaUri, gateway);
+                    showMedia(resolved, isVid, gateway);
                 }
 
                 if (meta.attributes && meta.attributes.length) {
