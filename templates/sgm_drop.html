@@ -2036,7 +2036,7 @@
                     previewBox.style.background = "#000";
                     const layoutFrame = () => {
                         const w = previewBox.clientWidth || 260;
-                        const h = Math.round(w * ASPECT);
+                        const h = Math.round(w * 0.92 + 64); // 1.html: square stage (92% of width) + 30px padding top/bottom
                         const sc = previewBox.clientHeight ? previewBox.clientHeight / h : w / h;
                         fr.style.cssText = "position:absolute;top:0;left:50%;border:0;display:block;background:#000;overflow:hidden;" +
                             "width:" + w + "px;height:" + h + "px;transform-origin:top center;" +
